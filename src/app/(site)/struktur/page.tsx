@@ -6,7 +6,7 @@ import { BPH_INTI, BPP, DEPARTEMEN } from "@/lib/site-content";
 export const metadata = { title: "Struktur — HIMMAN UKRI" };
 // Halaman publik: cache 5 menit. Setelah admin mengubah pengurus,
 // action memanggil revalidatePath("/struktur") agar langsung segar.
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 const CORE_MAP: Record<string, OfficerPosition> = {
   "Ketua Himpunan": "CHAIR",
