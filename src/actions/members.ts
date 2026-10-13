@@ -32,5 +32,5 @@ export async function decideUser(formData: FormData): Promise<void> {
     });
   });
   revalidatePath("/admin/members");
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
 }

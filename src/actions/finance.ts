@@ -13,6 +13,7 @@ import { UploadError } from "@/lib/storage";
 import type { FormState } from "@/types/forms";
 
 function refresh() {
+  revalidatePath("/admin", "layout");
   revalidatePath("/admin/finance", "layout");
   revalidatePath("/dashboard/finance");
   revalidatePath("/dashboard/dues");

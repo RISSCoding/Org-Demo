@@ -16,12 +16,16 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { roleLabel } from "@/lib/permissions-meta";
+import type { ShellCounts } from "@/lib/shell-counts";
 import { btnGhost } from "@/lib/ui";
 
-/** Satu tautan. `perm` menyembunyikan tautan dari yang tidak berizin; `soon` menampilkannya nonaktif. */
-type Leaf = { href: string; label: string; perm?: string; soon?: boolean };
+/** Kunci badge yang tersedia; entri menu menunjuk ke salah satu key ini. */
+type ShellCountKey = keyof ShellCounts;
+
+/** Satu tautan. `perm` menyembunyikan tautan dari yang tidak berizin; `soon` menampilkannya nonaktif; `badge` menampilkan notifikasi. */
+type Leaf = { href: string; label: string; perm?: string; soon?: boolean; badge?: ShellCountKey };
 /** Satu baris menu: tautan langsung (href) atau grup submenu (children, tanpa href sendiri). */
-type Entry = { label: string; icon: React.ElementType; href?: string; perm?: string; soon?: boolean; children?: Leaf[] };
+type Entry = { label: string; icon: React.ElementType; href?: string; perm?: string; soon?: boolean; badge?: ShellCountKey; children?: Leaf[] };
 type Section = { title?: string; entries: Entry[] };
 /** Tautan yang sudah diratakan untuk mencari halaman aktif; `group` = nama grup induknya (untuk breadcrumb). */
 type FlatLeaf = Leaf & { group?: string };
@@ -35,7 +39,7 @@ const adminNav: Section[] = [
         label: "Anggota",
         icon: Users,
         children: [
-          { href: "/admin/members", label: "Daftar anggota", perm: "member:manage" },
+          { href: "/admin/members", label: "Daftar anggota", perm: "member:manage", badge: "members" },
           { href: "/admin/members/import", label: "Impor mahasiswa baru", perm: "member:manage" },
           { href: "/admin/divisions", label: "Pengurus & Divisi", perm: "member:manage" },
         ],
@@ -51,7 +55,7 @@ const adminNav: Section[] = [
         label: "Keuangan",
         icon: Wallet,
         children: [
-          { href: "/admin/finance", label: "Ringkasan & laporan", perm: "finance:read" },
+          { href: "/admin/finance", label: "Ringkasan & laporan", perm: "finance:read", badge: "finance" },
           { href: "/admin/finance/dues", label: "Iuran kas", perm: "finance:read" },
           { href: "/admin/finance/transactions", label: "Transaksi", perm: "finance:read" },
           { href: "/admin/finance/transactions/new", label: "Catat transaksi", perm: "finance:write" },
@@ -64,7 +68,7 @@ const adminNav: Section[] = [
     entries: [
       { label: "Berita & Artikel", icon: Newspaper, href: "/admin/cms", perm: "cms:write" },
       { label: "Materi", icon: BookOpen, href: "/admin/resources", perm: "cms:write" },
-      { label: "Kotak Aspirasi", icon: MessageSquare, href: "/admin/feedback", perm: "aspirasi:manage" },
+      { label: "Kotak Aspirasi", icon: MessageSquare, href: "/admin/feedback", perm: "aspirasi:manage", badge: "feedback" },
     ],
   },
   {
@@ -124,6 +128,21 @@ function useIsDesktop() {
   );
 }
 
+/** Pill kuning dengan angka; sr-only supaya angka tidak terbaca dua kali. */
+function BadgePill({ n }: { n: number }) {
+  return (
+    <>
+      <span
+        aria-hidden
+        className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#ffa500] px-1.5 text-[10px] font-semibold tabular-nums text-black"
+      >
+        {n > 99 ? "99+" : n}
+      </span>
+      <span className="sr-only">{n} item menunggu tindakan</span>
+    </>
+  );
+}
+
 function LogoutButton({ collapsed, rowCls }: { collapsed: boolean; rowCls: string }) {
   const { pending } = useFormStatus();
   return (
@@ -137,10 +156,13 @@ function LogoutButton({ collapsed, rowCls }: { collapsed: boolean; rowCls: strin
 export function AppShell({
   variant,
   user,
+  counts,
   children,
 }: {
   variant: "admin" | "member";
   user: ShellUser;
+  /** Angka badge di sidebar. Kosong berarti tidak ada notifikasi. */
+  counts?: ShellCounts;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -195,6 +217,15 @@ export function AppShell({
     }))
     .filter((sec) => sec.entries.length > 0);
 
+  // Angka badge: kalau grup, jumlahkan anak-anaknya; kalau tautan langsung, ambil nilainya.
+  const badgeFor = (e: { badge?: ShellCountKey; children?: { badge?: ShellCountKey }[] }): number => {
+    if (!counts) return 0;
+    if (e.children) {
+      return e.children.reduce((s, c) => s + (c.badge ? counts[c.badge] ?? 0 : 0), 0);
+    }
+    return e.badge ? counts[e.badge] ?? 0 : 0;
+  };
+
   // Satu tautan aktif saja: yang href-nya paling panjang dan cocok dengan alamat saat ini
   // (jadi /admin/finance/dues tidak ikut menyalakan "Ringkasan & laporan").
   const hrefMatches = (href: string) =>
@@ -203,7 +234,7 @@ export function AppShell({
   for (const sec of sections) {
     for (const e of sec.entries) {
       if (e.children) for (const c of e.children) leaves.push({ ...c, group: e.label });
-      else if (e.href) leaves.push({ href: e.href, label: e.label, soon: e.soon });
+      else if (e.href) leaves.push({ href: e.href, label: e.label, soon: e.soon, badge: e.badge });
     }
   }
   const activeHref = leaves
@@ -228,9 +259,9 @@ export function AppShell({
   }
 
   const showLabels = !collapsed || !isDesktop;
-  const row = "relative flex items-center gap-3 rounded-sm px-3 py-3 text-sm transition-colors duration-150 md:py-2.5 focus-visible:outline-2 focus-visible:outline-offset-[-2px]";
+  const row = "relative flex items-center gap-3 rounded-sm px-3 py-3 text-sm transition-colors duration-fast md:py-2.5 focus-visible:outline-2 focus-visible:outline-offset-[-2px]";
   const bar =
-    "before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:origin-center before:scale-y-0 before:bg-[#ffa500] before:transition-transform before:duration-300 before:ease-[var(--ease-out)] aria-[current=page]:before:scale-y-100";
+    "before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] before:origin-center before:scale-y-0 before:bg-[#ffa500] before:transition-transform before:duration-slow before:ease-[var(--ease-out)] aria-[current=page]:before:scale-y-100";
 
   /** Saat sidebar dilipat, nama menu muncul sebagai tooltip supaya ikon tidak perlu ditebak. */
   const tip = (label: string, el: React.ReactElement<Record<string, unknown>>) =>
@@ -242,6 +273,16 @@ export function AppShell({
     ) : (
       el
     );
+
+  /** Ikon dengan titik kuning kecil di sudut kanan atas (hanya saat sidebar dilipat). */
+  const iconWithDot = (Icon: React.ElementType, n: number) => (
+    <span className="relative shrink-0">
+      <Icon className="size-4" />
+      {n > 0 && showLabels === false && (
+        <span aria-hidden className="absolute -right-1 -top-1 size-2 rounded-full bg-[#ffa500]" />
+      )}
+    </span>
+  );
 
   return (
     <TooltipProvider delay={250}>
@@ -256,7 +297,7 @@ export function AppShell({
         <div
           aria-hidden
           onClick={closeMobile}
-          className={`fixed inset-0 z-30 bg-black/55 backdrop-blur-[2px] transition-opacity duration-300 md:hidden ${
+          className={`fixed inset-0 z-30 bg-black/55 backdrop-blur-[2px] transition-opacity duration-slow md:hidden ${
             mobileOpen ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
         />
@@ -265,7 +306,7 @@ export function AppShell({
           id="menu-samping"
           aria-label={variant === "admin" ? "Menu panel admin" : "Menu portal anggota"}
           inert={!isDesktop && !mobileOpen}
-          className={`fixed inset-y-0 left-0 z-40 flex w-72 max-w-[85vw] flex-col bg-black text-white transition-[transform,width] duration-300 ease-[var(--ease-out)] md:sticky md:top-0 md:h-dvh md:max-w-none md:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-40 flex w-72 max-w-[85vw] flex-col bg-black text-white transition-[transform,width] duration-slow ease-[var(--ease-out)] md:sticky md:top-0 md:h-dvh md:max-w-none md:translate-x-0 ${
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           } ${collapsed ? "md:w-[72px]" : "md:w-64"}`}
         >
@@ -290,6 +331,7 @@ export function AppShell({
                 <div className="space-y-1">
                   {sec.entries.map((e) => {
                     const Icon = e.icon;
+                    const badge = badgeFor(e);
 
                     // ---- Grup submenu
                     if (e.children) {
@@ -299,7 +341,7 @@ export function AppShell({
                         return (
                           <div key={e.label}>
                             {tip(
-                              e.label,
+                              badge > 0 ? `${e.label} · ${badge} menunggu` : e.label,
                               <Link
                                 href={e.children[0].href}
                                 aria-label={e.label}
@@ -309,7 +351,7 @@ export function AppShell({
                                 }`}
                                 aria-current={groupActive ? "page" : undefined}
                               >
-                                <Icon className="size-4 shrink-0" />
+                                {iconWithDot(Icon, badge)}
                               </Link>,
                             )}
                           </div>
@@ -326,25 +368,30 @@ export function AppShell({
                             onClick={() => setOpenGroups((g) => ({ ...g, [e.label]: !open }))}
                             className={`${row} w-full ${groupActive ? "font-semibold text-white" : "text-white/75 hover:bg-white/10 hover:text-white"}`}
                           >
-                            <Icon className="size-4 shrink-0" />
+                            {iconWithDot(Icon, badge)}
                             <span className="truncate">{e.label}</span>
-                            <ChevronDown className={`ml-auto size-4 shrink-0 text-white/50 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+                            {badge > 0 && <BadgePill n={badge} />}
+                            <ChevronDown className={`${badge > 0 ? "" : "ml-auto"} size-4 shrink-0 text-white/50 transition-transform duration-base ${open ? "rotate-180" : ""}`} />
                           </button>
                           {open && (
                             <div id={listId} className="ml-[1.4rem] mt-1 space-y-0.5 border-l border-white/10 pl-2">
-                              {e.children.map((c) => (
-                                <Link
-                                  key={c.href}
-                                  href={c.href}
-                                  aria-current={isActive(c.href) ? "page" : undefined}
-                                  onClick={() => setMobileOpen(false)}
-                                  className={`block truncate rounded-sm px-3 py-2.5 text-[13px] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-[-2px] md:py-2 ${
-                                    isActive(c.href) ? "bg-white/10 font-semibold text-white" : "text-white/65 hover:bg-white/10 hover:text-white"
-                                  }`}
-                                >
-                                  {c.label}
-                                </Link>
-                              ))}
+                              {e.children.map((c) => {
+                                const cb = c.badge && counts ? counts[c.badge] ?? 0 : 0;
+                                return (
+                                  <Link
+                                    key={c.href}
+                                    href={c.href}
+                                    aria-current={isActive(c.href) ? "page" : undefined}
+                                    onClick={() => setMobileOpen(false)}
+                                    className={`flex items-center gap-2 rounded-sm px-3 py-2.5 text-[13px] transition-colors duration-fast focus-visible:outline-2 focus-visible:outline-offset-[-2px] md:py-2 ${
+                                      isActive(c.href) ? "bg-white/10 font-semibold text-white" : "text-white/65 hover:bg-white/10 hover:text-white"
+                                    }`}
+                                  >
+                                    <span className="truncate">{c.label}</span>
+                                    {cb > 0 && <BadgePill n={cb} />}
+                                  </Link>
+                                );
+                              })}
                             </div>
                           )}
                         </div>
@@ -360,14 +407,14 @@ export function AppShell({
                         title="Segera hadir"
                         className={`${row} cursor-not-allowed text-white/40 ${!showLabels ? "md:justify-center" : ""}`}
                       >
-                        <Icon className="size-4 shrink-0" />
+                        {iconWithDot(Icon, 0)}
                         {showLabels && <span className="truncate">{e.label}</span>}
                         {showLabels && <span className="ml-auto rounded-sm border border-white/20 px-1.5 py-0.5 text-[11px]">Segera</span>}
                       </span>
                     ) : (
                       <div key={href}>
                         {tip(
-                          e.label,
+                          badge > 0 ? `${e.label} · ${badge} menunggu` : e.label,
                           <Link
                             href={href}
                             aria-label={!showLabels ? e.label : undefined}
@@ -377,8 +424,9 @@ export function AppShell({
                               isActive(href) ? "bg-white/10 font-semibold" : "text-white/75 hover:bg-white/10 hover:text-white"
                             }`}
                           >
-                            <Icon className="size-4 shrink-0" />
+                            {iconWithDot(Icon, badge)}
                             {showLabels && <span className="truncate">{e.label}</span>}
+                            {showLabels && badge > 0 && <BadgePill n={badge} />}
                           </Link>,
                         )}
                       </div>

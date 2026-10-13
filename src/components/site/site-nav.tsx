@@ -38,7 +38,7 @@ export function SiteNav() {
   }, [open]);
 
   return (
-    <header className={`sticky top-0 z-40 border-b border-white/10 bg-black text-white transition-shadow duration-300 ${scrolled ? "shadow-[0_8px_24px_-12px_rgba(0,0,0,0.6)]" : ""}`}>
+    <header className={`sticky top-0 z-40 border-b border-white/10 bg-black text-white transition-shadow duration-slow ${scrolled ? "shadow-[0_8px_24px_-12px_rgba(0,0,0,0.6)]" : ""}`}>
       <div className={`${container} flex h-16 items-center justify-between gap-4`}>
         <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
           <Image src="/logo-himman.png" alt="" width={36} height={36} className="size-9" priority />
@@ -75,15 +75,15 @@ export function SiteNav() {
             aria-controls="menu-mobile"
             onClick={() => setOpen((v) => !v)}
           >
-            <Menu className={`absolute size-5 transition-[transform,opacity] duration-300 ease-[var(--ease-out)] ${open ? "rotate-90 scale-50 opacity-0" : ""}`} />
-            <X className={`absolute size-5 transition-[transform,opacity] duration-300 ease-[var(--ease-out)] ${open ? "" : "-rotate-90 scale-50 opacity-0"}`} />
+            <Menu className={`absolute size-5 transition-[transform,opacity] duration-slow ease-[var(--ease-out)] ${open ? "rotate-90 scale-50 opacity-0" : ""}`} />
+            <X className={`absolute size-5 transition-[transform,opacity] duration-slow ease-[var(--ease-out)] ${open ? "" : "-rotate-90 scale-50 opacity-0"}`} />
           </button>
         </div>
       </div>
 
       {/* Tinggi menu dianimasikan lewat grid-rows (0fr ke 1fr), tanpa mengukur tinggi dengan JavaScript. */}
       <div
-        className={`grid transition-[grid-template-rows] duration-300 ease-[var(--ease-out)] lg:hidden ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+        className={`grid transition-[grid-template-rows] duration-slow ease-[var(--ease-out)] lg:hidden ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
       >
         <nav id="menu-mobile" aria-label="Menu utama" inert={!open} className="overflow-hidden">
           <ul className={`${container} flex flex-col border-t border-white/10 py-2`}>
@@ -93,7 +93,7 @@ export function SiteNav() {
                   href={n.href}
                   onClick={() => setOpen(false)}
                   aria-current={active(n.href) ? "page" : undefined}
-                  className={`block border-l-2 py-3.5 pl-4 text-base transition-[border-color,padding] duration-200 hover:pl-5 ${
+                  className={`block border-l-2 py-3.5 pl-4 text-base transition-[border-color,padding] duration-base hover:pl-5 ${
                     active(n.href) ? "border-[#ffa500] font-medium" : "border-transparent text-white/80"
                   }`}
                 >
