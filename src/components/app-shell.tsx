@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { RoleName } from "@prisma/client";
 import {
-  Award, BookOpen, CalendarDays, ChevronDown, Landmark, CreditCard, LayoutDashboard, LogOut, Mail,
+  Award, BookOpen, CalendarDays, ChevronDown, HelpCircle, Landmark, CreditCard, LayoutDashboard, LogOut, Mail,
   Menu, MessageSquare, Newspaper, PanelLeftClose, PanelLeftOpen, Settings, ShieldCheck, User, Users, Wallet, X,
 } from "lucide-react";
 import { useFormStatus } from "react-dom";
@@ -73,7 +73,10 @@ const adminNav: Section[] = [
   },
   {
     title: "Sistem",
-    entries: [{ label: "Pengaturan", icon: Settings, href: "/admin/settings", perm: "finance:write" }],
+    entries: [
+      { label: "Bantuan", icon: HelpCircle, href: "/admin/help" },
+      { label: "Pengaturan", icon: Settings, href: "/admin/settings", perm: "finance:write" },
+    ],
   },
 ];
 
@@ -107,7 +110,10 @@ const memberNav: Section[] = [
   },
   {
     title: "Akun",
-    entries: [{ label: "Profil Saya", icon: User, href: "/dashboard/profile" }],
+    entries: [
+      { label: "Profil Saya", icon: User, href: "/dashboard/profile" },
+      { label: "Bantuan", icon: HelpCircle, href: "/dashboard/help" },
+    ],
   },
 ];
 

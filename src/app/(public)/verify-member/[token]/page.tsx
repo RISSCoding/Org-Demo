@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { headers } from "next/headers";
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { formatDateTime } from "@/lib/datetime";
 import { memberTitle } from "@/lib/member-title";
 import { prisma } from "@/lib/prisma";
 import { isValidKtaNumber, verifySig } from "@/lib/security";
+import { linkText } from "@/lib/site-ui";
 
 export const metadata = { title: "Verifikasi Anggota — HIMMAN UKRI", robots: { index: false } };
 // Status keanggotaan harus selalu terbaru, jangan di-cache.
@@ -80,12 +82,15 @@ async function lookupUser(token: string) {
 
 function NotFound({ message }: { message: string }) {
   return (
-    <div className="flex items-start gap-3 border border-l-4 border-[var(--s-line)] border-l-red-600 p-5">
-      <XCircle className="mt-0.5 size-6 shrink-0 text-red-600 dark:text-red-400" aria-hidden />
-      <div>
-        <h1 className="s-display text-2xl text-[var(--s-head)]">Anggota tidak ditemukan</h1>
-        <p className="s-serif mt-2 text-[var(--s-muted)]">{message}</p>
+    <div className="space-y-6">
+      <div className="flex items-start gap-3 border border-l-4 border-[var(--s-line)] border-l-red-600 p-5">
+        <XCircle className="mt-0.5 size-6 shrink-0 text-red-600 dark:text-red-400" aria-hidden />
+        <div>
+          <h1 className="s-display text-2xl text-[var(--s-head)]">Anggota tidak ditemukan</h1>
+          <p className="s-serif mt-2 text-[var(--s-muted)]">{message}</p>
+        </div>
       </div>
+      <Link href="/verify-member" className={linkText}>Coba nomor lain</Link>
     </div>
   );
 }
