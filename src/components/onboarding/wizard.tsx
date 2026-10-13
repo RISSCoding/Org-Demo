@@ -171,7 +171,7 @@ function ProfileStep({ user, onNext }: { user: WizardUser; onNext: () => void })
         )}
 
         <SubmitButton pendingLabel="Menyimpan…" className={btnPrimary}>
-          Lanjut <ArrowRight className="size-4" aria-hidden />
+          Lanjut <ArrowRight className="size-4 transition-transform duration-fast ease-[var(--ease-out)] group-hover:translate-x-0.5" aria-hidden />
         </SubmitButton>
       </form>
     </section>
@@ -272,7 +272,7 @@ function KtaStep({ user, onNext }: { user: WizardUser; onNext: () => void }) {
 
       <div className="flex flex-wrap gap-2 pt-2">
         <button type="button" onClick={onNext} className={btnPrimary}>
-          Lanjut <ArrowRight className="size-4" aria-hidden />
+          Lanjut <ArrowRight className="size-4 transition-transform duration-fast ease-[var(--ease-out)] group-hover:translate-x-0.5" aria-hidden />
         </button>
         <Link href="/dashboard/kta" className={btnLine}>
           Buka halaman KTA
@@ -326,7 +326,7 @@ function TourStep({ onNext }: { onNext: () => void }) {
       </ul>
 
       <button type="button" onClick={onNext} className={btnPrimary}>
-        Mengerti, lanjut <ArrowRight className="size-4" aria-hidden />
+        Mengerti, lanjut <ArrowRight className="size-4 transition-transform duration-fast ease-[var(--ease-out)] group-hover:translate-x-0.5" aria-hidden />
       </button>
     </section>
   );
@@ -355,7 +355,7 @@ function DoneStep({ onFinish, pending, replay }: { onFinish: () => void; pending
         className={`${btnPrimary} mx-auto`}
       >
         {pending ? "Membuka…" : replay ? "Kembali ke Profil" : "Ke dashboard"}
-        <ArrowRight className="size-4" aria-hidden />
+        <ArrowRight className="size-4 transition-transform duration-fast ease-[var(--ease-out)] group-hover:translate-x-0.5" aria-hidden />
       </button>
     </section>
   );

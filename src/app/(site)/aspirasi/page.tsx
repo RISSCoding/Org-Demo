@@ -24,6 +24,10 @@ export default function Aspirasi() {
             <p>
               <Link href="/aspirasi/lacak" className={linkText}>Sudah punya kode? Lacak pesanmu</Link>
             </p>
+            <p className="border-t border-[var(--s-line)] pt-4">
+              Ketemu bug atau tombol yang tidak bekerja?{" "}
+              <Link href="/bug-report" className={linkText}>Laporkan masalah teknis</Link>.
+            </p>
           </aside>
         </div>
       </Section>

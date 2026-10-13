@@ -2,6 +2,7 @@
 
 import { randomBytes } from "node:crypto";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -65,6 +66,7 @@ export async function submitFeedback(_: FeedbackState, fd: FormData): Promise<Fe
       await prisma.feedback.create({
         data: { isAnonymous: anonymous, senderId, trackingCode: code, ...parsed.data },
       });
+      revalidatePath("/admin", "layout");
       return { code };
     } catch (e) {
       // P2002 = kode bentrok (sangat jarang): ulangi dengan kode baru.

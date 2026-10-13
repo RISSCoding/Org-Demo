@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Reveal } from "@/components/ux/reveal";
-import { BarMark } from "@/components/site/bar-mark";
+import { LogoMark } from "@/components/site/logo-mark";
 import { EventRow } from "@/components/site/event-row";
 import { PostRow } from "@/components/site/post-row";
 import { DEPARTEMEN, LANGKAH_ANGGOTA, ORG, VISI } from "@/lib/site-content";
@@ -17,7 +17,7 @@ export default async function Home() {
     <>
       {/* Hero */}
       <section className="bg-black text-white">
-        <div className={`${container} grid items-end gap-12 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:py-24`}>
+        <div className={`${container} grid items-center gap-12 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:py-24`}>
           <div className="space-y-7">
             <h1 className="s-display text-4xl sm:text-5xl lg:text-6xl">{ORG.name}</h1>
             <p className="text-lg text-white/80">{ORG.univ}</p>
@@ -29,7 +29,7 @@ export default async function Home() {
               <Link href="/kegiatan" className={btnLineLight}>Lihat kegiatan</Link>
             </div>
           </div>
-          <BarMark />
+          <LogoMark />
         </div>
       </section>
 

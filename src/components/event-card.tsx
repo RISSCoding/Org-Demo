@@ -35,7 +35,7 @@ export function EventCard({
       <div className="relative aspect-[16/7] overflow-hidden border-b-4 border-[#ffa500] bg-black">
         {event.bannerUrl && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={event.bannerUrl} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 ease-[var(--ease-out)] group-hover:scale-105" />
+          <img src={event.bannerUrl} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-slower ease-[var(--ease-out)] group-hover:scale-105" />
         )}
         <span className="absolute left-3 top-3 rounded-sm bg-card">
           <span className={`block rounded-sm px-2 py-0.5 text-xs font-semibold ${phase.cls}`}>{phase.label}</span>

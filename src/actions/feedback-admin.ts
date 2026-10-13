@@ -65,6 +65,7 @@ export async function updateFeedbackAction(_: FormState, fd: FormData): Promise<
     }),
   ]);
 
+  revalidatePath("/admin", "layout");
   revalidatePath("/admin/feedback");
   revalidatePath(`/admin/feedback/${d.id}`);
   revalidatePath("/dashboard/feedback");

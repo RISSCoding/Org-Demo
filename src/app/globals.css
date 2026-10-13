@@ -51,6 +51,13 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Durasi (utility Tailwind: duration-fast, duration-base, duration-slow, duration-slower).
+     Semua animasi di aplikasi pakai salah satu dari empat ini — tidak ada durasi ad-hoc. */
+  --duration-fast:   120ms;
+  --duration-base:   200ms;
+  --duration-slow:   320ms;
+  --duration-slower: 480ms;
 }
 
 @layer base {

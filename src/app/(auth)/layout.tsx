@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Brand } from "@/components/brand";
-import { BarMark } from "@/components/site/bar-mark";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -18,7 +17,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               Kartu anggota digital, event dan sertifikat, iuran kas yang transparan, dan arsip surat dalam satu tempat.
             </p>
           </div>
-          <BarMark decorative className="h-40" />
         </div>
         <p className="text-xs text-white/50">© {new Date().getFullYear()} HIMMAN UKRI</p>
       </aside>

@@ -29,6 +29,9 @@ export function SiteFooter() {
             <li>
               <Link href="/verify-certificate" className="hover:text-white">Verifikasi sertifikat</Link>
             </li>
+            <li>
+              <Link href="/bug-report" className="hover:text-white">Laporkan masalah teknis</Link>
+            </li>
           </ul>
         </nav>
 

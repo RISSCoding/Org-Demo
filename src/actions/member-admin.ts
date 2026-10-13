@@ -138,9 +138,9 @@ export async function updateMemberAction(_: FormState, fd: FormData): Promise<Fo
     throw e;
   }
 
+  revalidatePath("/admin", "layout");
   revalidatePath("/admin/members");
   revalidatePath(`/admin/members/${d.id}`);
-  revalidatePath("/admin");
   const accessChanged = changed.some((c) => c.startsWith("role") || c.startsWith("approval") || c === "permissions");
   return {
     success: changed.length === 0
