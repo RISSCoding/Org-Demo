@@ -32,26 +32,37 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
 
-      - run: npm ci
-      - run: npx prisma generate
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lockb', 'bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - run: bun install --frozen-lockfile
+
+      # Prisma generate butuh trustedDependencies di package.json agar engine native ikut terunduh.
+      - run: bunx prisma generate
 
       # Menjalankan seluruh migrasi dari nol sekaligus memverifikasi bahwa migrasi dan schema.prisma tidak berselisih.
-      - run: npx prisma migrate deploy
+      - run: bunx prisma migrate deploy
+
       - name: Schema sama dengan migrasi
         run: |
           PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE himman_shadow"
-          npx prisma migrate diff \
+          bunx prisma migrate diff \
             --from-migrations prisma/migrations \
             --to-schema-datamodel prisma/schema.prisma \
             --shadow-database-url postgresql://postgres:postgres@localhost:5432/himman_shadow \
             --exit-code
 
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run build
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun test
+      - run: bun run build
