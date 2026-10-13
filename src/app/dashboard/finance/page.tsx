@@ -1,5 +1,6 @@
 import { Badge } from "@/components/badge";
 import { FinanceCharts } from "@/components/finance-charts";
+import { FinanceReports, type ReportSearchParams } from "@/components/finance-reports";
 import { formatDate } from "@/lib/datetime";
 import { CATEGORY_LABEL, currentMonthKey, monthLabel, num, rupiah } from "@/lib/finance";
 import { getOverview } from "@/lib/finance-service";
@@ -8,7 +9,8 @@ import { cardCls } from "@/lib/ui";
 
 export const metadata = { title: "Transparansi Kas — HIMMAN UKRI" };
 
-export default async function PublicFinance() {
+export default async function PublicFinance({ searchParams }: { searchParams: Promise<ReportSearchParams> }) {
+  const sp = await searchParams;
   const [ov, recent] = await Promise.all([
     getOverview({ verifiedOnly: true }),
     prisma.financialTransaction.findMany({
@@ -43,6 +45,8 @@ export default async function PublicFinance() {
       </div>
 
       <FinanceCharts monthly={ov.monthly} expenseByCategory={ov.expenseByCategory} />
+
+      <FinanceReports staff={false} basePath="/dashboard/finance" sp={sp} />
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-[var(--s-head)]">Transaksi terbaru</h2>

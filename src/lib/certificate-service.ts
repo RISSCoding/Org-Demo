@@ -2,6 +2,7 @@ import { randomInt } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { renderCertificatePdf } from "@/lib/certificate-pdf";
 import { formatDate } from "@/lib/datetime";
+import { getCertificateSigner } from "@/lib/officers";
 import { prisma } from "@/lib/prisma";
 import { readPrivate, writePrivate } from "@/lib/private-files";
 
@@ -63,6 +64,7 @@ export async function buildCertificatePdf(number: string): Promise<Buffer | null
     location: cert.event.location,
     verifyUrl: verifyUrl(cert.certificateNumber),
     roleTitle: cert.roleTitle,
+    signer: await getCertificateSigner(),
   });
   await writePrivate("certificates", `${number}.pdf`, pdf);
   return pdf;

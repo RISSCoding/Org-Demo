@@ -1,20 +1,24 @@
 import Link from "next/link";
 import { FinanceCharts } from "@/components/finance-charts";
+import { FinanceReports, type ReportSearchParams } from "@/components/finance-reports";
 import { currentMonthKey, hasFinanceWrite, monthLabel, monthOptions, rupiah } from "@/lib/finance";
 import { getOverview, syncOverdue } from "@/lib/finance-service";
+import { resolveScope } from "@/lib/finance-statements";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
 export const metadata = { title: "Keuangan — HIMMAN UKRI" };
 
-export default async function FinanceOverview() {
+export default async function FinanceOverview({ searchParams }: { searchParams: Promise<ReportSearchParams> }) {
   const user = await requirePermission("finance:read");
+  const sp = await searchParams;
   await syncOverdue();
   const key = currentMonthKey();
+  const scope = resolveScope(true, sp.scope);
 
   const [ov, unverified, awaiting, duesAgg] = await Promise.all([
-    getOverview({ verifiedOnly: false }),
+    getOverview({ verifiedOnly: scope === "verified" }),
     prisma.financialTransaction.count({ where: { verifiedBy: null } }),
     prisma.memberDues.count({ where: { proofUrl: { not: null }, status: { not: "PAID" } } }),
     prisma.memberDues.groupBy({ by: ["status"], where: { monthYear: key }, _count: true }),
@@ -34,7 +38,11 @@ export default async function FinanceOverview() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Keuangan</h1>
-          <p className="text-sm text-muted-foreground">Angka di sini termasuk transaksi yang belum diverifikasi.</p>
+          <p className="text-sm text-muted-foreground">
+            {scope === "verified"
+              ? "Angka di sini hanya dari transaksi yang sudah diverifikasi."
+              : "Angka di sini termasuk transaksi yang belum diverifikasi."}
+          </p>
         </div>
         <div className="flex gap-2">
           <Link href="/admin/finance/dues" className={`${btnGhost} border border-border`}>Iuran kas</Link>
@@ -73,10 +81,12 @@ export default async function FinanceOverview() {
 
       <FinanceCharts monthly={ov.monthly} expenseByCategory={ov.expenseByCategory} />
 
+      <FinanceReports staff basePath="/admin/finance" sp={sp} />
+
       <section className={`${cardCls} space-y-3 p-5`}>
         <div>
-          <h2 className="text-lg font-semibold text-[var(--s-head)]">Laporan bulanan</h2>
-          <p className="text-sm text-muted-foreground">Hanya memuat transaksi yang sudah diverifikasi.</p>
+          <h2 className="text-lg font-semibold text-[var(--s-head)]">Laporan bulanan resmi</h2>
+          <p className="text-sm text-muted-foreground">PDF bertanda tangan dan Excel per bulan. Hanya memuat transaksi yang sudah diverifikasi.</p>
         </div>
         <form action="/api/finance/report" method="get" className="flex flex-wrap items-center gap-2">
           <select name="month" defaultValue={key} className={`${inputCls} w-44`}>

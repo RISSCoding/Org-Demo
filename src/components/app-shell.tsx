@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { RoleName } from "@prisma/client";
 import {
-  Award, BookOpen, CalendarDays, Landmark, CreditCard, LayoutDashboard, LogOut, Mail,
-  Menu, MessageSquare, Newspaper, PanelLeftClose, PanelLeftOpen, ShieldCheck, Users, Wallet, X,
+  Award, BookOpen, CalendarDays, ChevronDown, Landmark, CreditCard, LayoutDashboard, LogOut, Mail,
+  Menu, MessageSquare, Newspaper, PanelLeftClose, PanelLeftOpen, Settings, ShieldCheck, User, Users, Wallet, X,
 } from "lucide-react";
 import { useFormStatus } from "react-dom";
 import { logoutAction } from "@/actions/login";
@@ -17,27 +17,93 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { roleLabel } from "@/lib/permissions-meta";
 import { btnGhost } from "@/lib/ui";
 
-type NavItem = { href: string; label: string; icon: React.ElementType; perm?: string; soon?: boolean };
+/** Satu tautan. `perm` menyembunyikan tautan dari yang tidak berizin; `soon` menampilkannya nonaktif. */
+type Leaf = { href: string; label: string; perm?: string; soon?: boolean };
+/** Satu baris menu: tautan langsung (href) atau grup submenu (children, tanpa href sendiri). */
+type Entry = { label: string; icon: React.ElementType; href?: string; perm?: string; soon?: boolean; children?: Leaf[] };
+type Section = { title?: string; entries: Entry[] };
+/** Tautan yang sudah diratakan untuk mencari halaman aktif; `group` = nama grup induknya (untuk breadcrumb). */
+type FlatLeaf = Leaf & { group?: string };
 
-const adminNav: NavItem[] = [
-  { href: "/admin", label: "Ringkasan", icon: LayoutDashboard },
-  { href: "/admin/members", label: "Anggota", icon: Users, perm: "member:manage" },
-  { href: "/admin/events", label: "Event", icon: CalendarDays, perm: "event:manage" },
-  { href: "/admin/finance", label: "Keuangan", icon: Wallet, perm: "finance:read" },
-  { href: "/admin/secretariat", label: "Sekretariat", icon: Mail, perm: "secretariat:manage" },
-  { href: "/admin/cms", label: "Berita & Artikel", icon: Newspaper, perm: "cms:write", soon: true },
-  { href: "/admin/feedback", label: "Kotak Aspirasi", icon: MessageSquare, perm: "aspirasi:manage" },
+const adminNav: Section[] = [
+  { entries: [{ label: "Ringkasan", icon: LayoutDashboard, href: "/admin" }] },
+  {
+    title: "Organisasi",
+    entries: [
+      {
+        label: "Anggota",
+        icon: Users,
+        children: [
+          { href: "/admin/members", label: "Daftar anggota", perm: "member:manage" },
+          { href: "/admin/members/import", label: "Impor mahasiswa baru", perm: "member:manage" },
+          { href: "/admin/divisions", label: "Pengurus & Divisi", perm: "member:manage" },
+        ],
+      },
+      { label: "Event", icon: CalendarDays, href: "/admin/events", perm: "event:manage" },
+      { label: "Sekretariat", icon: Mail, href: "/admin/secretariat", perm: "secretariat:manage" },
+    ],
+  },
+  {
+    title: "Keuangan",
+    entries: [
+      {
+        label: "Keuangan",
+        icon: Wallet,
+        children: [
+          { href: "/admin/finance", label: "Ringkasan & laporan", perm: "finance:read" },
+          { href: "/admin/finance/dues", label: "Iuran kas", perm: "finance:read" },
+          { href: "/admin/finance/transactions", label: "Transaksi", perm: "finance:read" },
+          { href: "/admin/finance/transactions/new", label: "Catat transaksi", perm: "finance:write" },
+        ],
+      },
+    ],
+  },
+  {
+    title: "Konten & layanan",
+    entries: [
+      { label: "Berita & Artikel", icon: Newspaper, href: "/admin/cms", perm: "cms:write" },
+      { label: "Materi", icon: BookOpen, href: "/admin/resources", perm: "cms:write" },
+      { label: "Kotak Aspirasi", icon: MessageSquare, href: "/admin/feedback", perm: "aspirasi:manage" },
+    ],
+  },
+  {
+    title: "Sistem",
+    entries: [{ label: "Pengaturan", icon: Settings, href: "/admin/settings", perm: "finance:write" }],
+  },
 ];
 
-const memberNav: NavItem[] = [
-  { href: "/dashboard", label: "Ringkasan", icon: LayoutDashboard },
-  { href: "/dashboard/kta", label: "KTA Digital", icon: CreditCard },
-  { href: "/dashboard/events", label: "Event", icon: CalendarDays },
-  { href: "/dashboard/certificates", label: "Sertifikat", icon: Award },
-  { href: "/dashboard/dues", label: "Iuran Kas", icon: Wallet },
-  { href: "/dashboard/finance", label: "Transparansi Kas", icon: Landmark },
-  { href: "/dashboard/resources", label: "Materi", icon: BookOpen, soon: true },
-  { href: "/dashboard/feedback", label: "Pesan Saya", icon: MessageSquare },
+const memberNav: Section[] = [
+  {
+    entries: [
+      { label: "Ringkasan", icon: LayoutDashboard, href: "/dashboard" },
+      { label: "KTA Digital", icon: CreditCard, href: "/dashboard/kta" },
+    ],
+  },
+  {
+    title: "Kegiatan",
+    entries: [
+      { label: "Event", icon: CalendarDays, href: "/dashboard/events" },
+      { label: "Sertifikat", icon: Award, href: "/dashboard/certificates" },
+    ],
+  },
+  {
+    title: "Keuangan",
+    entries: [
+      { label: "Iuran Kas", icon: Wallet, href: "/dashboard/dues" },
+      { label: "Transparansi Kas", icon: Landmark, href: "/dashboard/finance" },
+    ],
+  },
+  {
+    title: "Belajar & pesan",
+    entries: [
+      { label: "Materi", icon: BookOpen, href: "/dashboard/resources" },
+      { label: "Pesan Saya", icon: MessageSquare, href: "/dashboard/feedback" },
+    ],
+  },
+  {
+    title: "Akun",
+    entries: [{ label: "Profil Saya", icon: User, href: "/dashboard/profile" }],
+  },
 ];
 
 export type ShellUser = { name: string; nim: string; role: RoleName; permissions: string[] };
@@ -116,12 +182,37 @@ export function AppShell({
   }, [mobileOpen, closeMobile]);
 
   const isExec = user.role === "SUPER_ADMIN" || user.role === "ADMIN_EXECUTIVE";
-  const items = (variant === "admin" ? adminNav : memberNav).filter(
-    (i) => !i.perm || user.role === "SUPER_ADMIN" || user.permissions.includes(i.perm),
-  );
-  const isActive = (href: string) =>
-    href === "/admin" || href === "/dashboard" ? pathname === href : pathname.startsWith(href);
-  const current = items.find((i) => !i.soon && isActive(i.href));
+  const allowed = (perm?: string) => !perm || user.role === "SUPER_ADMIN" || user.permissions.includes(perm);
+
+  // Buang tautan yang tidak boleh dibuka, lalu seksi dan grup yang jadi kosong.
+  const sections = (variant === "admin" ? adminNav : memberNav)
+    .map((sec) => ({
+      ...sec,
+      entries: sec.entries
+        .map((e) => (e.children ? { ...e, children: e.children.filter((c) => allowed(c.perm)) } : e))
+        .filter((e) => (e.children ? e.children.length > 0 : allowed(e.perm))),
+    }))
+    .filter((sec) => sec.entries.length > 0);
+
+  // Satu tautan aktif saja: yang href-nya paling panjang dan cocok dengan alamat saat ini
+  // (jadi /admin/finance/dues tidak ikut menyalakan "Ringkasan & laporan").
+  const hrefMatches = (href: string) =>
+    href === "/admin" || href === "/dashboard" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+  const leaves: FlatLeaf[] = [];
+  for (const sec of sections) {
+    for (const e of sec.entries) {
+      if (e.children) for (const c of e.children) leaves.push({ ...c, group: e.label });
+      else if (e.href) leaves.push({ href: e.href, label: e.label, soon: e.soon });
+    }
+  }
+  const activeHref = leaves
+    .filter((l) => !l.soon && hrefMatches(l.href))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+  const current = leaves.find((l) => l.href === activeHref);
+  const isActive = (href: string) => href === activeHref;
+
+  // Grup terbuka otomatis bila berisi halaman aktif; pilihan manual pengguna menang.
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   const switchLink =
     variant === "admin"
@@ -179,39 +270,115 @@ export function AppShell({
             </button>
           </div>
 
-          <nav aria-label="Navigasi utama" className="flex-1 space-y-1 overflow-y-auto px-3 py-3">
-            {items.map(({ href, label, icon: Icon, soon }) =>
-              soon ? (
-                <span
-                  key={href}
-                  aria-disabled="true"
-                  title="Segera hadir"
-                  className={`${row} cursor-not-allowed text-white/40 ${!showLabels ? "md:justify-center" : ""}`}
-                >
-                  <Icon className="size-4 shrink-0" />
-                  {showLabels && <span className="truncate">{label}</span>}
-                  {showLabels && <span className="ml-auto rounded-sm border border-white/20 px-1.5 py-0.5 text-[11px]">Segera</span>}
-                </span>
-              ) : (
-                <div key={href}>
-                  {tip(
-                    label,
-                    <Link
-                      href={href}
-                      aria-label={!showLabels ? label : undefined}
-                      aria-current={isActive(href) ? "page" : undefined}
-                      onClick={() => setMobileOpen(false)}
-                      className={`${row} ${bar} ${!showLabels ? "md:justify-center" : ""} ${
-                        isActive(href) ? "bg-white/10 font-semibold" : "text-white/75 hover:bg-white/10 hover:text-white"
-                      }`}
-                    >
-                      <Icon className="size-4 shrink-0" />
-                      {showLabels && <span className="truncate">{label}</span>}
-                    </Link>,
-                  )}
+          <nav aria-label="Navigasi utama" className="flex-1 overflow-y-auto px-3 py-3">
+            {sections.map((sec, si) => (
+              <div key={sec.title ?? `sec-${si}`} className={si > 0 ? "mt-1" : undefined}>
+                {sec.title &&
+                  (showLabels ? (
+                    <p className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">{sec.title}</p>
+                  ) : (
+                    <div aria-hidden className="mx-3 my-2 border-t border-white/10" />
+                  ))}
+                <div className="space-y-1">
+                  {sec.entries.map((e) => {
+                    const Icon = e.icon;
+
+                    // ---- Grup submenu
+                    if (e.children) {
+                      const groupActive = e.children.some((c) => isActive(c.href));
+                      // Sidebar dilipat: grup hanya berupa ikon yang membuka halaman pertamanya.
+                      if (!showLabels) {
+                        return (
+                          <div key={e.label}>
+                            {tip(
+                              e.label,
+                              <Link
+                                href={e.children[0].href}
+                                aria-label={e.label}
+                                onClick={() => setMobileOpen(false)}
+                                className={`${row} ${bar} md:justify-center ${
+                                  groupActive ? "bg-white/10 font-semibold" : "text-white/75 hover:bg-white/10 hover:text-white"
+                                }`}
+                                aria-current={groupActive ? "page" : undefined}
+                              >
+                                <Icon className="size-4 shrink-0" />
+                              </Link>,
+                            )}
+                          </div>
+                        );
+                      }
+                      const open = openGroups[e.label] ?? groupActive;
+                      const listId = `grup-${e.label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+                      return (
+                        <div key={e.label}>
+                          <button
+                            type="button"
+                            aria-expanded={open}
+                            aria-controls={listId}
+                            onClick={() => setOpenGroups((g) => ({ ...g, [e.label]: !open }))}
+                            className={`${row} w-full ${groupActive ? "font-semibold text-white" : "text-white/75 hover:bg-white/10 hover:text-white"}`}
+                          >
+                            <Icon className="size-4 shrink-0" />
+                            <span className="truncate">{e.label}</span>
+                            <ChevronDown className={`ml-auto size-4 shrink-0 text-white/50 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+                          </button>
+                          {open && (
+                            <div id={listId} className="ml-[1.4rem] mt-1 space-y-0.5 border-l border-white/10 pl-2">
+                              {e.children.map((c) => (
+                                <Link
+                                  key={c.href}
+                                  href={c.href}
+                                  aria-current={isActive(c.href) ? "page" : undefined}
+                                  onClick={() => setMobileOpen(false)}
+                                  className={`block truncate rounded-sm px-3 py-2.5 text-[13px] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-[-2px] md:py-2 ${
+                                    isActive(c.href) ? "bg-white/10 font-semibold text-white" : "text-white/65 hover:bg-white/10 hover:text-white"
+                                  }`}
+                                >
+                                  {c.label}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    // ---- Tautan langsung
+                    const href = e.href!;
+                    return e.soon ? (
+                      <span
+                        key={href}
+                        aria-disabled="true"
+                        title="Segera hadir"
+                        className={`${row} cursor-not-allowed text-white/40 ${!showLabels ? "md:justify-center" : ""}`}
+                      >
+                        <Icon className="size-4 shrink-0" />
+                        {showLabels && <span className="truncate">{e.label}</span>}
+                        {showLabels && <span className="ml-auto rounded-sm border border-white/20 px-1.5 py-0.5 text-[11px]">Segera</span>}
+                      </span>
+                    ) : (
+                      <div key={href}>
+                        {tip(
+                          e.label,
+                          <Link
+                            href={href}
+                            aria-label={!showLabels ? e.label : undefined}
+                            aria-current={isActive(href) ? "page" : undefined}
+                            onClick={() => setMobileOpen(false)}
+                            className={`${row} ${bar} ${!showLabels ? "md:justify-center" : ""} ${
+                              isActive(href) ? "bg-white/10 font-semibold" : "text-white/75 hover:bg-white/10 hover:text-white"
+                            }`}
+                          >
+                            <Icon className="size-4 shrink-0" />
+                            {showLabels && <span className="truncate">{e.label}</span>}
+                          </Link>,
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              ),
-            )}
+              </div>
+            ))}
           </nav>
 
           <div className="space-y-1 border-t border-white/10 p-3 pb-safe">
@@ -264,6 +431,12 @@ export function AppShell({
               <span>{variant === "admin" ? "Panel Admin" : "Portal Anggota"}</span>
               {current && current.href !== "/admin" && current.href !== "/dashboard" && (
                 <>
+                  {current.group && (
+                    <>
+                      <span aria-hidden className="mx-2">/</span>
+                      <span>{current.group}</span>
+                    </>
+                  )}
                   <span aria-hidden className="mx-2">/</span>
                   <span className="font-medium text-foreground">{current.label}</span>
                 </>
@@ -278,9 +451,14 @@ export function AppShell({
                   {user.nim} · {roleLabel(user.role)}
                 </p>
               </div>
-              <div className="grid size-9 place-items-center rounded-sm bg-[#ffa500] text-sm font-bold text-black" aria-hidden>
-                {user.name.charAt(0).toUpperCase()}
-              </div>
+              <Link
+                href="/dashboard/profile"
+                aria-label="Profil saya"
+                title="Profil saya"
+                className="grid size-9 place-items-center rounded-sm bg-[#ffa500] text-sm font-bold text-black transition-[filter] hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffa500]"
+              >
+                <span aria-hidden>{user.name.charAt(0).toUpperCase()}</span>
+              </Link>
             </div>
           </header>
           <main id="isi" tabIndex={-1} className="flex-1 p-4 outline-none md:p-8 md:pt-10">

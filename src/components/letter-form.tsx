@@ -5,8 +5,10 @@ import { createLetterAction, updateLetterAction } from "@/actions/secretariat";
 import { Field } from "@/components/auth/field";
 import {
   isAutoNumbered, KIND_LABEL, LETTER_KINDS, LETTER_LABEL, LETTER_NATURES, LETTER_TYPES,
-  NATURE_LABEL, PARTY_LABEL, signersFor,
+  NATURE_LABEL, PARTY_LABEL, signerOfficersFor, signersFor,
 } from "@/lib/letters";
+import { isApprovalDoc } from "@/lib/approval-meta";
+import { OFFICER_LABEL, type OfficerSlot } from "@/lib/officer-meta";
 import { inputCls } from "@/lib/ui";
 import { SubmitButton } from "@/components/submit-button";
 import { useFocusFirstInvalid, useKeepFormValues } from "@/components/ux/use-form-feedback";
@@ -27,9 +29,26 @@ type Existing = {
   /** "YYYY-MM-DD" in WIB */
   letterDate: string;
   receivedAt: string | null;
+  /** Proposal/LPJ: kegiatan terkait dan apakah menyangkut dana kampus. */
+  eventId: string | null;
+  campusFunds: boolean;
 };
 
-export function LetterForm({ letter, defaultType, today }: { letter?: Existing; defaultType?: LetterType; today: string }) {
+export function LetterForm({
+  letter,
+  defaultType,
+  today,
+  officers,
+  events = [],
+}: {
+  letter?: Existing;
+  defaultType?: LetterType;
+  today: string;
+  /** Kegiatan yang bisa ditautkan ke proposal/LPJ. */
+  events?: { id: string; title: string }[];
+  /** Nama pemegang jabatan saat ini, untuk keterangan penandatangan. */
+  officers?: Partial<Record<OfficerSlot, string>>;
+}) {
   const editing = !!letter;
   const [state, action] = useActionState<FormState, FormData>(
     editing ? updateLetterAction : createLetterAction,
@@ -40,12 +59,15 @@ export function LetterForm({ letter, defaultType, today }: { letter?: Existing; 
   useFocusFirstInvalid(state, formRef);
   const [type, setType] = useState<LetterType>(letter?.type ?? defaultType ?? "SURAT_KELUAR");
   const [nature, setNature] = useState<LetterNature | "">(letter?.nature ?? "");
+  const [campus, setCampus] = useState(letter?.campusFunds ?? false);
   const fe = state.fieldErrors ?? {};
   const err = (k: string) => fe[k]?.map((e) => <p key={e} className="text-xs text-red-600 dark:text-red-400">{e}</p>);
 
   const isOut = type === "SURAT_KELUAR";
   const isIn = type === "SURAT_MASUK";
-  const signers = signersFor(type, nature || null);
+  const isApproval = isApprovalDoc(type);
+  const signers = signersFor(type, nature || null, campus);
+  const signerOfficers = signerOfficersFor(type, nature || null, campus);
 
   return (
     <form ref={formRef} action={action} className="max-w-xl space-y-5">
@@ -85,6 +107,46 @@ export function LetterForm({ letter, defaultType, today }: { letter?: Existing; 
         <p className="rounded-sm bg-muted px-3 py-2 text-sm">
           <span className="text-muted-foreground">Penandatangan (PO Pasal 3): </span>{signers}.
         </p>
+      )}
+      {signers && officers && signerOfficers.length > 0 && (
+        <p className="-mt-3 text-xs text-muted-foreground">
+          {signerOfficers.map((p, i) => (
+            <span key={p}>
+              {i > 0 && " · "}
+              {OFFICER_LABEL[p]}: {officers?.[p] ?? "belum diisi di halaman Pengurus & Divisi"}
+            </span>
+          ))}
+        </p>
+      )}
+
+      {isApproval && (
+        <fieldset className="space-y-3 rounded-sm border border-border p-3">
+          <legend className="px-1 text-sm font-medium">Lembar pengesahan</legend>
+          <div className="space-y-1.5">
+            <label htmlFor="eventId" className="text-sm font-medium">Kegiatan terkait</label>
+            <select id="eventId" name="eventId" className={inputCls} defaultValue={letter?.eventId ?? ""}>
+              <option value="">— tidak ditautkan —</option>
+              {events.map((ev) => <option key={ev.id} value={ev.id}>{ev.title}</option>)}
+            </select>
+            <p className="text-xs text-muted-foreground">
+              Ketua pelaksana dan sekretaris kegiatan diambil dari panitia yang sudah diterima pada kegiatan ini (bukan diketik ulang).
+            </p>
+            {err("eventId")}
+          </div>
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="campusFunds"
+              checked={campus}
+              onChange={(e) => setCampus(e.target.checked)}
+              className="mt-1 size-4 accent-[#ffa500]"
+            />
+            <span>
+              Menyangkut keuangan / dana dari kampus
+              <span className="block text-xs text-muted-foreground">Menambahkan Ketua Program Studi, Dekan Fakultas, dan Wakil Rektor III sebagai penandatangan.</span>
+            </span>
+          </label>
+        </fieldset>
       )}
 
       {editing ? (

@@ -2,6 +2,7 @@ import { buildFinanceReportXlsx } from "@/lib/finance-report-xlsx";
 import { renderFinanceReportPdf } from "@/lib/finance-report-pdf";
 import { getMonthlyReport } from "@/lib/finance-report";
 import { MONTH_RE } from "@/lib/finance";
+import { getFinanceSigners } from "@/lib/officers";
 import { ForbiddenError, requirePermission, UnauthorizedError } from "@/lib/rbac";
 
 export async function GET(req: Request) {
@@ -19,7 +20,7 @@ export async function GET(req: Request) {
   if (!MONTH_RE.test(month)) return new Response("Invalid month", { status: 400 });
 
   const report = await getMonthlyReport(month);
-  const body = format === "pdf" ? await renderFinanceReportPdf(report) : await buildFinanceReportXlsx(report);
+  const body = format === "pdf" ? await renderFinanceReportPdf(report, await getFinanceSigners()) : await buildFinanceReportXlsx(report);
 
   return new Response(new Uint8Array(body), {
     headers: {

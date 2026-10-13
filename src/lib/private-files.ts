@@ -2,9 +2,10 @@ import { randomUUID } from "node:crypto";
 import { deleteBlob, getBlob, putBlob } from "@/lib/blob";
 import { IMAGE_MIME, MAX_IMAGE_BYTES, sniffImage, UploadError } from "@/lib/storage";
 
-type Folder = "certificates" | "proofs" | "letters";
+type Folder = "certificates" | "proofs" | "letters" | "signatures";
 
 export const MAX_PDF_BYTES = 10 * 1024 * 1024;
+export const MAX_SIGNATURE_BYTES = 2 * 1024 * 1024;
 
 const contentTypeOf = (name: string) =>
   name.endsWith(".pdf") ? "application/pdf" : IMAGE_MIME[name.split(".").pop() as keyof typeof IMAGE_MIME] ?? "application/octet-stream";
@@ -42,6 +43,24 @@ export async function saveLetterPdf(file: File): Promise<string> {
   await writePrivate("letters", name, buf);
   return `/api/letters/${name}`;
 }
+
+/**
+ * Gambar tanda tangan (PNG atau JPG, dicek lewat magic bytes) -> "/api/signatures/<uuid>.<ext>" (route berotentikasi).
+ * WebP ditolak karena tidak bisa disematkan ke PDF.
+ */
+export async function saveSignatureImage(file: File): Promise<string> {
+  if (file.size > MAX_SIGNATURE_BYTES) throw new UploadError("Ukuran gambar tanda tangan maksimal 2 MB.");
+  const buf = Buffer.from(await file.arrayBuffer());
+  const ext = sniffImage(buf);
+  if (ext !== "png" && ext !== "jpg") throw new UploadError("Tanda tangan harus berupa gambar PNG atau JPG.");
+  const name = `${randomUUID()}.${ext}`;
+  await writePrivate("signatures", name, buf);
+  return `/api/signatures/${name}`;
+}
+
+/** "/api/signatures/<uuid>.<ext>" -> "<uuid>.<ext>" (null if the URL isn't one of ours). */
+export const signatureFileName = (url: string | null | undefined) =>
+  url?.match(/^\/api\/signatures\/([a-f0-9-]{36}\.(?:png|jpg))$/)?.[1] ?? null;
 
 /** "/api/letters/<uuid>.pdf" -> "<uuid>.pdf" (null if the URL isn't one of ours). */
 export const letterFileName = (url: string | null | undefined) =>

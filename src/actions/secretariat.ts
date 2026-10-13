@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { isApprovalDoc } from "@/lib/approval-meta";
 import { parseWIB } from "@/lib/datetime";
 import {
   formatLetterNumber, isAutoNumbered, LETTER_KINDS, LETTER_NATURES, LETTER_TYPES,
@@ -29,7 +30,17 @@ const base = {
   nature: z.enum(LETTER_NATURES).optional(),
   receivedAt: day.optional(),
   summary: z.string().trim().max(1000).optional(),
+  // Hanya proposal/LPJ: kegiatan tertaut dan penanda dana kampus (menentukan penandatangan lembar pengesahan).
+  eventId: z.string().trim().max(40).optional(),
+  campusFunds: z.boolean().optional(),
 };
+
+/** Kegiatan yang ditautkan harus ada; mengembalikan galat bidang bila tidak. */
+async function checkEvent(eventId: string | undefined): Promise<FormState | null> {
+  if (!eventId) return null;
+  const ev = await prisma.event.findUnique({ where: { id: eventId }, select: { id: true } });
+  return ev ? null : fail({ eventId: ["Kegiatan tidak ditemukan."] });
+}
 
 /** Aturan per jenis dokumen (PO Pasal 3). */
 function checkByType(
@@ -89,11 +100,17 @@ export async function createLetterAction(_: FormState, fd: FormData): Promise<Fo
     summary: text(fd, "summary"),
     subject: fd.get("subject"),
     senderReceiver: fd.get("senderReceiver"),
+    eventId: text(fd, "eventId"),
+    campusFunds: fd.get("campusFunds") === "on",
   });
   if (!parsed.success) return fail(parsed.error.flatten().fieldErrors);
   const d = parsed.data;
   const isOut = d.type === "SURAT_KELUAR";
   const isIn = d.type === "SURAT_MASUK";
+  const needsApproval = isApprovalDoc(d.type);
+
+  const badEvent = needsApproval ? await checkEvent(d.eventId) : null;
+  if (badEvent) return badEvent;
 
   const doc = await readPdf(fd);
   if (doc.error) return fail({ document: [doc.error] });
@@ -129,10 +146,12 @@ export async function createLetterAction(_: FormState, fd: FormData): Promise<Fo
           receivedAt: isIn ? toDate(d.receivedAt!) : undefined,
           summary: isIn ? d.summary : undefined,
           documentUrl: doc.url,
+          eventId: needsApproval ? (d.eventId ?? null) : null,
+          campusFunds: needsApproval && d.campusFunds === true,
         },
       });
       await tx.auditLog.create({
-        data: { userId: user.id, action: "CREATE", entity: "official_letters", entityId: letter.id, meta: { type: d.type, kind, letterNumber } },
+        data: { userId: user.id, action: "CREATE", entity: "official_letters", entityId: letter.id, meta: { type: d.type, kind, letterNumber, eventId: d.eventId ?? null, campusFunds: d.campusFunds === true } },
       });
       return letter;
     });
@@ -168,11 +187,17 @@ export async function updateLetterAction(_: FormState, fd: FormData): Promise<Fo
       summary: text(fd, "summary"),
       subject: fd.get("subject"),
       senderReceiver: fd.get("senderReceiver"),
+      eventId: text(fd, "eventId"),
+      campusFunds: fd.get("campusFunds") === "on",
     });
   if (!parsed.success) return fail(parsed.error.flatten().fieldErrors);
   const d = parsed.data;
   const isOut = letter.type === "SURAT_KELUAR";
   const isIn = letter.type === "SURAT_MASUK";
+  const needsApproval = isApprovalDoc(letter.type);
+
+  const badEvent = needsApproval ? await checkEvent(d.eventId) : null;
+  if (badEvent) return badEvent;
 
   const doc = await readPdf(fd);
   if (doc.error) return fail({ document: [doc.error] });
@@ -185,11 +210,12 @@ export async function updateLetterAction(_: FormState, fd: FormData): Promise<Fo
         senderReceiver: d.senderReceiver,
         ...(isOut ? { nature: d.nature } : {}),
         ...(isIn ? { letterDate: toDate(d.letterDate), receivedAt: toDate(d.receivedAt!), summary: d.summary } : {}),
+        ...(needsApproval ? { eventId: d.eventId ?? null, campusFunds: d.campusFunds === true } : {}),
         ...(doc.url ? { documentUrl: doc.url } : {}),
       },
     }),
     prisma.auditLog.create({
-      data: { userId: user.id, action: "UPDATE", entity: "official_letters", entityId: id, meta: { replacedDocument: !!doc.url } },
+      data: { userId: user.id, action: "UPDATE", entity: "official_letters", entityId: id, meta: { replacedDocument: !!doc.url, ...(needsApproval ? { eventId: d.eventId ?? null, campusFunds: d.campusFunds === true } : {}) } },
     }),
   ]);
   if (doc.url) {

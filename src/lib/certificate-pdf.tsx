@@ -36,12 +36,14 @@ export type CertificateData = {
   verifyUrl: string;
   /** Hanya untuk sertifikat panitia, mis. "Ketua Panitia". */
   roleTitle?: string | null;
+  /** Penandatangan; bila kosong dipakai CERT_SIGNER_NAME / CERT_SIGNER_TITLE. */
+  signer?: { name: string; title: string };
 };
 
 export async function renderCertificatePdf(d: CertificateData): Promise<Buffer> {
   const qr = await QRCode.toDataURL(d.verifyUrl, { margin: 1, width: 240, errorCorrectionLevel: "M" });
-  const signerName = process.env.CERT_SIGNER_NAME ?? "Ketua Umum";
-  const signerTitle = process.env.CERT_SIGNER_TITLE ?? "Ketua Umum HIMMAN UKRI";
+  const signerName = d.signer?.name ?? process.env.CERT_SIGNER_NAME ?? "Ketua Umum";
+  const signerTitle = d.signer?.title ?? process.env.CERT_SIGNER_TITLE ?? "Ketua Umum HIMMAN UKRI";
 
   return renderToBuffer(
     <Document title={`Sertifikat ${d.number}`} author="HIMMAN UKRI">

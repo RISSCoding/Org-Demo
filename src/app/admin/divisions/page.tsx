@@ -1,8 +1,12 @@
-import { ConfirmSubmit } from "@/components/confirm-submit";
-import { createDivisionAction, deleteDivisionAction, updateDivisionAction } from "@/actions/divisions";
+import { createDivisionAction } from "@/actions/divisions";
+import { DivisionsBoard } from "@/components/divisions-board";
+import { OfficersBoard } from "@/components/officers-board";
+import { DIVISION_ELIGIBLE_ROLES } from "@/lib/division-roles";
+import { OFFICER_LABEL, OFFICER_SLOTS } from "@/lib/officer-meta";
+import { getOfficers } from "@/lib/officers";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
-import { btnLine, btnPrimary, cardCls, inputCls } from "@/lib/ui";
+import { btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
 export const metadata = { title: "Divisi — HIMMAN UKRI" };
 export const dynamic = "force-dynamic";
@@ -15,24 +19,60 @@ export default async function AdminDivisions({
   await requirePermission("member:manage");
   const { error, ok } = await searchParams;
 
-  const [divisions, people] = await Promise.all([
-    prisma.division.findMany({ orderBy: { name: "asc" }, include: { _count: { select: { members: true } } } }),
-    prisma.user.findMany({
-      where: { approvalStatus: "APPROVED", role: { name: { in: ["SUPER_ADMIN", "ADMIN_EXECUTIVE", "MEMBER"] } } },
-      orderBy: { fullName: "asc" },
-      select: { id: true, fullName: true, nim: true },
+  const [divisions, users, officers] = await Promise.all([
+    prisma.division.findMany({
+      orderBy: { name: "asc" },
+      include: { members: { select: { user: { select: { id: true, fullName: true, nim: true } } } } },
     }),
+    prisma.user.findMany({
+      where: { approvalStatus: "APPROVED", role: { name: { in: [...DIVISION_ELIGIBLE_ROLES] } } },
+      orderBy: { fullName: "asc" },
+      select: { id: true, fullName: true, nim: true, signatureUrl: true, member: { select: { divisionId: true } } },
+    }),
+    getOfficers(),
   ]);
+
+  const people = users.map((u) => ({
+    id: u.id,
+    fullName: u.fullName,
+    nim: u.nim,
+    isMember: u.member !== null,
+    divisionId: u.member?.divisionId ?? null,
+  }));
+  const officerSlots = OFFICER_SLOTS.map((position) => ({
+    position,
+    label: OFFICER_LABEL[position],
+    officerId: officers.slots[position]?.id ?? null,
+    userId: officers.slots[position]?.userId ?? null,
+    name: officers.slots[position]?.name ?? null,
+    signatureUrl: officers.slots[position]?.signatureUrl ?? null,
+  }));
+  const signedUserIds = users.filter((u) => u.signatureUrl).map((u) => u.id);
+  const officerOptions = people.map((p) => ({ value: p.id, label: p.fullName, hint: p.nim }));
+  const rows = divisions.map((d) => ({
+    id: d.id,
+    name: d.name,
+    leaderId: d.leaderId,
+    members: d.members
+      .map((m) => ({ userId: m.user.id, fullName: m.user.fullName, nim: m.user.nim }))
+      .sort((a, b) => a.fullName.localeCompare(b.fullName, "id")),
+  }));
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Divisi</h1>
-        <p className="text-sm text-muted-foreground">Kelola departemen/divisi dan ketuanya. Anggota ditempatkan dari halaman Anggota.</p>
+        <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Pengurus &amp; Divisi</h1>
+        <p className="text-sm text-muted-foreground">
+          Atur pengurus inti, penandatangan eksternal, dan Dewan Pembina beserta tanda tangannya, lalu kelola departemen/divisi, ketuanya, dan anggotanya. Anggota juga masih bisa ditempatkan dari halaman Anggota.
+        </p>
       </div>
 
       {error && <p role="alert" className="rounded-sm bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
       {ok && <p role="status" className="rounded-sm bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">{ok}</p>}
+
+      <OfficersBoard slots={officerSlots} advisors={officers.advisors.map((a) => ({ id: a.id, name: a.name }))} options={officerOptions} />
+
+      <h2 className="pt-2 text-lg font-semibold">Divisi</h2>
 
       <form action={createDivisionAction} className={`${cardCls} flex flex-wrap items-end gap-3 p-4`}>
         <div className="min-w-56 flex-1 space-y-1.5">
@@ -42,36 +82,7 @@ export default async function AdminDivisions({
         <button type="submit" className={btnPrimary}>Tambah</button>
       </form>
 
-      <div className={`${cardCls} divide-y divide-border`}>
-        {divisions.length === 0 && <p className="p-4 text-sm text-muted-foreground">Belum ada divisi.</p>}
-        {divisions.map((d) => (
-          <div key={d.id} className="flex flex-wrap items-end gap-3 p-4">
-            <form action={updateDivisionAction} className="flex flex-1 flex-wrap items-end gap-3">
-              <input type="hidden" name="id" value={d.id} />
-              <div className="min-w-48 flex-1 space-y-1.5">
-                <label htmlFor={`n-${d.id}`} className="text-sm font-medium">Nama ({d._count.members} anggota)</label>
-                <input id={`n-${d.id}`} name="name" defaultValue={d.name} required minLength={2} maxLength={60} className={inputCls} />
-              </div>
-              <div className="min-w-56 flex-1 space-y-1.5">
-                <label htmlFor={`l-${d.id}`} className="text-sm font-medium">Ketua</label>
-                <select id={`l-${d.id}`} name="leaderId" defaultValue={d.leaderId ?? ""} className={inputCls}>
-                  <option value="">— belum ditentukan —</option>
-                  {people.map((p) => (
-                    <option key={p.id} value={p.id}>{p.fullName} ({p.nim})</option>
-                  ))}
-                </select>
-              </div>
-              <button type="submit" className={btnLine}>Simpan</button>
-            </form>
-            <form action={deleteDivisionAction}>
-              <input type="hidden" name="id" value={d.id} />
-              <ConfirmSubmit message={`Hapus divisi ${d.name}?`} className={`${btnLine} text-red-600 dark:text-red-400`}>
-                Hapus
-              </ConfirmSubmit>
-            </form>
-          </div>
-        ))}
-      </div>
+      <DivisionsBoard divisions={rows} people={people} signedUserIds={signedUserIds} />
     </div>
   );
 }

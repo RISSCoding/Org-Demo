@@ -1,5 +1,7 @@
 import type { LetterKind, LetterNature, LetterType } from "@prisma/client";
 import { TZ } from "@/lib/datetime";
+import { approvalSignerText } from "@/lib/approval-meta";
+import { EXTERNAL_SLOTS, type OfficerSlot } from "@/lib/officer-meta";
 import { toRoman } from "@/lib/security";
 
 export const LETTER_TYPES = ["SURAT_MASUK", "SURAT_KELUAR", "PROPOSAL", "LPJ"] as const satisfies readonly LetterType[];
@@ -70,13 +72,29 @@ export const NATURE_SIGNERS: Record<LetterNature, string> = {
   RUTIN: "Ketua Himpunan dan Sekretaris",
 };
 
-export const PROPOSAL_SIGNERS =
-  "Ketua pelaksana, Sekretaris kegiatan, Ketua Himpunan, Ketua Program Studi, Dekan Fakultas, dan Wakil Rektor III Bidang Kemahasiswaan dan Alumni (bila menyangkut dana dari kampus)";
 
 export const isLetterNature = (v: unknown): v is LetterNature => LETTER_NATURES.includes(v as LetterNature);
 
-export function signersFor(type: LetterType, nature: LetterNature | null | undefined) {
-  if (type === "PROPOSAL" || type === "LPJ") return PROPOSAL_SIGNERS;
+/** Pengurus inti yang menandatangani tiap sifat surat. Sekretaris kegiatan, pihak prodi, dekan, dan WR III bukan bagian dari data pengurus. */
+const NATURE_SIGNER_POSITIONS: Record<LetterNature, readonly OfficerSlot[]> = {
+  KEBIJAKAN: ["CHAIR", "SECRETARY"],
+  TEKNIS_KEGIATAN: ["CHAIR"],
+  RUTIN: ["CHAIR", "SECRETARY"],
+};
+
+export function signerOfficersFor(
+  type: LetterType,
+  nature: LetterNature | null | undefined,
+  campusFunds = false,
+): readonly OfficerSlot[] {
+  // Proposal/LPJ dengan dana kampus: Ketua Himpunan ditambah Ketua Prodi, Dekan, dan WR III.
+  if (type === "PROPOSAL" || type === "LPJ") return campusFunds ? ["CHAIR", ...EXTERNAL_SLOTS] : ["CHAIR"];
+  if (type === "SURAT_KELUAR" && nature) return NATURE_SIGNER_POSITIONS[nature];
+  return [];
+}
+
+export function signersFor(type: LetterType, nature: LetterNature | null | undefined, campusFunds = false) {
+  if (type === "PROPOSAL" || type === "LPJ") return approvalSignerText(type, campusFunds);
   if (type === "SURAT_KELUAR" && nature) return NATURE_SIGNERS[nature];
   return null;
 }

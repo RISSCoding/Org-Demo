@@ -113,6 +113,17 @@ enum LetterNature {
   TEKNIS_KEGIATAN
   RUTIN
 }
+enum OfficerPosition {
+  CHAIR
+  VICE_CHAIR
+  SECRETARY
+  TREASURER
+  ADVISOR
+  /// Penandatangan eksternal (pihak kampus). Satu pemegang per jabatan, biasanya tanpa akun.
+  PRODI_HEAD
+  DEAN
+  VICE_RECTOR_3
+}
 enum FeedbackStatus {
   OPEN
   REVIEWED
@@ -165,6 +176,8 @@ model User {
   roleId         Int            @map("role_id")
   approvalStatus ApprovalStatus @default(PENDING) @map("approval_status")
   avatarUrl      String?        @map("avatar_url")
+  /// Gambar tanda tangan (berkas privat, "/api/signatures/<uuid>.<png|jpg>"). Diunggah sendiri oleh pemiliknya lewat Profil.
+  signatureUrl   String?        @map("signature_url")
   phoneNumber    String?        @map("phone_number")
   batchYear      Int            @map("batch_year")
   createdAt      DateTime       @default(now()) @map("created_at")
@@ -185,6 +198,7 @@ model User {
   feedbacks     Feedback[]
   auditLogs     AuditLog[]
   resources     Resource[]
+  officerRoles  OrgOfficer[]
   @@map("users")
 }
 
@@ -194,6 +208,25 @@ model Division {
   leaderId String?  @map("leader_id")
   members  Member[]
   @@map("divisions")
+}
+
+// Pengurus inti (Ketua, Wakil Ketua, Sekretaris Umum, Bendahara Umum), penandatangan eksternal (Ketua Prodi,
+// Dekan, WR III): satu pemegang per jabatan; dan Dewan Pembina (boleh banyak). Dipakai untuk penandatangan
+// sertifikat, laporan keuangan, arsip surat, dan lembar pengesahan proposal/LPJ.
+// userId diisi bila pemegangnya punya akun; name selalu terisi (salinan nama, atau nama manual untuk pihak
+// yang tidak punya akun).
+// signatureUrl hanya dipakai bila pemegangnya TIDAK punya akun (diunggah pengurus). Pemegang yang punya akun
+// memakai User.signatureUrl, yang diunggah sendiri.
+model OrgOfficer {
+  id           Int             @id @default(autoincrement())
+  position     OfficerPosition
+  userId       String?         @map("user_id")
+  name         String?
+  signatureUrl String?         @map("signature_url")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  user      User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([position])
+  @@map("org_officers")
 }
 
 model Member {
@@ -228,6 +261,7 @@ model Event {
   committeeDivisions    CommitteeDivision[]
   committeeApplications CommitteeApplication[]
   committeeMeetings     CommitteeMeeting[]
+  letters       OfficialLetter[]
   @@map("events")
 }
 
@@ -393,7 +427,11 @@ model OfficialLetter {
   summary        String?
   campusFunds    Boolean       @default(false) @map("campus_funds")
   signedBy       String[]      @default([]) @map("signed_by")
+  /// Kegiatan terkait (proposal/LPJ). Ketua pelaksana dan sekretaris kegiatan diambil dari panitia event ini.
+  eventId        String?       @map("event_id")
+  event          Event?        @relation(fields: [eventId], references: [id], onDelete: SetNull)
   @@index([letterDate])
+  @@index([eventId])
   @@map("official_letters")
 }
 

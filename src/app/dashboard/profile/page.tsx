@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { ProfileForm, PasswordForm } from "@/components/profile-forms";
+import { MySignature } from "@/components/signature-controls";
 import { prisma } from "@/lib/prisma";
 import { cardCls } from "@/lib/ui";
 
@@ -10,7 +11,7 @@ export default async function ProfilePage() {
   const session = await auth();
   const u = await prisma.user.findUniqueOrThrow({
     where: { id: session!.user.id },
-    select: { fullName: true, nim: true, email: true, batchYear: true, phoneNumber: true, avatarUrl: true },
+    select: { fullName: true, nim: true, email: true, batchYear: true, phoneNumber: true, avatarUrl: true, signatureUrl: true },
   });
 
   return (
@@ -23,6 +24,16 @@ export default async function ProfilePage() {
       <section className={`${cardCls} space-y-4 p-5`}>
         <h2 className="text-lg font-semibold">Data kontak</h2>
         <ProfileForm phoneNumber={u.phoneNumber} avatarUrl={u.avatarUrl} />
+      </section>
+      <section className={`${cardCls} max-w-2xl space-y-4 p-5`}>
+        <div>
+          <h2 className="text-lg font-semibold">Tanda tangan</h2>
+          <p className="text-sm text-muted-foreground">
+            Dipakai pada lembar pengesahan proposal dan LPJ bila kamu ketua pelaksana, sekretaris kegiatan, atau pengurus yang ikut menandatangani.
+            Unggah gambar tanda tanganmu sendiri (PNG berlatar transparan paling rapi). Hanya kamu dan pengurus sekretariat yang bisa melihatnya.
+          </p>
+        </div>
+        <MySignature url={u.signatureUrl} />
       </section>
       <section className={`${cardCls} space-y-4 p-5`}>
         <h2 className="text-lg font-semibold">Ganti password</h2>

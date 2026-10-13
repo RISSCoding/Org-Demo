@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { parseWIB } from "@/lib/datetime";
 import { CATEGORY_LABEL, MONTH_RE, monthLabel } from "@/lib/finance";
+import { writeJournals } from "@/lib/finance-journal";
 import { prisma } from "@/lib/prisma";
 import { saveProofImage } from "@/lib/private-files";
 import { requirePermission } from "@/lib/rbac";
@@ -53,20 +54,24 @@ export async function addTransactionAction(_: FormState, fd: FormData): Promise<
     }
   }
 
-  const tx = await prisma.financialTransaction.create({
-    data: {
-      type: d.type,
-      category: d.category,
-      title: d.title,
-      amount: d.amount,
-      date: parseWIB(`${d.date}T12:00`),
-      note: d.note,
-      proofOfPaymentUrl: proofUrl,
-      createdBy: user.id,
-    },
-  });
-  await prisma.auditLog.create({
-    data: { userId: user.id, action: "CREATE", entity: "financial_transactions", entityId: tx.id },
+  // Transaksi, jurnalnya, dan catatan audit disimpan sekaligus: tidak ada transaksi tanpa jurnal.
+  await prisma.$transaction(async (db) => {
+    const tx = await db.financialTransaction.create({
+      data: {
+        type: d.type,
+        category: d.category,
+        title: d.title,
+        amount: d.amount,
+        date: parseWIB(`${d.date}T12:00`),
+        note: d.note,
+        proofOfPaymentUrl: proofUrl,
+        createdBy: user.id,
+      },
+    });
+    await writeJournals(db, [tx]);
+    await db.auditLog.create({
+      data: { userId: user.id, action: "CREATE", entity: "financial_transactions", entityId: tx.id },
+    });
   });
   refresh();
   redirect("/admin/finance/transactions?flash=tx-saved");
@@ -173,6 +178,7 @@ export async function approveDues(fd: FormData): Promise<void> {
         verifiedAt: now,
       },
     });
+    await writeJournals(tx, [t]);
     await tx.memberDues.update({
       where: { id },
       data: { status: "PAID", paidAt: now, transactionId: t.id },

@@ -30,9 +30,12 @@ const s = StyleSheet.create({
   signLine: { borderTopWidth: 1, borderTopColor: NAVY, paddingTop: 3, width: "100%", textAlign: "center", marginTop: 46 },
 });
 
-export async function renderFinanceReportPdf(r: MonthlyReport): Promise<Buffer> {
-  const ketua = process.env.CERT_SIGNER_NAME ?? "..............................";
-  const bendahara = process.env.FINANCE_TREASURER_NAME ?? "..............................";
+/** Nama penandatangan; bila kosong dipakai CERT_SIGNER_NAME / FINANCE_TREASURER_NAME, lalu garis titik-titik. */
+export type FinanceSigners = { chair?: string | null; treasurer?: string | null };
+
+export async function renderFinanceReportPdf(r: MonthlyReport, signers: FinanceSigners = {}): Promise<Buffer> {
+  const ketua = signers.chair ?? process.env.CERT_SIGNER_NAME ?? "..............................";
+  const bendahara = signers.treasurer ?? process.env.FINANCE_TREASURER_NAME ?? "..............................";
 
   return renderToBuffer(
     <Document title={`Laporan Keuangan ${r.label}`} author="HIMMAN UKRI">
@@ -89,11 +92,11 @@ export async function renderFinanceReportPdf(r: MonthlyReport): Promise<Buffer> 
 
         <View style={s.signs} wrap={false}>
           <View style={s.sign}>
-            <Text>Bendahara</Text>
+            <Text>Bendahara Umum</Text>
             <Text style={s.signLine}>{bendahara}</Text>
           </View>
           <View style={s.sign}>
-            <Text>Ketua Umum</Text>
+            <Text>Ketua Himpunan</Text>
             <Text style={s.signLine}>{ketua}</Text>
           </View>
         </View>
