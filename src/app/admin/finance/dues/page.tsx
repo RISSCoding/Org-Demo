@@ -12,7 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, cardCls, inputCls } from "@/lib/ui";
 
-export const metadata = { title: "Iuran Kas — HIMMAN UKRI" };
+export const metadata = { title: "Iuran Kas — ORG" };
 
 export default async function DuesAdmin({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
   const user = await requirePermission("finance:read");

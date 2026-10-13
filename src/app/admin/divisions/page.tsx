@@ -9,7 +9,7 @@ import { requirePermission } from "@/lib/rbac";
 import { PageHeader } from "@/components/ui/page-header";
 import { alertErr, alertOk, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
-export const metadata = { title: "Divisi — HIMMAN UKRI" };
+export const metadata = { title: "Divisi — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminDivisions({

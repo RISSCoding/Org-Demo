@@ -15,7 +15,10 @@ export function verifySig(payload: string, sig: string) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-/** Format lama `HIMMAN|KTA|<npm>|<hash>`. Dipertahankan agar QR cetak lama tetap terbaca. */
+/**
+ * Payload KTA format lama (dengan tanda tangan). Dipertahankan untuk kompatibilitas
+ * dan untuk parser QR. Format baru KTA berisi nomor anggota langsung (lihat isValidKtaNumber).
+ */
 export const ktaPayload = (nim: string) => `HIMMAN|KTA|${nim}|${sign(`KTA:${nim}`)}`;
 
 /**

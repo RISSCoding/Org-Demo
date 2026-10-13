@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
-import { DOKUMEN, NAV, ORG } from "@/lib/site-content";
+import { BrandMark } from "@/components/brand-mark";
+import { NAV, ORG } from "@/lib/site-content";
 import { container } from "@/lib/site-ui";
 
 export function SiteFooter() {
@@ -9,7 +9,7 @@ export function SiteFooter() {
       <div className={`${container} grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr]`}>
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <Image src="/logo-himman.png" alt="" width={44} height={44} className="size-11" />
+            <BrandMark size={44} />
             <p className="s-display text-lg">{ORG.short}</p>
           </div>
           <p className="max-w-sm text-sm text-white/70">
@@ -37,18 +37,7 @@ export function SiteFooter() {
             </li>
           </ul>
         </nav>
-
-        <nav aria-label="Dokumen" className="space-y-3 text-sm">
-          <p className="font-semibold">Dokumen organisasi</p>
-          <ul className="space-y-2 text-white/70">
-            {DOKUMEN.map((d) => (
-              <li key={d.file}>
-                <a href={d.file} className="hover:text-white">{d.title}</a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
+</div>
       <div className="border-t border-white/10">
         <p className={`${container} py-5 text-xs text-white/50`}>© {new Date().getFullYear()} {ORG.short}</p>
       </div>

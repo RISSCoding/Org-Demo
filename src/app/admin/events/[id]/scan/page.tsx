@@ -3,7 +3,7 @@ import { Scanner } from "@/components/scanner";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 
-export const metadata = { title: "Scanner — HIMMAN UKRI" };
+export const metadata = { title: "Scanner — ORG" };
 
 export default async function ScanPage({ params }: { params: Promise<{ id: string }> }) {
   await requirePermission("event:manage");

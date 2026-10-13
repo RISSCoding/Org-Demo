@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { alertOk } from "@/lib/ui";
 
-export const metadata = { title: "Edit Anggota — HIMMAN UKRI" };
+export const metadata = { title: "Edit Anggota — ORG" };
 
 export default async function EditMember({
   params,

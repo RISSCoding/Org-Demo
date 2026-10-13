@@ -1,13 +1,13 @@
-# Panduan Teknis HIMMAN UKRI
+# Panduan Teknis Portal Organisasi
 
 Untuk pengurus IT dan successor yang memegang server.
 
 **Setup saat ini:**
 
-- Folder aplikasi: `/home/farisfebrian/NAS_Internal/fileFaris/CODING/himman-ukri`
+- Folder aplikasi: `/home/farisfebrian/NAS_Internal/fileFaris/CODING/portal-organisasi`
 - Binary Bun: `/home/farisfebrian/.proto/tools/bun/1.4.0/bun`
 - Service systemd (user mode): `himman.service`
-- Database: Docker container `himman-pg`, port 5433
+- Database: Docker container `portal-pg`, port 5433
 - Domain: `http://localhost:3001` (dev), `https://[domain-kamu]` (production)
 
 ---
@@ -71,7 +71,7 @@ LATEST=$(ls -t ~/backup/himman/himman_db_*.sql.gz | head -1)
 gunzip -c "$LATEST" | psql -h localhost -p 5433 -U postgres -d himman
 
 # 5. Restore uploads (opsional, kalau berkas juga hilang)
-tar -xzf ~/backup/himman/himman_uploads_[tanggal].tar.gz -C ~/NAS_Internal/fileFaris/CODING/himman-ukri/
+tar -xzf ~/backup/himman/himman_uploads_[tanggal].tar.gz -C ~/NAS_Internal/fileFaris/CODING/portal-organisasi/
 
 # 6. Start aplikasi
 systemctl --user start himman
@@ -84,7 +84,7 @@ systemctl --user start himman
 ## Update aplikasi (deploy versi baru)
 
 ```bash
-cd /home/farisfebrian/NAS_Internal/fileFaris/CODING/himman-ukri
+cd /home/farisfebrian/NAS_Internal/fileFaris/CODING/portal-organisasi
 
 # 1. Backup dulu
 ~/bin/backup-himman.sh
@@ -121,7 +121,7 @@ Diagnosa berurutan:
 systemctl --user status himman
 
 # 2. Database jalan?
-docker ps | grep himman-pg
+docker ps | grep portal-pg
 
 # 3. Port 3001 dipakai?
 ss -tlnp | grep 3001
@@ -135,7 +135,7 @@ journalctl --user -u himman -n 50 --no-pager
 | Pesan | Penyebab | Solusi |
 |---|---|---|
 | `EADDRINUSE` | Port 3001 dipakai proses lain | `ss -tlnp \| grep 3001` → kill PID |
-| `Can't reach database server` | Docker `himman-pg` mati | `docker start himman-pg` |
+| `Can't reach database server` | Docker `portal-pg` mati | `docker start portal-pg` |
 | `password authentication failed` | `.pgpass` beda dengan `.env` | Samakan `.pgpass` dengan `.env` |
 | `UntrustedHost` | NextAuth tidak percaya host | Cek `AUTH_TRUST_HOST=true` di `.env`, lalu rebuild |
 | `Module not found` | Dependency berubah | `bun install` lalu `bun run build` |
@@ -146,14 +146,14 @@ journalctl --user -u himman -n 50 --no-pager
 
 **Container yang JANGAN dimatikan:**
 
-- `himman-pg` — database aplikasi
+- `portal-pg` — database aplikasi
 
 **Container yang boleh dimatikan (kalau perlu):**
 
 - `finance_app`, `finance_db`, `finance_tunnel` — aplikasi lain
 - `web_portfolio`, `portainer`, `cloudflare_tunnel` — layanan lain
 
-Auto-restart sudah diaktifkan untuk `himman-pg` → hidup sendiri setelah reboot.
+Auto-restart sudah diaktifkan untuk `portal-pg` → hidup sendiri setelah reboot.
 
 ---
 

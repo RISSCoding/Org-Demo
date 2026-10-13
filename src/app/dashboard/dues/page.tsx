@@ -7,7 +7,7 @@ import { syncOverdue } from "@/lib/finance-service";
 import { prisma } from "@/lib/prisma";
 import { cardCls } from "@/lib/ui";
 
-export const metadata = { title: "Iuran Kas — HIMMAN UKRI" };
+export const metadata = { title: "Iuran Kas — ORG" };
 
 export default async function MemberDues() {
   const session = await auth();

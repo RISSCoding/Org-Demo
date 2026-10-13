@@ -3,14 +3,14 @@ import { PageHead, Section } from "@/components/site/section";
 import { getOrgStructure, type DivisionSnapshot, type OfficerHolder } from "@/lib/organization";
 import { BPH_INTI, BPP, DEPARTEMEN } from "@/lib/site-content";
 
-export const metadata = { title: "Struktur — HIMMAN UKRI" };
+export const metadata = { title: "Struktur — ORG" };
 // Halaman publik: cache 5 menit. Setelah admin mengubah pengurus,
 // action memanggil revalidatePath("/struktur") agar langsung segar.
 export const dynamic = "force-dynamic";
 
 const CORE_MAP: Record<string, OfficerPosition> = {
-  "Ketua Himpunan": "CHAIR",
-  "Wakil Ketua Himpunan": "VICE_CHAIR",
+  "Ketua": "CHAIR",
+  "Wakil Ketua": "VICE_CHAIR",
   "Sekretaris Umum": "SECRETARY",
   "Bendahara Umum": "TREASURER",
 };
@@ -159,7 +159,7 @@ export default async function Struktur() {
     <>
       <PageHead
         title="Struktur organisasi"
-        intro="Kepengurusan HIMMAN terdiri dari Badan Pengurus Harian (BPH) yang menjalankan program, dan Badan Pengawas Pengurus (BPP) yang mengawasinya. Masa baktinya satu periode, yaitu satu tahun."
+        intro="Kepengurusan ORG terdiri dari Badan Pengurus Harian (BPH) yang menjalankan program, dan Badan Pengawas Pengurus (BPP) yang mengawasinya. Masa baktinya satu periode, yaitu satu tahun."
       />
 
       <Section id="bph" title="Badan Pengurus Harian">
@@ -170,7 +170,7 @@ export default async function Struktur() {
         </dl>
         <p className="s-serif mt-6 max-w-3xl text-[var(--s-muted)]">
           Setiap departemen dipimpin seorang kepala, dibantu sekretaris departemen dan beberapa anggota. Kepala
-          departemen melapor kepada Ketua Himpunan sebelum dan sesudah kegiatan.
+          departemen melapor kepada Ketua sebelum dan sesudah kegiatan.
         </p>
         {bphStaff.length > 0 && (
           <div className="mt-6 max-w-3xl border-t border-[var(--s-line)] pt-5">
@@ -218,7 +218,7 @@ export default async function Struktur() {
 
       <Section id="pembina" title="Dewan Pembina" panel>
         <p className="s-serif mb-4 max-w-3xl">
-          Dewan Pembina adalah pihak yang ditugaskan fakultas untuk membina HIMMAN. Tugasnya memberi motivasi,
+          Dewan Pembina adalah pihak yang ditugaskan fakultas untuk membina organisasi. Tugasnya memberi motivasi,
           pembinaan, dan semangat, serta saran dan kritik demi kemajuan organisasi.
         </p>
         {org.advisors.length > 0 ? (

@@ -5,7 +5,7 @@ import { Scanner } from "@/components/scanner";
 import { getEventAccess } from "@/lib/committee";
 import { prisma } from "@/lib/prisma";
 
-export const metadata = { title: "Scanner panitia — HIMMAN UKRI" };
+export const metadata = { title: "Scanner panitia — ORG" };
 
 export default async function CommitteeScan({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

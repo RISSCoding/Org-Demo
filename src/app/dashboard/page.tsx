@@ -7,7 +7,7 @@ import { memberTitle } from "@/lib/member-title";
 import { prisma } from "@/lib/prisma";
 import { btnLine, btnPrimary, cardCls, cardLink } from "@/lib/ui";
 
-export const metadata = { title: "Dashboard — HIMMAN UKRI" };
+export const metadata = { title: "Dashboard — ORG" };
 export const dynamic = "force-dynamic";
 
 const STATUS_LABEL = { ACTIVE: "Aktif", INACTIVE: "Nonaktif", ALUMNI: "Alumni" } as const;

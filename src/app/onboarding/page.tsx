@@ -5,7 +5,7 @@ import { Wizard } from "@/components/onboarding/wizard";
 import { memberTitle } from "@/lib/member-title";
 import { prisma } from "@/lib/prisma";
 
-export const metadata = { title: "Selamat datang — HIMMAN UKRI" };
+export const metadata = { title: "Selamat datang — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function OnboardingPage({

@@ -163,10 +163,10 @@ export function LetterForm({
             label="Nama kegiatan pada nomor (opsional)"
             name="activityName"
             errors={fe.activityName}
-            hint="Singkatan kegiatan, mis. MONDAY. Dikosongkan bila bukan untuk kegiatan tertentu."
+            hint="Singkatan kegiatan, mis. ORIENTASI. Dikosongkan bila bukan untuk kegiatan tertentu."
           />
           <p className="rounded-sm bg-muted px-3 py-2 text-sm text-muted-foreground">
-            Nomor dibuat otomatis: No/Jenis Surat/Nama Kegiatan/HIMMAN/Bulan/Tahun, mis. 001/SU/MONDAY/HIMMAN/X/2026.
+            Nomor dibuat otomatis: No/Jenis Surat/Nama Kegiatan/ORG/Bulan/Tahun, mis. 001/SU/CONTOH/ORG/X/2026.
           </p>
         </>
       ) : (

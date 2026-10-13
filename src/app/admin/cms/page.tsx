@@ -9,7 +9,7 @@ import { requirePermission } from "@/lib/rbac";
 import { CATEGORY_LABEL } from "@/lib/site-data";
 import { btnGhost, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
-export const metadata = { title: "Berita & Artikel — HIMMAN UKRI" };
+export const metadata = { title: "Berita & Artikel — ORG" };
 export const dynamic = "force-dynamic";
 
 type SP = { q?: string; status?: string; kategori?: string };

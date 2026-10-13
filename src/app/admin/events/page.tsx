@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { btnPrimary, cardCls } from "@/lib/ui";
 
-export const metadata = { title: "Event — HIMMAN UKRI" };
+export const metadata = { title: "Event — ORG" };
 
 export default async function AdminEvents() {
   await requirePermission("event:manage");

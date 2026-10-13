@@ -13,7 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
-export const metadata = { title: "Anggota — HIMMAN UKRI" };
+export const metadata = { title: "Anggota — ORG" };
 
 const PAGE_SIZE = 25;
 type SP = { q?: string; role?: string; status?: string; approval?: string; page?: string };

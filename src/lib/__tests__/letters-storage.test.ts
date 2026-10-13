@@ -8,10 +8,10 @@ const UUID = "123e4567-e89b-12d3-a456-426614174000";
 
 describe("penomoran surat (PO Pasal 3)", () => {
   it("format lengkap dengan nama kegiatan", () => {
-    assert.equal(formatLetterNumber("SU", 4, "MONDAY", 2026, 10), "004/SU/MONDAY/HIMMAN/X/2026");
+    assert.equal(formatLetterNumber("SU", 4, "CONTOH", 2026, 10), "004/SU/CONTOH/ORG/X/2026");
   });
   it("nama kegiatan dilewati bila kosong", () => {
-    assert.equal(formatLetterNumber("PROP", 12, undefined, 2026, 1), "012/PROP/HIMMAN/I/2026");
+    assert.equal(formatLetterNumber("PROP", 12, undefined, 2026, 1), "012/PROP/ORG/I/2026");
   });
   it("kode jenis: proposal/LPJ tetap, surat masuk tanpa nomor otomatis", () => {
     assert.equal(numberCode("PROPOSAL", null), "PROP");

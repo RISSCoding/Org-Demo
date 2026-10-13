@@ -7,7 +7,7 @@ const NAVY = "FF0B1F4B";
 
 export async function buildFinanceReportXlsx(r: MonthlyReport): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
-  wb.creator = "HIMMAN UKRI";
+  wb.creator = "ORG";
 
   // ---- Ringkasan (created first so it is the opening sheet) ----
   const sum = wb.addWorksheet("Ringkasan", { views: [{ showGridLines: false }] });
@@ -52,7 +52,7 @@ export async function buildFinanceReportXlsx(r: MonthlyReport): Promise<Buffer> 
   // ---- fill summary ----
   sum.getColumn(1).width = 30;
   sum.getColumn(2).width = 22;
-  sum.getCell("A1").value = "Laporan Keuangan HIMMAN UKRI";
+  sum.getCell("A1").value = "Laporan Keuangan ORG";
   sum.getCell("A1").font = { bold: true, size: 14, color: { argb: NAVY } };
   sum.getCell("A2").value = `Periode ${r.label}`;
 

@@ -38,10 +38,10 @@ export async function renderFinanceReportPdf(r: MonthlyReport, signers: FinanceS
   const bendahara = signers.treasurer ?? process.env.FINANCE_TREASURER_NAME ?? "..............................";
 
   return renderToBuffer(
-    <Document title={`Laporan Keuangan ${r.label}`} author="HIMMAN UKRI">
+    <Document title={`Laporan Keuangan ${r.label}`} author="ORG">
       <Page size="A4" style={s.page}>
         <Text style={s.org}>HIMPUNAN MAHASISWA MANAJEMEN</Text>
-        <Text style={s.sub}>Universitas Kebangsaan Republik Indonesia</Text>
+        <Text style={s.sub}>Universitas Antah Berantah Republik Wakanda</Text>
         <View style={s.rule} />
         <Text style={s.title}>Laporan Keuangan</Text>
         <Text style={s.period}>Periode {r.label}</Text>

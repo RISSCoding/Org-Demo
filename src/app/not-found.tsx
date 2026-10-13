@@ -2,7 +2,7 @@ import Link from "next/link";
 import { SiteShell } from "@/components/site/site-shell";
 import { btnLine, btnOrange, container, linkText } from "@/lib/site-ui";
 
-export const metadata = { title: "Halaman tidak ditemukan — HIMMAN UKRI" };
+export const metadata = { title: "Halaman tidak ditemukan — ORG" };
 
 export default function NotFound() {
   return (

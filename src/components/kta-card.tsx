@@ -1,8 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import QRCode from "qrcode";
 import { QRCodeSVG } from "qrcode.react";
+import { BrandMark } from "@/components/brand-mark";
+import { BRAND } from "@/lib/brand";
 import { Check, Copy, Download, Link2, Loader2, Maximize2, X } from "lucide-react";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
@@ -89,9 +90,9 @@ export function KtaCard({
         <div className="absolute inset-x-0 top-0 h-1.5 bg-[#ffa500]" />
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Image src="/logo-himman.png" alt="" width={32} height={32} className="size-8" />
+            <BrandMark size={32} />
             <div>
-              <p className="s-display text-sm">HIMMAN UKRI</p>
+              <p className="s-display text-sm">{BRAND.short}</p>
               <p className="text-xs text-white/70">Kartu tanda anggota</p>
             </div>
           </div>
@@ -309,7 +310,7 @@ async function renderCardToCanvas(input: RenderInput): Promise<HTMLCanvasElement
   ctx.fillStyle = "#ffffff";
   ctx.font = `700 30px ${sans}`;
   ctx.textBaseline = "alphabetic";
-  ctx.fillText("HIMMAN UKRI", 148, 84);
+  ctx.fillText("{BRAND.short}", 148, 84);
   ctx.fillStyle = "rgba(255,255,255,0.65)";
   ctx.font = `400 18px ${sans}`;
   ctx.fillText("Kartu tanda anggota", 148, 110);

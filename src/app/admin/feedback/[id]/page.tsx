@@ -10,7 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, cardCls } from "@/lib/ui";
 
-export const metadata = { title: "Detail Aspirasi — HIMMAN UKRI" };
+export const metadata = { title: "Detail Aspirasi — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function FeedbackDetail({ params }: { params: Promise<{ id: string }> }) {

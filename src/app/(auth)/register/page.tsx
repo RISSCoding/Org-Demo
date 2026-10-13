@@ -1,6 +1,6 @@
 import { RegisterForm } from "./register-form";
 
-export const metadata = { title: "Daftar — HIMMAN UKRI" };
+export const metadata = { title: "Daftar — ORG" };
 
 export default function RegisterPage() {
   return <RegisterForm />;

@@ -1,8 +1,8 @@
 import type { Prisma } from "@prisma/client";
 
 /**
- * AD HIMMAN 2026 Pasal 5: "Nomor Keanggotaan didapat dari Angkatan tiga (3) digit dari belakang
- * dan NPM tiga (3) digit dari belakang". Angkatan 2025 + NPM berakhiran 207 -> "025207".
+ * Aturan nomor keanggotaan: 3 digit terakhir angkatan + 3 digit terakhir NPM.
+ * Contoh: angkatan 2025 + NPM berakhiran 207 -> "025207".
  * (Satu-satunya tempat aturan ini ditulis; ubah di sini bila pengurus menafsirkan lain.)
  */
 export function ktaBase(npm: string, batchYear: number) {

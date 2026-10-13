@@ -8,7 +8,7 @@ import { toInputValue } from "@/lib/datetime";
 import { postRawText } from "@/lib/site-data";
 import { btnLine } from "@/lib/ui";
 
-export const metadata = { title: "Edit Tulisan — HIMMAN UKRI" };
+export const metadata = { title: "Edit Tulisan — ORG" };
 
 export default async function EditPost({ params }: { params: Promise<{ id: string }> }) {
   await requirePermission("cms:write");

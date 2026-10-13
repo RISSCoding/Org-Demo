@@ -6,7 +6,7 @@ import { formatDateTime } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
 import { cardLink } from "@/lib/ui";
 
-export const metadata = { title: "Event — HIMMAN UKRI" };
+export const metadata = { title: "Event — ORG" };
 
 const select = {
   id: true, slug: true, title: true, bannerUrl: true, startDate: true, endDate: true, location: true, quota: true,

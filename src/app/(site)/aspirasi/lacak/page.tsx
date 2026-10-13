@@ -4,7 +4,7 @@ import { SENDER_STATUS } from "@/lib/feedback";
 import { prisma } from "@/lib/prisma";
 import { btnOrange, inputSite } from "@/lib/site-ui";
 
-export const metadata = { title: "Lacak aspirasi — HIMMAN UKRI", robots: { index: false } };
+export const metadata = { title: "Lacak aspirasi — ORG", robots: { index: false } };
 export const dynamic = "force-dynamic";
 
 export default async function Lacak({ searchParams }: { searchParams: Promise<{ kode?: string }> }) {

@@ -8,7 +8,7 @@ import { formatDateTime } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
 import { cardCls } from "@/lib/ui";
 
-export const metadata = { title: "Rapat panitia — HIMMAN UKRI" };
+export const metadata = { title: "Rapat panitia — ORG" };
 
 export default async function CommitteeMeetings({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

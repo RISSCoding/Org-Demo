@@ -11,8 +11,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const p = await postBySlug(slug);
   return p
-    ? { title: `${p.title} — HIMMAN UKRI`, description: excerpt(p.content, 155) || undefined }
-    : { title: "Berita — HIMMAN UKRI" };
+    ? { title: `${p.title} — ORG`, description: excerpt(p.content, 155) || undefined }
+    : { title: "Berita — ORG" };
 }
 
 export default async function BeritaDetail({ params }: { params: Promise<{ slug: string }> }) {

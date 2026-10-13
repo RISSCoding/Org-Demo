@@ -44,15 +44,15 @@ export type CertificateData = {
 export async function renderCertificatePdf(d: CertificateData): Promise<Buffer> {
   const qr = await QRCode.toDataURL(d.verifyUrl, { margin: 1, width: 240, errorCorrectionLevel: "M" });
   const signerName = d.signer?.name ?? process.env.CERT_SIGNER_NAME ?? "Ketua Umum";
-  const signerTitle = d.signer?.title ?? process.env.CERT_SIGNER_TITLE ?? "Ketua Umum HIMMAN UKRI";
+  const signerTitle = d.signer?.title ?? process.env.CERT_SIGNER_TITLE ?? "Ketua Umum ORG";
 
   return renderToBuffer(
-    <Document title={`Sertifikat ${d.number}`} author="HIMMAN UKRI">
+    <Document title={`Sertifikat ${d.number}`} author="ORG">
       <Page size="A4" orientation="landscape" style={s.page}>
         <View style={s.outer}>
           <View style={s.inner}>
             <Text style={s.org}>HIMPUNAN MAHASISWA MANAJEMEN</Text>
-            <Text style={s.univ}>Universitas Kebangsaan Republik Indonesia</Text>
+            <Text style={s.univ}>Universitas Antah Berantah Republik Wakanda</Text>
             <Text style={s.title}>SERTIFIKAT</Text>
             <Text style={s.number}>Nomor: {d.number}</Text>
             <Text style={s.label}>diberikan kepada</Text>

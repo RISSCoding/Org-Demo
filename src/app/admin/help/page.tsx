@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { HelpView, type HelpTab } from "@/components/help-view";
 
-export const metadata = { title: "Bantuan — HIMMAN UKRI" };
+export const metadata = { title: "Bantuan — ORG" };
 export const dynamic = "force-dynamic";
 
 const ALL_TABS: HelpTab[] = [

@@ -1,7 +1,7 @@
 import { PostForm } from "@/components/post-form";
 import { requirePermission } from "@/lib/rbac";
 
-export const metadata = { title: "Tulis Baru — HIMMAN UKRI" };
+export const metadata = { title: "Tulis Baru — ORG" };
 
 export default async function NewPost() {
   await requirePermission("cms:write");

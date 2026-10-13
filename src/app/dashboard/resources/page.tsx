@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { RESOURCE_CATEGORIES } from "@/lib/resources";
 import { cardCls } from "@/lib/ui";
 
-export const metadata = { title: "Materi — HIMMAN UKRI" };
+export const metadata = { title: "Materi — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function MemberResources() {

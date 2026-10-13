@@ -1,6 +1,7 @@
 "use client";
 
-import Image from "next/image";
+import { BrandMark } from "@/components/brand-mark";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -41,8 +42,8 @@ export function SiteNav() {
     <header className={`sticky top-0 z-40 border-b border-white/10 bg-black text-white transition-shadow duration-slow ${scrolled ? "shadow-[0_8px_24px_-12px_rgba(0,0,0,0.6)]" : ""}`}>
       <div className={`${container} flex h-16 items-center justify-between gap-4`}>
         <Link href="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
-          <Image src="/logo-himman.png" alt="" width={36} height={36} className="size-9" priority />
-          <span className="s-display text-base">HIMMAN UKRI</span>
+          <BrandMark size={36} />
+          <span className="s-display text-base">ORG</span>
         </Link>
 
         <nav aria-label="Menu utama" className="hidden items-center gap-1 lg:flex">

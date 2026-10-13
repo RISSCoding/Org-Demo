@@ -9,7 +9,7 @@ const rolePerms: Record<RoleName, string[]> = {
   ALUMNI: [],
 };
 // PO 2026 Pasal 14: BPH + 5 departemen
-const divisions = ["BPH","Humas","MedFo","PSDMO","Pendidikan","Kewirausahaan"];
+const divisions = ["Pengurus Inti","Divisi A","Divisi B","Divisi C","Divisi D","Divisi E"];
 
 async function main() {
   for (const code of perms) {

@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { isValidKtaNumber, verifySig } from "@/lib/security";
 import { linkText } from "@/lib/site-ui";
 
-export const metadata = { title: "Verifikasi Anggota — HIMMAN UKRI", robots: { index: false } };
+export const metadata = { title: "Verifikasi Anggota — ORG", robots: { index: false } };
 // Status keanggotaan harus selalu terbaru, jangan di-cache.
 export const dynamic = "force-dynamic";
 
@@ -119,7 +119,7 @@ export default async function VerifyMember({ params }: { params: Promise<{ token
   const user = await lookupUser(token);
 
   if (!user || !user.member || user.approvalStatus !== "APPROVED") {
-    return <NotFound message="KTA ini tidak terdaftar sebagai anggota HIMMAN UKRI, atau tautannya tidak valid." />;
+    return <NotFound message="KTA ini tidak terdaftar sebagai anggota ORG, atau tautannya tidak valid." />;
   }
 
   const status = user.member.status;
@@ -156,7 +156,7 @@ export default async function VerifyMember({ params }: { params: Promise<{ token
             {status === "ACTIVE" ? "Anggota terverifikasi" : status === "ALUMNI" ? "Alumni terverifikasi" : "Terdaftar, tidak aktif"}
           </h1>
           <p className="s-serif mt-2 text-[var(--s-muted)]">
-            {ok ? "KTA ini tercatat resmi di HIMMAN UKRI." : "KTA ini tercatat di HIMMAN UKRI, tetapi keanggotaannya sedang tidak aktif."}
+            {ok ? "KTA ini tercatat resmi di ORG." : "KTA ini tercatat di ORG, tetapi keanggotaannya sedang tidak aktif."}
           </p>
         </div>
       </div>

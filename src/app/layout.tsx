@@ -4,6 +4,7 @@ import "./globals.css";
 import "@/styles/site.css";
 import { archivo, sourceSerif } from "@/lib/site-fonts";
 import { Providers } from "@/components/providers";
+import { BRAND } from "@/lib/brand";
 
 
 const geistMono = Geist_Mono({
@@ -12,9 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HIMMAN UKRI",
-  description:
-    "Himpunan Mahasiswa Manajemen Universitas Kebangsaan Republik Indonesia: kegiatan, struktur organisasi, dokumen, dan kotak aspirasi.",
+  title: BRAND.short,
+  description: `${BRAND.fullName}: kegiatan, struktur organisasi, dan kotak aspirasi.`,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

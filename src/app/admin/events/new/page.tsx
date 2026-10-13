@@ -1,7 +1,7 @@
 import { EventForm } from "@/components/event-form";
 import { requirePermission } from "@/lib/rbac";
 
-export const metadata = { title: "Buat Event — HIMMAN UKRI" };
+export const metadata = { title: "Buat Event — ORG" };
 
 export default async function NewEvent() {
   await requirePermission("event:manage");

@@ -14,7 +14,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
-export const metadata = { title: "Transaksi — HIMMAN UKRI" };
+export const metadata = { title: "Transaksi — ORG" };
 
 type SP = { month?: string; type?: string; category?: string; status?: string };
 

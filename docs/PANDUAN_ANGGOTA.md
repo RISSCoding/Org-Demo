@@ -1,4 +1,4 @@
-# Panduan Anggota HIMMAN UKRI
+# Panduan Anggota Portal Organisasi
 
 Selamat datang di portal anggota. Panduan ini menjelaskan hal-hal dasar yang perlu kamu tahu.
 

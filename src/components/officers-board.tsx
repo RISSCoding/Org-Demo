@@ -114,7 +114,7 @@ function Advisors({ advisors }: { advisors: AdvisorRow[] }) {
     <div className={`${cardCls} space-y-3 p-4`}>
       <div>
         <h3 className="font-semibold">Dewan Pembina</h3>
-        <p className="text-sm text-muted-foreground">Dosen atau pihak fakultas yang membina HIMMAN. Bisa lebih dari satu; tulis gelar bersama namanya.</p>
+        <p className="text-sm text-muted-foreground">Dosen atau pihak fakultas yang membina organisasi. Bisa lebih dari satu; tulis gelar bersama namanya.</p>
       </div>
 
       {advisors.length === 0 ? (

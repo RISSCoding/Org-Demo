@@ -5,7 +5,7 @@ import { KtaCard } from "@/components/kta-card";
 import { memberTitle } from "@/lib/member-title";
 import { prisma } from "@/lib/prisma";
 
-export const metadata = { title: "KTA Digital — HIMMAN UKRI" };
+export const metadata = { title: "KTA Digital — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function KtaPage() {

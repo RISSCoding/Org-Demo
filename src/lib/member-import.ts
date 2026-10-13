@@ -21,7 +21,7 @@ export type ImportPreview = {
 export const defaultPassword = (nim: string, batchYear: number) => `${nim}@ukri${String(batchYear).slice(-2)}`;
 
 /** Email wajib & unik di skema, sedangkan spreadsheet tidak punya email. Anggota bisa menggantinya di profil. */
-export const placeholderEmail = (nim: string) => `${nim}@mahasiswa.himman.local`;
+export const placeholderEmail = (nim: string) => `${nim}@mahasiswa.org.local`;
 
 export const batchYearFromNpm = (nim: string) => Number(nim.slice(0, 4));
 

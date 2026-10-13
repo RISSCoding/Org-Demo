@@ -11,7 +11,7 @@ import { formatDateTime } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
 import { btnLine, btnPrimary, cardCls } from "@/lib/ui";
 
-export const metadata = { title: "Kepanitiaan — HIMMAN UKRI" };
+export const metadata = { title: "Kepanitiaan — ORG" };
 
 export default async function MemberCommittee({
   params,

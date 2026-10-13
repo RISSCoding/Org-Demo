@@ -5,7 +5,7 @@ import { CommitteeManager } from "@/components/committee/manager";
 import { getEventAccess } from "@/lib/committee";
 import { prisma } from "@/lib/prisma";
 
-export const metadata = { title: "Kelola kepanitiaan — HIMMAN UKRI" };
+export const metadata = { title: "Kelola kepanitiaan — ORG" };
 
 export default async function ManageCommittee({
   params,
