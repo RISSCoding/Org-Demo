@@ -14,7 +14,11 @@
   [![License](https://img.shields.io/badge/license-MIT-green)](#lisensi)
 
   <p>
-    <a href="#-fitur">Fitur</a>
+    <a href="#-fitur">Fitur</a> ·
+    <a href="#-mulai-cepat">Mulai cepat</a> ·
+    <a href="#-struktur-proyek">Struktur</a> ·
+    <a href="#-keamanan">Keamanan</a> ·
+    <a href="#-deployment">Deployment</a>
   </p>
 </div>
 
@@ -50,16 +54,13 @@ Satu portal untuk seluruh kegiatan himpunan: kartu anggota digital, event dan se
 - **Verifikasi anggota** — scan QR KTA untuk memastikan keaslian
 - **Laporkan bug** dengan info perangkat otomatis, tanpa perlu login
 
+## 🧭 Mulai cepat
 
+### Prasyarat
 
-### 📝 Lisensi
+- **Node.js** 20+
+- **PostgreSQL** 14+
+- **npm** (atau pnpm/yarn; perintah di bawah pakai npm)
 
-- MIT — bebas dipakai dan dimodifikasi dengan mencantumkan atribusi.
+### Langkah
 
-### 🙏 Atribusi
-
-- Logo & identitas visual: HIMMAN UKRI
-
-- Font: Archivo & Source Serif (Google Fonts)
-```
-<div align="center"> <sub>Dibuat dengan ❤️ untuk HIMMAN UKRI · <a href="https://github.com/RISSCoding/org-demo/issues">Laporkan masalah</a></sub> </div>

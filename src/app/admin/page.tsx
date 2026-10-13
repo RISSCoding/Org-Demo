@@ -7,7 +7,7 @@ import { auth } from "@/auth";
 import { getAdminOverview } from "@/lib/admin-overview";
 import { formatDate, formatDateTime } from "@/lib/datetime";
 import { rupiah } from "@/lib/finance";
-import { btnLine, btnPrimary, cardCls } from "@/lib/ui";
+import { btnLine, cardCls } from "@/lib/ui";
 
 export const metadata = { title: "Ringkasan — HIMMAN UKRI" };
 export const dynamic = "force-dynamic";
