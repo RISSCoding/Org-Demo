@@ -9,7 +9,7 @@ import { requirePermission } from "@/lib/rbac";
 import { RESOURCE_CATEGORIES, categoryLabel } from "@/lib/resources";
 import { alertErr, alertOk, btnLine, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
-export const metadata = { title: "Materi — HIMMAN UKRI" };
+export const metadata = { title: "Materi — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminResources({

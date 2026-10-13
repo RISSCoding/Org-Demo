@@ -7,7 +7,7 @@ import { getOverview } from "@/lib/finance-service";
 import { prisma } from "@/lib/prisma";
 import { cardCls } from "@/lib/ui";
 
-export const metadata = { title: "Transparansi Kas — HIMMAN UKRI" };
+export const metadata = { title: "Transparansi Kas — ORG" };
 
 export default async function PublicFinance({ searchParams }: { searchParams: Promise<ReportSearchParams> }) {
   const sp = await searchParams;

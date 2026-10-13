@@ -2,14 +2,14 @@ import { PageHead, Section } from "@/components/site/section";
 import { PostRow } from "@/components/site/post-row";
 import { latestPosts } from "@/lib/site-data";
 
-export const metadata = { title: "Berita — HIMMAN UKRI" };
+export const metadata = { title: "Berita — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function Berita() {
   const posts = await latestPosts();
   return (
     <>
-      <PageHead title="Berita dan pengumuman" intro="Informasi resmi dari pengurus HIMMAN." />
+      <PageHead title="Berita dan pengumuman" intro="Informasi resmi dari pengurus ORG." />
       <Section title="Terbaru">
         {posts.length === 0 ? (
           <p className="s-serif text-[var(--s-muted)]">

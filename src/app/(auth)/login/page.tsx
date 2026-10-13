@@ -1,6 +1,6 @@
 import { LoginForm } from "./login-form";
 
-export const metadata = { title: "Masuk — HIMMAN UKRI" };
+export const metadata = { title: "Masuk — ORG" };
 
 export default async function LoginPage({
   searchParams,

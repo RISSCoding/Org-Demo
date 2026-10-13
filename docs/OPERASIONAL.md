@@ -1,14 +1,14 @@
-# Panduan Operasional Sistem HIMMAN UKRI
+# Panduan Operasional Sistem Portal Organisasi
 
 Untuk pengurus inti (ketua, sekretaris, bendahara, dan pengurus lain) yang memakai sistem sehari-hari. **Tidak perlu kemampuan teknis.** Urusan server, backup, dan deploy ada di `MAINTENANCE.md`.
 
-> Catatan: sesuaikan bagian bertanda `[...]` dengan kondisi sebenarnya di HIMMAN.
+> Catatan: sesuaikan bagian bertanda `[...]` dengan kondisi sebenarnya di Portal Organisasi.
 
 ---
 
 ## 1. Sistem ini untuk apa?
 
-Sistem HIMMAN UKRI dipakai untuk mengelola kegiatan organisasi secara terpusat:
+Sistem Portal Organisasi dipakai untuk mengelola kegiatan organisasi secara terpusat:
 
 - **Data anggota** — daftar anggota per periode
 - **Keuangan** — pencatatan transaksi pemasukan dan pengeluaran beserta bukti
@@ -97,9 +97,9 @@ Aturan dasar:
 
 **Kontak darurat:**
 
-- Tim IT HIMMAN: `[nama / nomor WhatsApp]`
+- Tim IT Portal Organisasi: `[nama / nomor WhatsApp]`
 - Cadangan: `[nama / nomor WhatsApp]`
-- Grup koordinasi: "Tim IT HIMMAN"
+- Grup koordinasi: "Tim IT Portal Organisasi"
 
 Saat melapor, sertakan: apa yang sedang dilakukan, jam kejadian, pesan error (screenshot lebih baik).
 
@@ -122,7 +122,7 @@ Saat ada pengurus keluar atau periode berganti:
 - Gunakan password yang panjang dan unik (jangan sama dengan akun lain)
 - Simpan password di password manager, bukan di chat atau kertas
 - Logout kalau memakai komputer bersama
-- Jangan klik tautan mencurigakan yang mengatasnamakan HIMMAN atau admin
+- Jangan klik tautan mencurigakan yang mengatasnamakan Portal Organisasi atau admin
 - Sertifikat yang diterbitkan punya QR code; kalau ada pihak meragukan keasliannya, minta mereka scan QR tersebut
 
 ---

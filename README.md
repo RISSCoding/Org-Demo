@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="public/logo-himman.png" alt="HIMMAN UKRI" width="120" />
+  <img src="public/logo-himman.png" alt="Portal Organisasi" width="120" />
 
-  # HIMMAN UKRI
+  # Portal Organisasi
 
   **Portal anggota & situs publik Himpunan Mahasiswa Manajemen**
   **Universitas Kebangsaan Republik Indonesia**

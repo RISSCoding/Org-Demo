@@ -3,7 +3,7 @@ import { FeedbackForm } from "@/components/site/feedback-form";
 import { PageHead, Section } from "@/components/site/section";
 import { linkText } from "@/lib/site-ui";
 
-export const metadata = { title: "Aspirasi — HIMMAN UKRI" };
+export const metadata = { title: "Aspirasi — ORG" };
 
 export default function Aspirasi() {
   return (

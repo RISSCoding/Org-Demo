@@ -5,7 +5,7 @@ import { getOfficerNames } from "@/lib/officers";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 
-export const metadata = { title: "Arsip Baru — HIMMAN UKRI" };
+export const metadata = { title: "Arsip Baru — ORG" };
 
 export default async function NewLetter({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
   await requirePermission("secretariat:manage");

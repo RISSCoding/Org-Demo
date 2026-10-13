@@ -6,7 +6,7 @@ import { MySignature } from "@/components/signature-controls";
 import { prisma } from "@/lib/prisma";
 import { btnLine, cardCls } from "@/lib/ui";
 
-export const metadata = { title: "Profil — HIMMAN UKRI" };
+export const metadata = { title: "Profil — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {

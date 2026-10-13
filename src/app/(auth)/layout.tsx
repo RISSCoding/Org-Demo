@@ -18,7 +18,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             </p>
           </div>
         </div>
-        <p className="text-xs text-white/50">© {new Date().getFullYear()} HIMMAN UKRI</p>
+        <p className="text-xs text-white/50">© {new Date().getFullYear()} ORG</p>
       </aside>
       <main className="relative flex items-center justify-center p-6">
         <div className="absolute right-4 top-4">

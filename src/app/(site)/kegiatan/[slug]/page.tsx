@@ -13,7 +13,7 @@ const getEvent = (slug: string) => prisma.event.findFirst({ where: { slug, isPub
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const e = await getEvent(slug);
-  return { title: e ? `${e.title} — HIMMAN UKRI` : "Kegiatan — HIMMAN UKRI" };
+  return { title: e ? `${e.title} — ORG` : "Kegiatan — ORG" };
 }
 
 export default async function KegiatanDetail({ params }: { params: Promise<{ slug: string }> }) {

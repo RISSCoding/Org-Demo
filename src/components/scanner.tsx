@@ -16,7 +16,7 @@ const tone: Record<Kind, { box: string; icon: React.ElementType; label: string; 
   err: { box: "border-red-500 bg-[var(--state-danger-bg)]", icon: XCircle, label: "Ditolak", flash: "bg-red-600" },
 };
 
-const MUTE_KEY = "himman:scanner-muted";
+const MUTE_KEY = "org:scanner-muted";
 const clock = () => new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Asia/Jakarta" });
 
 export function Scanner({ eventId }: { eventId: string }) {

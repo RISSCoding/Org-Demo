@@ -1,4 +1,4 @@
-# Checklist Serah Terima Sistem HIMMAN
+# Checklist Serah Terima Sistem Portal Organisasi
 
 Dijalankan saat pembuat sistem lulus dan menyerahkan ke pengurus berikutnya.
 
@@ -39,7 +39,7 @@ Dijalankan saat pembuat sistem lulus dan menyerahkan ke pengurus berikutnya.
 
 - [ ] Successor sudah handle **1 bulan penuh operasional tanpa kamu**
 - [ ] Kamu sudah pamit resmi (tidak lagi jadi kontak darurat)
-- [ ] Grup "Tim IT HIMMAN" aktif dengan successor
+- [ ] Grup "Tim IT Portal Organisasi" aktif dengan successor
 - [ ] Kamu masih bisa dihubungi 6 bulan pertama (kalau emergency)
 
 ---

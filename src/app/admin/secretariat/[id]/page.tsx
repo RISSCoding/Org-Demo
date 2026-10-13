@@ -16,7 +16,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, btnLine, cardCls } from "@/lib/ui";
 
-export const metadata = { title: "Detail Arsip — HIMMAN UKRI" };
+export const metadata = { title: "Detail Arsip — ORG" };
 
 export default async function LetterDetail({ params }: { params: Promise<{ id: string }> }) {
   const user = await requirePermission("secretariat:manage");

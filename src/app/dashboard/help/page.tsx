@@ -1,6 +1,6 @@
 import { HelpView, type HelpTab } from "@/components/help-view";
 
-export const metadata = { title: "Bantuan — HIMMAN UKRI" };
+export const metadata = { title: "Bantuan — ORG" };
 export const dynamic = "force-dynamic";
 
 const TABS: HelpTab[] = [
@@ -17,7 +17,7 @@ export default async function DashboardHelp({
   return (
     <HelpView
       title="Bantuan"
-      description="Panduan pemakaian portal. Semua yang kamu butuhkan untuk memakai dan mengelola HIMMAN UKRI."
+      description="Panduan pemakaian portal. Semua yang kamu butuhkan untuk memakai dan mengelola ORG."
       tabs={TABS}
       activeKey={tab}
       basePath="/dashboard/help"

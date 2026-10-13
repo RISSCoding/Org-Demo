@@ -6,7 +6,7 @@ import { SENDER_STATUS, STATUS_TONE } from "@/lib/feedback";
 import { prisma } from "@/lib/prisma";
 import { btnPrimary, cardCls, linkCls } from "@/lib/ui";
 
-export const metadata = { title: "Pesan Saya — HIMMAN UKRI" };
+export const metadata = { title: "Pesan Saya — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function MyFeedback() {

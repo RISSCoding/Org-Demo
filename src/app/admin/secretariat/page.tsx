@@ -11,7 +11,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
-export const metadata = { title: "Sekretariat — HIMMAN UKRI" };
+export const metadata = { title: "Sekretariat — ORG" };
 
 type SP = { type?: string; kind?: string; q?: string; year?: string };
 

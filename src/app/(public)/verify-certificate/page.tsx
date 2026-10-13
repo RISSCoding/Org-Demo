@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { btnOrange, inputSite } from "@/lib/site-ui";
 
-export const metadata = { title: "Verifikasi Sertifikat — HIMMAN UKRI", robots: { index: false } };
+export const metadata = { title: "Verifikasi Sertifikat — ORG", robots: { index: false } };
 
 export default async function VerifyIndex({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   const { id } = await searchParams;

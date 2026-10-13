@@ -5,7 +5,7 @@ import { formatDate } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
 import { linkText } from "@/lib/site-ui";
 
-export const metadata = { title: "Hasil Verifikasi — HIMMAN UKRI", robots: { index: false } };
+export const metadata = { title: "Hasil Verifikasi — ORG", robots: { index: false } };
 
 export default async function VerifyResult({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -32,7 +32,7 @@ export default async function VerifyResult({ params }: { params: Promise<{ id: s
           <div>
             <h1 className="s-display text-2xl text-[var(--s-head)]">Sertifikat tidak ditemukan</h1>
             <p className="s-serif mt-2 text-[var(--s-muted)]">
-              Nomor <span className="font-mono">{number}</span> tidak terdaftar di HIMMAN UKRI. Periksa kembali nomor
+              Nomor <span className="font-mono">{number}</span> tidak terdaftar di ORG. Periksa kembali nomor
               atau QR-nya.
             </p>
           </div>
@@ -60,7 +60,7 @@ export default async function VerifyResult({ params }: { params: Promise<{ id: s
         <CheckCircle2 className="mt-0.5 size-6 shrink-0 text-[var(--emerald)]" aria-hidden />
         <div>
           <h1 className="s-display text-2xl text-[var(--s-head)]">Sertifikat valid</h1>
-          <p className="s-serif mt-2 text-[var(--s-muted)]">Sertifikat ini tercatat resmi di HIMMAN UKRI.</p>
+          <p className="s-serif mt-2 text-[var(--s-muted)]">Sertifikat ini tercatat resmi di ORG.</p>
         </div>
       </div>
 

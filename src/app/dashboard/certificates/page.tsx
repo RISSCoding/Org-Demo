@@ -4,7 +4,7 @@ import { formatDate } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
 import { btnGhost, btnPrimary, cardCls } from "@/lib/ui";
 
-export const metadata = { title: "Sertifikat — HIMMAN UKRI" };
+export const metadata = { title: "Sertifikat — ORG" };
 
 export default async function CertificateVault() {
   const session = await auth();

@@ -119,7 +119,7 @@ const memberNav: Section[] = [
 
 export type ShellUser = { name: string; nim: string; role: RoleName; permissions: string[] };
 
-const STORAGE_KEY = "himman:sidebar-collapsed";
+const STORAGE_KEY = "org:sidebar-collapsed";
 
 /** True bila layar selebar tablet ke atas. Snapshot server = true agar HTML awal sama dengan tampilan desktop. */
 function useIsDesktop() {
@@ -317,7 +317,7 @@ export function AppShell({
           } ${collapsed ? "md:w-[72px]" : "md:w-64"}`}
         >
           <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
-            <Link href="/" aria-label="Ke beranda situs HIMMAN UKRI">
+            <Link href="/" aria-label="Ke beranda situs ORG">
               <Brand compact={!showLabels} />
             </Link>
             <button type="button" className="grid size-10 place-items-center rounded-sm hover:bg-white/10 md:hidden" aria-label="Tutup menu" onClick={closeMobile}>

@@ -13,7 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, cardCls, inputCls } from "@/lib/ui";
 
-export const metadata = { title: "Kotak Aspirasi — HIMMAN UKRI" };
+export const metadata = { title: "Kotak Aspirasi — ORG" };
 export const dynamic = "force-dynamic";
 
 type SP = { q?: string; status?: string; category?: string };

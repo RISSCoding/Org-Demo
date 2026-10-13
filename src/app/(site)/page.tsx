@@ -7,7 +7,7 @@ import { DEPARTEMEN, LANGKAH_ANGGOTA, ORG, VISI } from "@/lib/site-content";
 import { latestPosts, upcomingPublicEvents } from "@/lib/site-data";
 import { btnLineLight, btnOrange, container, linkText } from "@/lib/site-ui";
 
-export const metadata = { title: "HIMMAN UKRI — Himpunan Mahasiswa Manajemen" };
+export const metadata = { title: "ORG — Portal Organisasi" };
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
@@ -71,7 +71,7 @@ export default async function Home() {
           <div className="space-y-4">
             <h2 className="s-display text-2xl text-[var(--s-head)]">Menjadi anggota</h2>
             <p className="text-sm text-[var(--s-muted)]">
-              Menurut ART, mahasiswa manajemen sah menjadi anggota setelah menyelesaikan seluruh rangkaian MONDAY dan
+              Menurut aturan organisasi, anggota sah setelah menyelesaikan seluruh rangkaian orientasi dan
               memiliki sertifikatnya.
             </p>
             <Link href="/register" className={btnOrange}>Buat akun</Link>

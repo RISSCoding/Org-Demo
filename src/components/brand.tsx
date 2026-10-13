@@ -1,11 +1,12 @@
-import Image from "next/image";
+import { BRAND } from "@/lib/brand";
+import { BrandMark } from "@/components/brand-mark";
 
-/** Lambang dan nama himpunan, sama seperti di navbar situs publik. */
+/** Logo + nama brand. Dipakai di header situs, panel login, dan sidebar. */
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="flex items-center gap-3">
-      <Image src="/logo-himman.png" alt="" width={36} height={36} className="size-9 shrink-0" />
-      {!compact && <span className="s-display text-base">HIMMAN UKRI</span>}
-    </div>
+    <span className="flex items-center gap-3">
+      <BrandMark size={compact ? 32 : 36} />
+      {!compact && <span className="s-display text-base">{BRAND.short}</span>}
+    </span>
   );
 }

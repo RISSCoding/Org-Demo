@@ -6,7 +6,7 @@ import { formatDateTime } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 
-export const metadata = { title: "Kepanitiaan — HIMMAN UKRI" };
+export const metadata = { title: "Kepanitiaan — ORG" };
 
 export default async function AdminCommittee({
   params,

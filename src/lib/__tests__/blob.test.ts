@@ -5,7 +5,7 @@ import path from "node:path";
 import { after, describe, it } from "node:test";
 import { deleteBlob, getBlob, putBlob, signV4 } from "@/lib/blob";
 
-const dir = mkdtempSync(path.join(tmpdir(), "himman-blob-"));
+const dir = mkdtempSync(path.join(tmpdir(), "portal-blob-"));
 process.env.UPLOAD_DIR = dir;
 delete process.env.S3_BUCKET;
 after(() => rmSync(dir, { recursive: true, force: true }));

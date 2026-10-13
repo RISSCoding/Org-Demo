@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { ImportMembersForm } from "@/components/import-members-form";
 import { requirePermission } from "@/lib/rbac";
 
-export const metadata = { title: "Impor Anggota — HIMMAN UKRI" };
+export const metadata = { title: "Impor Anggota — ORG" };
 
 export default async function ImportMembersPage() {
   const me = await requirePermission("member:manage");

@@ -3,7 +3,7 @@ import { btnOrange, inputSite } from "@/lib/site-ui";
 import { isValidKtaNumber } from "@/lib/security";
 
 export const metadata = {
-  title: "Verifikasi anggota — HIMMAN UKRI",
+  title: "Verifikasi anggota — ORG",
   robots: { index: false },
 };
 

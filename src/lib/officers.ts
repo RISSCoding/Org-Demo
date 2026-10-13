@@ -48,7 +48,7 @@ export async function getCertificateSigner(): Promise<{ name: string; title: str
   const { slots } = await getOfficers();
   return {
     name: slots.CHAIR?.name ?? process.env.CERT_SIGNER_NAME ?? BLANK_LINE,
-    title: process.env.CERT_SIGNER_TITLE ?? "Ketua HIMMAN UKRI",
+    title: process.env.CERT_SIGNER_TITLE ?? "Ketua ORG",
   };
 }
 

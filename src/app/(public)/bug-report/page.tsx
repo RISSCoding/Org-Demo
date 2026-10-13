@@ -1,7 +1,7 @@
 import { BugForm } from "@/components/site/bug-form";
 
 export const metadata = {
-  title: "Laporkan masalah teknis — HIMMAN UKRI",
+  title: "Laporkan masalah teknis — ORG",
   robots: { index: false },
 };
 

@@ -15,7 +15,7 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
     <form action={action} className="space-y-5">
       <div className="space-y-1">
         <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Masuk</h1>
-        <p className="text-sm text-muted-foreground">Masuk ke portal anggota HIMMAN UKRI dengan NPM atau email yang kamu daftarkan.</p>
+        <p className="text-sm text-muted-foreground">Masuk ke portal anggota ORG dengan NPM atau email yang kamu daftarkan.</p>
       </div>
       <input type="hidden" name="callbackUrl" value={callbackUrl} />
       <Field label="NPM atau email" name="identifier" autoComplete="username" autoFocus required />

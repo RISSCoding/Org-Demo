@@ -56,10 +56,10 @@ function Info({ k, v }: { k: string; v: string }) {
  */
 export async function renderApprovalSheetPdf(d: ApprovalSheetData): Promise<Buffer> {
   return renderToBuffer(
-    <Document title={`Lembar Pengesahan ${d.number ?? d.subject}`} author="HIMMAN UKRI">
+    <Document title={`Lembar Pengesahan ${d.number ?? d.subject}`} author="ORG">
       <Page size="A4" style={s.page}>
         <Text style={s.org}>HIMPUNAN MAHASISWA MANAJEMEN</Text>
-        <Text style={s.sub}>Universitas Kebangsaan Republik Indonesia</Text>
+        <Text style={s.sub}>Universitas Antah Berantah Republik Wakanda</Text>
         <View style={s.rule} />
 
         <Text style={s.title}>LEMBAR PENGESAHAN</Text>
@@ -87,7 +87,7 @@ export async function renderApprovalSheetPdf(d: ApprovalSheetData): Promise<Buff
           </View>
         ))}
 
-        <Text style={s.note}>Dicetak dari sistem HIMMAN UKRI pada {d.printedAt}.</Text>
+        <Text style={s.note}>Dicetak dari sistem ORG pada {d.printedAt}.</Text>
       </Page>
     </Document>,
   );

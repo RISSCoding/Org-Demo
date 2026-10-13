@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { btnLine, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
-export const metadata = { title: "Keuangan — HIMMAN UKRI" };
+export const metadata = { title: "Keuangan — ORG" };
 
 export default async function FinanceOverview({ searchParams }: { searchParams: Promise<ReportSearchParams> }) {
   const user = await requirePermission("finance:read");

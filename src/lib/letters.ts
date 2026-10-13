@@ -122,10 +122,10 @@ export function wibYearMonth(d = new Date()) {
 
 /**
  * No Surat / Jenis Surat / Nama Kegiatan / Nama Organisasi / Bulan / Tahun
- * e.g. 004/SU/MONDAY/HIMMAN/X/2026 — nama kegiatan dilewati bila kosong.
+ * e.g. 004/SU/CONTOH/ORG/X/2026 — nama kegiatan dilewati bila kosong.
  * Urutan berjalan per (tahun, jenis dokumen), bukan per kode surat.
  */
 export function formatLetterNumber(code: string, seq: number, activity: string | undefined, year: number, month: number) {
-  const parts = [String(seq).padStart(3, "0"), code, ...(activity ? [activity] : []), "HIMMAN", toRoman(month), String(year)];
+  const parts = [String(seq).padStart(3, "0"), code, ...(activity ? [activity] : []), "ORG", toRoman(month), String(year)];
   return parts.join("/");
 }

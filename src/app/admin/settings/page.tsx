@@ -4,7 +4,7 @@ import { getDuesAmount } from "@/lib/finance-service";
 import { requirePermission } from "@/lib/rbac";
 import { cardCls } from "@/lib/ui";
 
-export const metadata = { title: "Pengaturan — HIMMAN UKRI" };
+export const metadata = { title: "Pengaturan — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettings() {

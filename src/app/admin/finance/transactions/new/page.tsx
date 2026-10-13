@@ -2,7 +2,7 @@ import { TxForm } from "@/components/tx-form";
 import { dateKey } from "@/lib/finance";
 import { requirePermission } from "@/lib/rbac";
 
-export const metadata = { title: "Tambah Transaksi — HIMMAN UKRI" };
+export const metadata = { title: "Tambah Transaksi — ORG" };
 
 export default async function NewTransaction() {
   await requirePermission("finance:write");

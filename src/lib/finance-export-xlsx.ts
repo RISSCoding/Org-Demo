@@ -398,7 +398,7 @@ export async function buildFinanceWorkbook(opts: {
 }): Promise<Buffer> {
   const { report, book } = opts;
   const wb = new ExcelJS.Workbook();
-  wb.creator = "HIMMAN UKRI";
+  wb.creator = "ORG";
   wb.created = new Date();
 
   if (report === "all") {

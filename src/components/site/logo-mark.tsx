@@ -1,9 +1,8 @@
-import Image from "next/image";
+import { BrandMark } from "@/components/brand-mark";
 
 /**
- * Logo HIMMAN untuk area hero (beranda dan panel login).
- * PNG-nya sudah bulat dan berlatar putih solid, jadi tidak perlu ring atau glow —
- * cukup drop-shadow halus supaya tidak "menempel" rata ke latar hitam.
+ * Logo brand untuk area hero. Pakai BrandMark SVG supaya tidak bergantung
+ * pada file PNG yang spesifik organisasi.
  */
 export function LogoMark({
   size = "lg",
@@ -12,17 +11,12 @@ export function LogoMark({
   size?: "md" | "lg";
   className?: string;
 }) {
-  const dim = size === "lg" ? "size-48 sm:size-60 md:size-72" : "size-28 md:size-36";
+  const s = size === "lg" ? 220 : 140;
   return (
     <div className={`flex items-center justify-center ${className}`}>
-      <Image
-        src="/logo-himman.png"
-        alt="Lambang HIMMAN UKRI"
-        width={320}
-        height={320}
-        priority
-        className={`${dim} object-contain ux-pop drop-shadow-[0_0_40px_rgba(255,165,0,0.35)]`}
-      />
+      <span className="drop-shadow-[0_0_40px_rgba(255,165,0,0.25)]">
+        <BrandMark size={s} />
+      </span>
     </div>
   );
 }

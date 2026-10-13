@@ -5,7 +5,7 @@ import { NewMemberForm } from "@/components/new-member-form";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 
-export const metadata = { title: "Tambah Anggota — HIMMAN UKRI" };
+export const metadata = { title: "Tambah Anggota — ORG" };
 
 export default async function NewMemberPage() {
   const me = await requirePermission("member:manage");
