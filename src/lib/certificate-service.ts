@@ -1,4 +1,5 @@
 import { randomInt } from "node:crypto";
+import { headers } from "next/headers";
 import { Prisma } from "@prisma/client";
 import { renderCertificatePdf } from "@/lib/certificate-pdf";
 import { formatDate } from "@/lib/datetime";
@@ -15,11 +16,32 @@ export function newCertificateNumber() {
   return `HMN-${new Date().getFullYear()}-${id}`;
 }
 
-export const verifyUrl = (number: string) =>
-  `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/verify-certificate/${number}`;
+/**
+ * Base URL dari request headers (x-forwarded-proto + host), sama seperti KTA.
+ * Aman di dev (port apa pun) dan di produksi (domain apa pun, termasuk di belakang proxy).
+ * Kalau tidak ada request context (mis. script CLI), jatuh ke NEXT_PUBLIC_APP_URL.
+ */
+async function currentBaseUrl(): Promise<string> {
+  try {
+    const h = await headers();
+    const proto = h.get("x-forwarded-proto") ?? "http";
+    const host = h.get("host");
+    if (host) return `${proto}://${host}`;
+  } catch {
+    // headers() hanya bisa di request context; abaikan dan pakai env.
+  }
+  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+}
+
+/** URL verifikasi sertifikat. `baseUrl` opsional; kalau tidak diisi, diambil dari request. */
+export async function certificateVerifyUrl(number: string): Promise<string> {
+  const base = await currentBaseUrl();
+  return `${base}/verify-certificate/${number}`;
+}
 
 /** Creates the DB record (unique number, retried on collision). The PDF is built separately / lazily. */
 export async function createCertificateRecord(eventId: string, userId: string, opts?: { roleTitle: string }) {
+  const base = await currentBaseUrl();
   for (let attempt = 0; attempt < 5; attempt++) {
     const number = newCertificateNumber();
     try {
@@ -31,7 +53,7 @@ export async function createCertificateRecord(eventId: string, userId: string, o
           kind: opts ? "COMMITTEE" : "PARTICIPANT",
           roleTitle: opts?.roleTitle ?? null,
           pdfUrl: `/api/certificates/${number}/pdf`,
-          qrCodeUrl: verifyUrl(number),
+          qrCodeUrl: `${base}/verify-certificate/${number}`,
         },
       });
     } catch (e) {
@@ -62,7 +84,7 @@ export async function buildCertificatePdf(number: string): Promise<Buffer | null
     eventTitle: cert.event.title,
     dateText: sameDay ? formatDate(startDate) : `${formatDate(startDate)} – ${formatDate(endDate)}`,
     location: cert.event.location,
-    verifyUrl: verifyUrl(cert.certificateNumber),
+    verifyUrl: await certificateVerifyUrl(cert.certificateNumber),
     roleTitle: cert.roleTitle,
     signer: await getCertificateSigner(),
   });
@@ -70,7 +92,11 @@ export async function buildCertificatePdf(number: string): Promise<Buffer | null
   return pdf;
 }
 
-/** Cached file if present, otherwise (re)generate. */
+/**
+ * Cached file if present, otherwise (re)generate.
+ * Catatan: berkas lama yang dibuat sebelum perubahan ini mungkin berisi URL dengan port yang salah.
+ * Hapus `certificates/*.pdf` di UPLOAD_DIR untuk memaksa render ulang.
+ */
 export async function getCertificatePdf(number: string): Promise<Buffer | null> {
   if (!CERT_NUMBER_RE.test(number)) return null;
   return (await readPrivate("certificates", `${number}.pdf`)) ?? (await buildCertificatePdf(number));

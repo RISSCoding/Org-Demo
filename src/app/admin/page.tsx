@@ -20,7 +20,7 @@ export default async function AdminHome() {
   ]);
 
   const stats = [
-    { label: "Menunggu persetujuan", value: pending, accent: "text-[var(--gold-text)]", href: can("member:manage") ? "/admin/members" : null, cta: "Tinjau pendaftar", attention: pending > 0 },
+    { label: "Menunggu persetujuan", value: pending, accent: "text-[var(--state-warning-fg)]", href: can("member:manage") ? "/admin/members" : null, cta: "Tinjau pendaftar", attention: pending > 0 },
     { label: "Anggota aktif", value: active, accent: "text-[var(--emerald)]", href: can("member:manage") ? "/admin/members" : null, cta: "Lihat anggota", attention: false },
     { label: "Event mendatang", value: events, accent: "text-primary", href: can("event:manage") ? "/admin/events" : null, cta: "Kelola event", attention: false },
     { label: "Artikel terbit", value: posts, accent: "text-primary", href: null, cta: "", attention: false },
@@ -36,7 +36,7 @@ export default async function AdminHome() {
       {pending > 0 && can("member:manage") && (
         <Link
           href="/admin/members"
-          className="group flex flex-wrap items-center gap-3 rounded-sm border border-[var(--gold)]/50 bg-[var(--gold)]/10 px-4 py-3 text-sm transition-colors hover:bg-[var(--gold)]/20"
+          className="group flex flex-wrap items-center gap-3 rounded-sm border border-[var(--state-warning-border)] bg-[var(--state-warning-bg)] px-4 py-3 text-sm transition-colors hover:bg-[var(--gold)]/20"
         >
           <span className="relative grid size-2.5 place-items-center rounded-full bg-[#ffa500] ux-ping" aria-hidden />
           <span>

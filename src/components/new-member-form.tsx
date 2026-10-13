@@ -121,7 +121,7 @@ export function NewMemberForm({ divisions, thisYear }: { divisions: { id: number
       </section>
 
       {state.error && (
-        <p role="alert" className="rounded-sm bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{state.error}</p>
+        <p role="alert" className="rounded-sm bg-[var(--state-danger-bg)] px-3 py-2 text-sm text-[var(--state-danger-fg)]">{state.error}</p>
       )}
       <SubmitButton pendingLabel="Membuat…">Tambah anggota</SubmitButton>
     </form>

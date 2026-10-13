@@ -35,7 +35,7 @@ export function FeedbackAdminForm({
             <option key={s} value={s}>{STATUS_LABEL[s]}</option>
           ))}
         </select>
-        {fe.status?.map((e) => <p key={e} className="text-xs text-red-600 dark:text-red-400">{e}</p>)}
+        {fe.status?.map((e) => <p key={e} className="text-xs text-[var(--state-danger-fg)]">{e}</p>)}
       </div>
 
       <div className="space-y-1.5">
@@ -53,14 +53,14 @@ export function FeedbackAdminForm({
           Tanggapan terbaca oleh siapa pun yang memegang kode pelacakan. Jangan menulis nama atau data pribadi.
           Kosongkan bila belum ada tanggapan.
         </p>
-        {fe.response?.map((e) => <p key={e} className="text-xs text-red-600 dark:text-red-400">{e}</p>)}
+        {fe.response?.map((e) => <p key={e} className="text-xs text-[var(--state-danger-fg)]">{e}</p>)}
       </div>
 
       {state.error && (
-        <p role="alert" className="rounded-sm bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{state.error}</p>
+        <p role="alert" className="rounded-sm bg-[var(--state-danger-bg)] px-3 py-2 text-sm text-[var(--state-danger-fg)]">{state.error}</p>
       )}
       {state.success && (
-        <p role="status" className="rounded-sm bg-[var(--emerald)]/15 px-3 py-2 text-sm text-[var(--emerald)]">{state.success}</p>
+        <p role="status" className="rounded-sm bg-[var(--state-success-bg)] px-3 py-2 text-sm text-[var(--emerald)]">{state.success}</p>
       )}
       <SubmitButton pendingLabel="Menyimpan…">Simpan perubahan</SubmitButton>
     </form>

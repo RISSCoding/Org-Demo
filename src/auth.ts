@@ -3,6 +3,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { permissionsForPositions } from "@/lib/officer-permissions";
 import { authConfig } from "./auth.config";
 
 const credentialsSchema = z.object({
@@ -24,6 +25,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           include: {
             role: { include: { permissions: { include: { permission: true } } } },
             extraPerms: { include: { permission: true } },
+            officerRoles: { select: { position: true } },
           },
         });
         if (!user || user.approvalStatus !== "APPROVED") return null;
@@ -33,6 +35,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           ...new Set([
             ...user.role.permissions.map((p) => p.permission.code),
             ...user.extraPerms.map((p) => p.permission.code),
+            ...permissionsForPositions(user.officerRoles.map((o) => o.position)),
           ]),
         ];
         return {

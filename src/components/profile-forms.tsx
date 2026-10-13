@@ -7,8 +7,8 @@ import { btnPrimary } from "@/lib/ui";
 import type { FormState } from "@/types/forms";
 
 function Status({ state }: { state: FormState }) {
-  if (state.error) return <p role="alert" className="rounded-sm bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{state.error}</p>;
-  if (state.success) return <p role="status" className="rounded-sm bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">{state.success}</p>;
+  if (state.error) return <p role="alert" className="rounded-sm bg-[var(--state-danger-bg)] px-3 py-2 text-sm text-[var(--state-danger-fg)]">{state.error}</p>;
+  if (state.success) return <p role="status" className="rounded-sm bg-[var(--state-success-bg)] px-3 py-2 text-sm text-[var(--state-success-fg)]">{state.success}</p>;
   return null;
 }
 
@@ -27,7 +27,7 @@ export function ProfileForm({ phoneNumber, avatarUrl }: { phoneNumber: string | 
         <div className="space-y-1.5">
           <label htmlFor="avatar" className="text-sm font-medium">Foto profil (maks. 3 MB)</label>
           <input id="avatar" name="avatar" type="file" accept="image/png,image/jpeg,image/webp" className="block w-full text-sm file:mr-3 file:h-9 file:rounded-sm file:border-0 file:bg-muted file:px-3 file:text-sm hover:file:bg-border" />
-          {fe.avatar?.map((e) => <p key={e} className="text-xs text-red-600 dark:text-red-400">{e}</p>)}
+          {fe.avatar?.map((e) => <p key={e} className="text-xs text-[var(--state-danger-fg)]">{e}</p>)}
         </div>
       </div>
       <Field label="Nomor HP" name="phoneNumber" type="tel" defaultValue={phoneNumber ?? ""} errors={fe.phoneNumber} hint="Kosongkan untuk menghapus." />

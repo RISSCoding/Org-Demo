@@ -17,7 +17,7 @@ export function FieldError({ id, list }: { id?: string; list?: string[] }) {
   return (
     <div id={id} className="space-y-0.5">
       {list.map((e) => (
-        <p key={e} className="ux-slide-in flex items-start gap-1.5 text-[13px] leading-snug text-red-600 dark:text-red-400">
+        <p key={e} className="ux-slide-in flex items-start gap-1.5 text-[13px] leading-snug text-[var(--state-danger-fg)]">
           <AlertCircle className="mt-px size-3.5 shrink-0" aria-hidden /> {e}
         </p>
       ))}
@@ -66,7 +66,7 @@ export function Field({ label, name, errors, hint, type, required, ...rest }: Pr
         )}
       </div>
       {caps && (
-        <p id={`${uid}-caps`} role="status" className="ux-slide-in text-[13px] text-[var(--gold-text)]">
+        <p id={`${uid}-caps`} role="status" className="ux-slide-in text-[13px] text-[var(--state-warning-fg)]">
           Caps Lock sedang aktif.
         </p>
       )}

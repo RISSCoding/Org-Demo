@@ -11,6 +11,7 @@ import {
 import { useFormStatus } from "react-dom";
 import { logoutAction } from "@/actions/login";
 import { Brand } from "@/components/brand";
+import { Breadcrumb, type Crumb } from "@/components/breadcrumb";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -219,6 +220,13 @@ export function AppShell({
       ? { href: "/dashboard", label: "Portal Anggota", icon: Users }
       : { href: "/admin", label: "Panel Admin", icon: ShieldCheck };
 
+  // Breadcrumb: [section induk] / [grup] / [label halaman aktif]
+  const crumbs: Crumb[] = [{ label: variant === "admin" ? "Panel Admin" : "Portal Anggota" }];
+  if (current && current.href !== "/admin" && current.href !== "/dashboard") {
+    if (current.group) crumbs.push({ label: current.group });
+    crumbs.push({ label: current.label });
+  }
+
   const showLabels = !collapsed || !isDesktop;
   const row = "relative flex items-center gap-3 rounded-sm px-3 py-3 text-sm transition-colors duration-150 md:py-2.5 focus-visible:outline-2 focus-visible:outline-offset-[-2px]";
   const bar =
@@ -236,7 +244,7 @@ export function AppShell({
     );
 
   return (
-    <TooltipProvider delay={150}>
+    <TooltipProvider delay={250}>
       <div className="app flex min-h-dvh">
         <a
           href="#isi"
@@ -270,7 +278,7 @@ export function AppShell({
             </button>
           </div>
 
-          <nav aria-label="Navigasi utama" className="flex-1 overflow-y-auto px-3 py-3">
+          <nav aria-label="Navigasi utama" className="scrollbar-thin flex-1 overflow-y-auto px-3 py-3">
             {sections.map((sec, si) => (
               <div key={sec.title ?? `sec-${si}`} className={si > 0 ? "mt-1" : undefined}>
                 {sec.title &&
@@ -404,7 +412,7 @@ export function AppShell({
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-20 flex h-16 items-center gap-2 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+          <header className="sticky top-0 z-20 flex h-16 items-center gap-2 border-b border-[var(--border-subtle)] bg-background/80 px-4 backdrop-blur-md">
             <button
               ref={menuBtn}
               type="button"
@@ -427,21 +435,7 @@ export function AppShell({
               {collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
             </button>
 
-            <p className="min-w-0 truncate text-sm text-muted-foreground" aria-label="Posisi halaman">
-              <span>{variant === "admin" ? "Panel Admin" : "Portal Anggota"}</span>
-              {current && current.href !== "/admin" && current.href !== "/dashboard" && (
-                <>
-                  {current.group && (
-                    <>
-                      <span aria-hidden className="mx-2">/</span>
-                      <span>{current.group}</span>
-                    </>
-                  )}
-                  <span aria-hidden className="mx-2">/</span>
-                  <span className="font-medium text-foreground">{current.label}</span>
-                </>
-              )}
-            </p>
+            <Breadcrumb items={crumbs} label="Posisi halaman" />
 
             <div className="ml-auto flex items-center gap-3">
               <ThemeToggle />

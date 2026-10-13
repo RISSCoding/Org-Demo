@@ -1,6 +1,9 @@
 import { FilterForm } from "@/components/filter-form";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
+import { Inbox } from "lucide-react";
 import { Badge } from "@/components/badge";
 import { formatDateTime } from "@/lib/datetime";
 import {
@@ -53,12 +56,10 @@ export default async function FeedbackInbox({ searchParams }: { searchParams: Pr
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Kotak aspirasi</h1>
-        <p className="text-sm text-muted-foreground">
-          Saran, keluhan, dan laporan dari mahasiswa dan pengurus untuk Komisi III Badan Pengawas Pengurus.
-        </p>
-      </div>
+      <PageHeader
+        title="Kotak aspirasi"
+        description="Saran, keluhan, dan laporan dari mahasiswa dan pengurus untuk Komisi III Badan Pengawas Pengurus."
+      />
 
       <div className="grid gap-4 sm:grid-cols-3">
         {FEEDBACK_STATUSES.map((s) => (
@@ -87,6 +88,18 @@ export default async function FeedbackInbox({ searchParams }: { searchParams: Pr
         {filtered && <Link href="/admin/feedback" className={btnGhost}>Reset</Link>}
       </FilterForm>
 
+      {rows.length === 0 ? (
+        <EmptyState
+          icon={Inbox}
+          title={filtered ? "Tidak ada pesan yang cocok" : "Belum ada pesan masuk"}
+          description={
+            filtered
+              ? "Coba ubah filter atau kosongkan pencarian."
+              : "Pesan dari mahasiswa dan pengurus akan muncul di sini begitu dikirim."
+          }
+          action={filtered && <Link href="/admin/feedback" className={btnGhost}>Hapus semua filter</Link>}
+        />
+      ) : (
       <div className={`${cardCls} overflow-x-auto`}>
         <table className="w-full min-w-[860px]">
           <thead className="border-b border-border">
@@ -96,13 +109,6 @@ export default async function FeedbackInbox({ searchParams }: { searchParams: Pr
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={5} className={`${td} text-muted-foreground`}>
-                  {filtered ? "Tidak ada pesan yang cocok dengan filter." : "Belum ada pesan masuk."}
-                </td>
-              </tr>
-            )}
             {rows.map((r) => (
               <tr key={r.id}>
                 <td className={td}>
@@ -129,6 +135,7 @@ export default async function FeedbackInbox({ searchParams }: { searchParams: Pr
           </tbody>
         </table>
       </div>
+      )}
       {rows.length === 100 && <p className="text-xs text-muted-foreground">Menampilkan 100 pesan. Persempit dengan filter.</p>}
     </div>
   );

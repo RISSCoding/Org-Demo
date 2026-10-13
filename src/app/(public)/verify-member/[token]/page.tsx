@@ -1,10 +1,10 @@
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { formatDateTime } from "@/lib/datetime";
+import { memberTitle } from "@/lib/member-title";
 import { prisma } from "@/lib/prisma";
 import { verifySig } from "@/lib/security";
 
 export const metadata = { title: "Verifikasi Anggota — HIMMAN UKRI", robots: { index: false } };
-// Status keanggotaan harus selalu terbaru, jangan di-cache.
 export const dynamic = "force-dynamic";
 
 const TOKEN_RE = /^(\d{6,20})\.([a-f0-9]{32})$/;
@@ -23,7 +23,15 @@ export default async function VerifyMember({ params }: { params: Promise<{ token
             nim: true,
             batchYear: true,
             approvalStatus: true,
-            member: { select: { ktaNumber: true, status: true, division: { select: { name: true } } } },
+            officerRoles: { select: { position: true }, take: 1 },
+            member: {
+              select: {
+                ktaNumber: true,
+                status: true,
+                divisionRole: true,
+                division: { select: { name: true } },
+              },
+            },
           },
         })
       : null;
@@ -31,7 +39,7 @@ export default async function VerifyMember({ params }: { params: Promise<{ token
   if (!user || !user.member || user.approvalStatus !== "APPROVED") {
     return (
       <div className="flex items-start gap-3 border border-l-4 border-[var(--s-line)] border-l-red-600 p-5">
-        <XCircle className="mt-0.5 size-6 shrink-0 text-red-600 dark:text-red-400" aria-hidden />
+        <XCircle className="mt-0.5 size-6 shrink-0 text-[var(--state-danger-fg)]" aria-hidden />
         <div>
           <h1 className="s-display text-2xl text-[var(--s-head)]">Anggota tidak ditemukan</h1>
           <p className="s-serif mt-2 text-[var(--s-muted)]">
@@ -44,12 +52,17 @@ export default async function VerifyMember({ params }: { params: Promise<{ token
 
   const status = user.member.status;
   const ok = status !== "INACTIVE";
+  const title = memberTitle({
+    officerPosition: user.officerRoles[0]?.position ?? null,
+    divisionName: user.member.division?.name ?? null,
+    divisionRole: user.member.divisionRole,
+  });
   const rows = [
     ["Nama", user.fullName],
     ["NPM", user.nim],
     ["Nomor KTA", user.member.ktaNumber],
     ["Angkatan", String(user.batchYear)],
-    ["Divisi", user.member.division?.name ?? "—"],
+    ["Jabatan", title],
     ["Status keanggotaan", STATUS_LABEL[status]],
     ["Diperiksa", formatDateTime(new Date())],
   ];
@@ -64,7 +77,7 @@ export default async function VerifyMember({ params }: { params: Promise<{ token
         {ok ? (
           <CheckCircle2 className="mt-0.5 size-6 shrink-0 text-[var(--emerald)]" aria-hidden />
         ) : (
-          <AlertTriangle className="mt-0.5 size-6 shrink-0 text-[var(--gold-text)]" aria-hidden />
+          <AlertTriangle className="mt-0.5 size-6 shrink-0 text-[var(--state-warning-fg)]" aria-hidden />
         )}
         <div>
           <h1 className="s-display text-2xl text-[var(--s-head)]">

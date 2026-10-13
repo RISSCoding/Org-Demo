@@ -1,8 +1,10 @@
+import Link from "next/link";
+import { BookOpen } from "lucide-react";
 import { auth } from "@/auth";
 import { ProfileForm, PasswordForm } from "@/components/profile-forms";
 import { MySignature } from "@/components/signature-controls";
 import { prisma } from "@/lib/prisma";
-import { cardCls } from "@/lib/ui";
+import { btnLine, cardCls } from "@/lib/ui";
 
 export const metadata = { title: "Profil — HIMMAN UKRI" };
 export const dynamic = "force-dynamic";
@@ -38,6 +40,17 @@ export default async function ProfilePage() {
       <section className={`${cardCls} space-y-4 p-5`}>
         <h2 className="text-lg font-semibold">Ganti password</h2>
         <PasswordForm />
+      </section>
+      <section className={`${cardCls} space-y-3 p-5`}>
+        <div>
+          <h2 className="text-lg font-semibold">Panduan penggunaan</h2>
+          <p className="text-sm text-muted-foreground">
+            Lihat lagi langkah awal: melengkapi profil, mengunggah tanda tangan, dan mengenal KTA digital.
+          </p>
+        </div>
+        <Link href="/onboarding?replay=1" className={btnLine}>
+          <BookOpen className="size-4" aria-hidden /> Buka panduan
+        </Link>
       </section>
     </div>
   );

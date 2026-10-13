@@ -103,7 +103,7 @@ export default async function DuesAdmin({ searchParams }: { searchParams: Promis
                     <Badge tone={st.tone}>{st.label}</Badge>
                     {d.paidAt && <p className="mt-1 text-xs text-muted-foreground">{formatDate(d.paidAt)}</p>}
                     {d.proofUrl && (
-                      <a href={d.proofUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-[var(--gold-text)] underline underline-offset-4 hover:no-underline">
+                      <a href={d.proofUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-[var(--state-warning-fg)] underline underline-offset-4 hover:no-underline">
                         <Paperclip className="size-3" /> Lihat bukti
                       </a>
                     )}
@@ -122,7 +122,7 @@ export default async function DuesAdmin({ searchParams }: { searchParams: Promis
                               title="Tolak bukti transfer ini?"
                               message="Bukti dihapus dari tagihan, dan anggota perlu mengunggah bukti yang baru."
                               confirmLabel="Tolak bukti"
-                              className={`${btnGhost} text-red-600 dark:text-red-400`}
+                              className={`${btnGhost} text-[var(--state-danger-fg)]`}
                             >
                               Tolak bukti
                             </ConfirmSubmit>

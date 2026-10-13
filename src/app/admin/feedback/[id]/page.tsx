@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/badge";
+import { PageHeader } from "@/components/ui/page-header";
 import { FeedbackAdminForm } from "@/components/feedback-admin-form";
 import { formatDateTime } from "@/lib/datetime";
 import { STATUS_LABEL, STATUS_TONE } from "@/lib/feedback";
@@ -29,16 +30,20 @@ export default async function FeedbackDetail({ params }: { params: Promise<{ id:
         <ArrowLeft className="size-4" /> Kembali ke kotak aspirasi
       </Link>
 
-      <header className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge tone={STATUS_TONE[item.status]}>{STATUS_LABEL[item.status]}</Badge>
-          <Badge tone="muted">{item.category}</Badge>
-        </div>
-        <h1 className="s-display s-title text-3xl text-[var(--s-head)]">{item.subject}</h1>
-        <p className="text-sm text-muted-foreground">
-          Dikirim {formatDateTime(item.createdAt)}, kode <span className="font-mono">{item.trackingCode}</span>
-        </p>
-      </header>
+      <PageHeader
+        before={
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge tone={STATUS_TONE[item.status]}>{STATUS_LABEL[item.status]}</Badge>
+            <Badge tone="muted">{item.category}</Badge>
+          </div>
+        }
+        title={item.subject}
+        description={
+          <>
+            Dikirim {formatDateTime(item.createdAt)}, kode <span className="font-mono">{item.trackingCode}</span>
+          </>
+        }
+      />
 
       <section aria-labelledby="pengirim" className={`${cardCls} p-5`}>
         <h2 id="pengirim" className="text-sm font-semibold text-[var(--s-head)]">Pengirim</h2>

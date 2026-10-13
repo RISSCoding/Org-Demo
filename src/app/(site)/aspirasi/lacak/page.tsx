@@ -39,7 +39,7 @@ export default async function Lacak({ searchParams }: { searchParams: Promise<{ 
           </form>
 
           {code && !item && (
-            <p role="alert" className="border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+            <p role="alert" className="border border-[var(--state-danger-border)] bg-[var(--state-danger-bg)] px-4 py-3 text-sm text-[var(--state-danger-fg)]">
               Kode tidak ditemukan. Periksa lagi penulisannya, termasuk awalan ASP-.
             </p>
           )}

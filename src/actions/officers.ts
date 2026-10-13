@@ -75,6 +75,8 @@ export async function addAdvisorAction(_: FormState, fd: FormData): Promise<Form
     data: { userId: admin.id, action: "CREATE", entity: "org_officers", entityId: String(row.id), meta: { position: "ADVISOR", holderName: parsed.data } },
   });
   revalidatePath("/admin/divisions");
+  revalidatePath("/admin", "layout");
+  revalidatePath("/dashboard", "layout");
   return { success: `${parsed.data} ditambahkan ke Dewan Pembina.` };
 }
 

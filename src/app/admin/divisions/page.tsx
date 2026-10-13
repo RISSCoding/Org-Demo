@@ -6,7 +6,8 @@ import { OFFICER_LABEL, OFFICER_SLOTS } from "@/lib/officer-meta";
 import { getOfficers } from "@/lib/officers";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
-import { btnPrimary, cardCls, inputCls } from "@/lib/ui";
+import { PageHeader } from "@/components/ui/page-header";
+import { alertErr, alertOk, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
 export const metadata = { title: "Divisi — HIMMAN UKRI" };
 export const dynamic = "force-dynamic";
@@ -22,7 +23,14 @@ export default async function AdminDivisions({
   const [divisions, users, officers] = await Promise.all([
     prisma.division.findMany({
       orderBy: { name: "asc" },
-      include: { members: { select: { user: { select: { id: true, fullName: true, nim: true } } } } },
+      include: {
+        members: {
+          select: {
+            user: { select: { id: true, fullName: true, nim: true } },
+            divisionRole: true,
+          },
+        },
+      },
     }),
     prisma.user.findMany({
       where: { approvalStatus: "APPROVED", role: { name: { in: [...DIVISION_ELIGIBLE_ROLES] } } },
@@ -54,21 +62,24 @@ export default async function AdminDivisions({
     name: d.name,
     leaderId: d.leaderId,
     members: d.members
-      .map((m) => ({ userId: m.user.id, fullName: m.user.fullName, nim: m.user.nim }))
+      .map((m) => ({
+        userId: m.user.id,
+        fullName: m.user.fullName,
+        nim: m.user.nim,
+        divisionRole: m.divisionRole,
+      }))
       .sort((a, b) => a.fullName.localeCompare(b.fullName, "id")),
   }));
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Pengurus &amp; Divisi</h1>
-        <p className="text-sm text-muted-foreground">
-          Atur pengurus inti, penandatangan eksternal, dan Dewan Pembina beserta tanda tangannya, lalu kelola departemen/divisi, ketuanya, dan anggotanya. Anggota juga masih bisa ditempatkan dari halaman Anggota.
-        </p>
-      </div>
+      <PageHeader
+        title="Pengurus & Divisi"
+        description="Atur pengurus inti, penandatangan eksternal, dan Dewan Pembina beserta tanda tangannya, lalu kelola departemen/divisi, ketuanya, dan anggotanya. Anggota juga masih bisa ditempatkan dari halaman Anggota."
+      />
 
-      {error && <p role="alert" className="rounded-sm bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
-      {ok && <p role="status" className="rounded-sm bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">{ok}</p>}
+      {error && <p role="alert" className={alertErr}>{error}</p>}
+      {ok && <p role="status" className={alertOk}>{ok}</p>}
 
       <OfficersBoard slots={officerSlots} advisors={officers.advisors.map((a) => ({ id: a.id, name: a.name }))} options={officerOptions} />
 

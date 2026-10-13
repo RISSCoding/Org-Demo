@@ -22,7 +22,7 @@ export type PostFormValues = {
 
 const Err = ({ list }: { list?: string[] }) =>
   list?.map((e) => (
-    <p key={e} className="text-xs text-red-600 dark:text-red-400">{e}</p>
+    <p key={e} className="text-xs text-[var(--state-danger-fg)]">{e}</p>
   )) ?? null;
 
 const tabCls = (on: boolean) =>
@@ -130,7 +130,7 @@ export function PostForm({ post }: { post?: PostFormValues }) {
       </div>
 
       {state.error && (
-        <p role="alert" className="rounded-sm bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+        <p role="alert" className="rounded-sm bg-[var(--state-danger-bg)] px-3 py-2 text-sm text-[var(--state-danger-fg)]">
           {state.error}
         </p>
       )}

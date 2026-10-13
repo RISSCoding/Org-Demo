@@ -111,7 +111,7 @@ export function MeetingControls({ meetingId, title, code, open }: { meetingId: s
             {pending ? <Spinner /> : open ? <Lock className="size-4" aria-hidden /> : <LockOpen className="size-4" aria-hidden />}
             {open ? "Tutup absensi" : "Buka absensi"}
           </button>
-          <button type="button" className={`${btnGhost} text-red-600 dark:text-red-400`} onClick={() => setConfirming(true)} aria-label={`Hapus rapat ${title}`}>
+          <button type="button" className={`${btnGhost} text-[var(--state-danger-fg)]`} onClick={() => setConfirming(true)} aria-label={`Hapus rapat ${title}`}>
             <Trash2 className="size-4" />
           </button>
         </div>

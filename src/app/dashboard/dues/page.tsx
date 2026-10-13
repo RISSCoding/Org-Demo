@@ -30,7 +30,7 @@ export default async function MemberDues() {
       </div>
 
       {unpaid.length > 0 && (
-        <div className="rounded-sm border border-[var(--gold)]/40 bg-[var(--gold)]/10 px-4 py-3 text-sm">
+        <div className="rounded-sm border border-[var(--state-warning-border)] bg-[var(--state-warning-bg)] px-4 py-3 text-sm">
           {unpaid.length} tagihan belum lunas, total <strong>{rupiah(total)}</strong>.
         </div>
       )}

@@ -15,10 +15,13 @@ export function verifySig(payload: string, sig: string) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-/** KTA QR payload: NPM + verification hash */
+/** Token verifikasi KTA: `<npm>.<hash>`. Dipakai di URL /verify-member/<token> dan isi QR. */
+export const ktaVerifyToken = (nim: string) => `${nim}.${sign(`KTA:${nim}`)}`;
+
+/** Format lama `HIMMAN|KTA|<npm>|<hash>`. Dipertahankan agar QR cetak lama tetap terbaca. */
 export const ktaPayload = (nim: string) => `HIMMAN|KTA|${nim}|${sign(`KTA:${nim}`)}`;
 
-/** Stored in event_registrations.qr_code_hash */
+/** Disimpan di event_registrations.qr_code_hash */
 export const ticketHash = (eventId: string, userId: string) =>
   sign(`TICKET:${eventId}:${userId}`);
 

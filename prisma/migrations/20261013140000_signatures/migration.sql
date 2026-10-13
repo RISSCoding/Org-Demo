@@ -15,4 +15,5 @@ ALTER TABLE "official_letters" ADD COLUMN "event_id" TEXT;
 CREATE INDEX "official_letters_event_id_idx" ON "official_letters"("event_id");
 
 -- AddForeignKey
-ALTER TABLE "official_letters" ADD CONSTRAINT "official_letters_event_id_fkey" FOREIGN KEY ("event_id") REFERENCES "events"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "official_letters" ADD CONSTRAINT "official_letters_event_id_fkey"
+  FOREIGN KEY ("event_id") REFERENCES "events"("id") ON DELETE SET NULL ON UPDATE CASCADE;

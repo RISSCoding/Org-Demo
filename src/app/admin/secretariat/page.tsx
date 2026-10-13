@@ -1,7 +1,9 @@
 import { FilterForm } from "@/components/filter-form";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
-import { Paperclip, Plus } from "lucide-react";
+import { Mail, Paperclip, Plus } from "lucide-react";
 import { Badge } from "@/components/badge";
 import { formatDate } from "@/lib/datetime";
 import { isLetterKind, isLetterType, KIND_LABEL, LETTER_KINDS, LETTER_LABEL, LETTER_TYPES, PARTY_LABEL } from "@/lib/letters";
@@ -46,15 +48,15 @@ export default async function SecretariatPage({ searchParams }: { searchParams: 
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Sekretariat</h1>
-          <p className="text-sm text-muted-foreground">Arsip surat masuk, surat keluar, proposal, dan LPJ.</p>
-        </div>
-        <Link href="/admin/secretariat/new" className={btnPrimary}>
-          <Plus className="size-4" /> Arsip baru
-        </Link>
-      </div>
+      <PageHeader
+        title="Sekretariat"
+        description="Arsip surat masuk, surat keluar, proposal, dan LPJ."
+        action={
+          <Link href="/admin/secretariat/new" className={btnPrimary}>
+            <Plus className="size-4" /> Arsip baru
+          </Link>
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {LETTER_TYPES.map((t) => (
@@ -82,6 +84,26 @@ export default async function SecretariatPage({ searchParams }: { searchParams: 
         {(sp.q || sp.type || sp.kind || sp.year) && <Link href="/admin/secretariat" className={btnGhost}>Reset</Link>}
       </FilterForm>
 
+      {rows.length === 0 ? (
+        <EmptyState
+          icon={Mail}
+          title={sp.q || sp.type || sp.kind || sp.year ? "Tidak ada arsip yang cocok" : "Belum ada arsip"}
+          description={
+            sp.q || sp.type || sp.kind || sp.year
+              ? "Coba ubah filter atau kosongkan pencarian."
+              : "Arsipkan surat pertama lewat tombol di atas. Nomor surat keluar dibuat otomatis."
+          }
+          action={
+            sp.q || sp.type || sp.kind || sp.year ? (
+              <Link href="/admin/secretariat" className={btnGhost}>Hapus semua filter</Link>
+            ) : (
+              <Link href="/admin/secretariat/new" className={btnPrimary}>
+                <Plus className="size-4" /> Arsip baru
+              </Link>
+            )
+          }
+        />
+      ) : (
       <div className={`${cardCls} overflow-x-auto`}>
         <table className="w-full min-w-[960px]">
           <thead className="border-b border-border">
@@ -91,9 +113,6 @@ export default async function SecretariatPage({ searchParams }: { searchParams: 
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {rows.length === 0 && (
-              <tr><td colSpan={7} className={`${td} text-muted-foreground`}>Belum ada arsip yang cocok.</td></tr>
-            )}
             {rows.map((r) => (
               <tr key={r.id}>
                 <td className={`${td} whitespace-nowrap font-medium`}>{r.letterNumber ?? "—"}</td>
@@ -104,7 +123,7 @@ export default async function SecretariatPage({ searchParams }: { searchParams: 
                 <td className={td}>
                   {r.subject}
                   {r.documentUrl && (
-                    <a href={r.documentUrl} target="_blank" rel="noreferrer" className="mt-1 flex items-center gap-1 text-xs font-medium text-[var(--gold-text)] underline underline-offset-4 hover:no-underline">
+                    <a href={r.documentUrl} target="_blank" rel="noreferrer" className="mt-1 flex items-center gap-1 text-xs font-medium text-[var(--state-warning-fg)] underline underline-offset-4 hover:no-underline">
                       <Paperclip className="size-3" /> Dokumen PDF
                     </a>
                   )}
@@ -128,6 +147,7 @@ export default async function SecretariatPage({ searchParams }: { searchParams: 
           </tbody>
         </table>
       </div>
+      )}
       {rows.length === 200 && <p className="text-xs text-muted-foreground">Menampilkan 200 arsip terbaru. Persempit dengan filter.</p>}
     </div>
   );

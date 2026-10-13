@@ -34,7 +34,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
       />
       <form action={deletePostAction} className="max-w-2xl border-t border-border pt-5">
         <input type="hidden" name="id" value={p.id} />
-        <ConfirmSubmit message="Hapus tulisan ini secara permanen?" className={`${btnLine} text-red-600 dark:text-red-400`}>
+        <ConfirmSubmit message="Hapus tulisan ini secara permanen?" className={`${btnLine} text-[var(--state-danger-fg)]`}>
           Hapus tulisan
         </ConfirmSubmit>
       </form>

@@ -16,8 +16,8 @@ export type EventCardData = {
 
 export function eventPhase(e: { startDate: Date; endDate: Date }, now = new Date()) {
   if (e.endDate < now) return { label: "Selesai", cls: "bg-muted text-muted-foreground" };
-  if (e.startDate <= now) return { label: "Berlangsung", cls: "bg-[var(--emerald)]/15 text-[var(--emerald)]" };
-  return { label: "Akan datang", cls: "bg-[#ffa500]/20 text-[var(--gold-text)]" };
+  if (e.startDate <= now) return { label: "Berlangsung", cls: "bg-[var(--state-success-bg)] text-[var(--emerald)]" };
+  return { label: "Akan datang", cls: "bg-[#ffa500]/20 text-[var(--state-warning-fg)]" };
 }
 
 export function EventCard({
