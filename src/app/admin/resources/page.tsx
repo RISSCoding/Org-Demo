@@ -1,0 +1,73 @@
+import { ExternalLink } from "lucide-react";
+import { createResourceAction, deleteResourceAction } from "@/actions/resources-admin";
+import { ConfirmSubmit } from "@/components/confirm-submit";
+import { formatDate } from "@/lib/datetime";
+import { prisma } from "@/lib/prisma";
+import { requirePermission } from "@/lib/rbac";
+import { RESOURCE_CATEGORIES, categoryLabel } from "@/lib/resources";
+import { btnLine, btnPrimary, cardCls, inputCls } from "@/lib/ui";
+
+export const metadata = { title: "Materi — HIMMAN UKRI" };
+export const dynamic = "force-dynamic";
+
+export default async function AdminResources({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; ok?: string }>;
+}) {
+  await requirePermission("cms:write");
+  const { error, ok } = await searchParams;
+  const items = await prisma.resource.findMany({ orderBy: { createdAt: "desc" } });
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Materi</h1>
+        <p className="text-sm text-muted-foreground">Tautan materi, template, dan panduan yang tampil di portal anggota. Simpan filenya di Google Drive lalu tempel tautannya.</p>
+      </div>
+
+      {error && <p role="alert" className="rounded-sm bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {ok && <p role="status" className="rounded-sm bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">{ok}</p>}
+
+      <form action={createResourceAction} className={`${cardCls} grid gap-4 p-4 sm:grid-cols-2`}>
+        <div className="space-y-1.5">
+          <label htmlFor="r-title" className="text-sm font-medium">Judul</label>
+          <input id="r-title" name="title" required minLength={3} maxLength={150} className={inputCls} />
+        </div>
+        <div className="space-y-1.5">
+          <label htmlFor="r-cat" className="text-sm font-medium">Kategori</label>
+          <select id="r-cat" name="category" className={inputCls} defaultValue="MODUL">
+            {RESOURCE_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+        </div>
+        <div className="space-y-1.5 sm:col-span-2">
+          <label htmlFor="r-url" className="text-sm font-medium">Tautan (https://…)</label>
+          <input id="r-url" name="url" type="url" required className={inputCls} placeholder="https://drive.google.com/…" />
+        </div>
+        <div className="space-y-1.5 sm:col-span-2">
+          <label htmlFor="r-desc" className="text-sm font-medium">Deskripsi (opsional)</label>
+          <input id="r-desc" name="description" maxLength={500} className={inputCls} />
+        </div>
+        <div className="sm:col-span-2"><button type="submit" className={btnPrimary}>Tambah materi</button></div>
+      </form>
+
+      <div className={`${cardCls} divide-y divide-border`}>
+        {items.length === 0 && <p className="p-4 text-sm text-muted-foreground">Belum ada materi.</p>}
+        {items.map((r) => (
+          <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
+            <div className="min-w-0">
+              <a href={r.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-medium hover:underline hover:underline-offset-4">
+                {r.title} <ExternalLink className="size-3.5" aria-hidden />
+              </a>
+              <p className="text-xs text-muted-foreground">{categoryLabel(r.category)} · {formatDate(r.createdAt)}</p>
+            </div>
+            <form action={deleteResourceAction}>
+              <input type="hidden" name="id" value={r.id} />
+              <ConfirmSubmit message={`Hapus materi "${r.title}"?`} className={`${btnLine} text-red-600 dark:text-red-400`}>Hapus</ConfirmSubmit>
+            </form>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

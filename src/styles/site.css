@@ -1,0 +1,214 @@
+/* Tema HIMMAN. Dipakai situs publik (.site) dan area masuk/dashboard/admin (.app) supaya satu bahasa desain.
+   Warna mengikuti AD Pasal 3-4: hitam, putih, abu, kuning (bendera #FFA500). */
+.site,
+.app {
+  --s-bg: #ffffff;
+  --s-fg: #262626;
+  --s-head: #000000;
+  --s-muted: #666666;
+  --s-line: #d9d9d9;
+  --s-panel: #f1f1f1;
+  --s-orange: #ffa500;
+  --s-orange-text: #9a5a00;
+  background: var(--s-bg);
+  color: var(--s-fg);
+  font-family: var(--font-archivo), system-ui, sans-serif;
+}
+.dark .site,
+.dark .app {
+  --s-bg: #000000;
+  --s-fg: #e6e6e6;
+  --s-head: #ffffff;
+  --s-muted: #a3a3a3;
+  --s-line: #2f2f2f;
+  --s-panel: #141414;
+  --s-orange-text: #ffa500;
+}
+
+.s-display {
+  font-family: var(--font-archivo), system-ui, sans-serif;
+  font-weight: 800;
+  font-stretch: 118%;
+  font-variation-settings: "wdth" 118;
+  letter-spacing: -0.01em;
+  line-height: 1.04;
+}
+.s-serif {
+  font-family: var(--font-serif-site), Georgia, serif;
+  line-height: 1.75;
+}
+
+.site :focus-visible,
+.app :focus-visible {
+  outline: 2px solid var(--s-orange);
+  outline-offset: 2px;
+}
+
+/* Satu gerakan saat halaman dibuka: lima batang tumbuh bergiliran. */
+.s-bar {
+  transform-origin: bottom;
+  animation: s-grow 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 90ms);
+}
+@keyframes s-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .s-bar { animation: none; }
+}
+
+/* Judul halaman di dashboard/admin/login: garis kuning pendek di atas judul, sama seperti PageHead situs. */
+.s-title::before {
+  content: "";
+  display: block;
+  width: 3.5rem;
+  height: 4px;
+  margin-bottom: 1rem;
+  background: var(--s-orange);
+}
+
+/* ==========================================================================
+   Gerak & interaksi (UX layer)
+   Prinsip: gerak hanya untuk menunjukkan apa yang berubah (buka, tutup, simpan, gagal),
+   durasi pendek (120-320 ms), easing keluar yang lembut, dan hormati prefers-reduced-motion.
+   ========================================================================== */
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  scroll-padding-top: 5rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+::selection { background: #ffa500; color: #000; }
+button, [role="button"], a, label, select, summary { touch-action: manipulation; }
+button:not(:disabled), [role="button"] { cursor: pointer; }
+.app table, .site table { font-variant-numeric: tabular-nums; }
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Masuk halaman: dipakai template.tsx. Singkat supaya tidak terasa menunggu. */
+@keyframes ux-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.ux-enter { animation: ux-enter var(--dur-3) var(--ease-out) both; }
+
+@keyframes ux-pop {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+.ux-pop { animation: ux-pop var(--dur-3) var(--ease-out) both; }
+
+@keyframes ux-slide-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+.ux-slide-in { animation: ux-slide-in var(--dur-2) var(--ease-out) both; }
+
+/* Pesan galat: bergeser sedikit sekali agar mata tertarik, tanpa mengguncang layar. */
+@keyframes ux-nudge {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  60% { transform: translateX(3px); }
+}
+.ux-nudge { animation: ux-nudge 320ms var(--ease-out) both; }
+
+@keyframes ux-spin { to { transform: rotate(360deg); } }
+.ux-spin { animation: ux-spin 700ms linear infinite; }
+
+/* Centang yang tergambar: dipakai pada layar sukses. */
+@keyframes ux-draw { to { stroke-dashoffset: 0; } }
+.ux-check circle { stroke-dasharray: 160; stroke-dashoffset: 160; animation: ux-draw 520ms var(--ease-out) 60ms forwards; }
+.ux-check path { stroke-dasharray: 40; stroke-dashoffset: 40; animation: ux-draw 320ms var(--ease-out) 380ms forwards; }
+
+/* Kerangka pemuatan dengan kilau halus (lebih jelas daripada pulse biasa). */
+@keyframes ux-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.ux-skeleton {
+  background: linear-gradient(90deg, var(--muted) 30%, color-mix(in oklab, var(--muted), var(--foreground) 9%) 50%, var(--muted) 70%);
+  background-size: 200% 100%;
+  animation: ux-shimmer 1.6s linear infinite;
+}
+
+/* Garis pindai pada pemindai QR. */
+@keyframes ux-scan {
+  0%, 100% { top: 6%; }
+  50% { top: 92%; }
+}
+.ux-scanline { animation: ux-scan 2.4s var(--ease-in-out) infinite; }
+
+/* Denyut lembut untuk penanda yang butuh perhatian (mis. "menunggu persetujuan"). */
+@keyframes ux-ping {
+  0% { transform: scale(1); opacity: 0.6; }
+  80%, 100% { transform: scale(2.4); opacity: 0; }
+}
+.ux-ping::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: ux-ping 1.8s var(--ease-out) infinite;
+}
+
+/* Bilah kemajuan navigasi di tepi atas layar. */
+.ux-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 100;
+  height: 3px;
+  pointer-events: none;
+  transform-origin: left;
+  background: #ffa500;
+  box-shadow: 0 0 8px rgba(255, 165, 0, 0.7);
+}
+
+/* Kilap kartu KTA mengikuti kursor. */
+.ux-gloss { position: relative; }
+.ux-gloss::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-3) var(--ease-out);
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 30%), rgba(255, 255, 255, 0.16), transparent 60%);
+}
+.ux-gloss:hover::after { opacity: 1; }
+
+/* Garis bawah yang tumbuh dari kiri untuk tautan navigasi. */
+.ux-underline {
+  background-image: linear-gradient(#ffa500, #ffa500);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 2px;
+  transition: background-size var(--dur-3) var(--ease-out);
+}
+.ux-underline:hover, .ux-underline[aria-current="page"] { background-size: 100% 2px; }
+
+/* Muncul saat terlihat di layar (dipakai hemat: daftar langkah dan departemen). */
+.ux-reveal { opacity: 0; transform: translateY(10px); transition: opacity 480ms var(--ease-out), transform 480ms var(--ease-out); transition-delay: calc(var(--i, 0) * 70ms); }
+.ux-reveal[data-in="true"] { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  .ux-reveal { opacity: 1; transform: none; }
+  .ux-skeleton { animation: none; }
+  .ux-check circle, .ux-check path { stroke-dashoffset: 0; }
+}
