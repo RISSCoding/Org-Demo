@@ -123,6 +123,7 @@ npm run typecheck	TypeScript strict mode
 npm test	Tes unit (node:test + tsx). Tes yang butuh DB dilewati bila DATABASE_URL kosong
 ```
 
+```bash
 🗂️ Struktur proyek
 text
 
@@ -284,5 +285,5 @@ MIT — bebas dipakai dan dimodifikasi dengan mencantumkan atribusi.
     Logo & identitas visual: HIMMAN UKRI
 
     Font: Archivo & Source Serif (Google Fonts)
-
+```
 <div align="center"> <sub>Dibuat dengan ❤️ untuk HIMMAN UKRI · <a href="https://github.com/<username>/himman-ukri/issues">Laporkan masalah</a></sub> </div> READMEEOF ```
