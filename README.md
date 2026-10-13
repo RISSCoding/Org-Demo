@@ -36,3 +36,4 @@ Memindahkan berkas yang sudah ada dari `uploads/` ke bucket: salin isi folder pe
 - **Sesi**: peran dan permission dibaca ulang dari database (cache 15 detik), jadi pencabutan akses atau penolakan akun berlaku hampir seketika, bukan setelah token 8 jam habis.
 - **Pembatas laju** (tabel `rate_limits`): login 30/15 menit per IP dan 8/15 menit per akun, registrasi 10/jam per IP, aspirasi 5/jam per IP, ganti password 5/15 menit per akun. Kunci di-HMAC sehingga IP/NPM tidak tersimpan mentah. Pembatas per-IP bergantung pada header `x-real-ip` / `x-forwarded-for`; hanya dapat dipercaya bila aplikasi berada di belakang proxy yang menimpa header itu (Vercel, Cloudflare, Nginx).
 - **Race condition**: pendaftaran event (kuota) memakai advisory lock per-event; persetujuan iuran "mengklaim" baris secara atomik sehingga tidak bisa menghasilkan dua transaksi.
+# Org-Demo
