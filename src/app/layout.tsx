@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "Himpunan Mahasiswa Manajemen Universitas Kebangsaan Republik Indonesia: kegiatan, struktur organisasi, dokumen, dan kotak aspirasi.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="id"
