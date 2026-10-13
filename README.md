@@ -69,28 +69,40 @@ Satu portal untuk seluruh kegiatan himpunan: kartu anggota digital, event dan se
 git clone https://github.com/<username>/himman-ukri.git
 cd himman-ukri
 npm install
+```
 
+```bash
 # 2. Siapkan environment
 cp .env.example .env
 # Edit .env, minimal isi DATABASE_URL, AUTH_SECRET, QR_HMAC_SECRET
+```
 
+```bash
 # 3. Terapkan migrasi & generate Prisma Client
 npx prisma migrate deploy
 npx prisma generate
+```
 
+```bash
 # 4. Seed data dasar (role, permission, divisi)
 npx tsx prisma/seed.ts
+```
 
+```bash
 # 5. Buat akun Super Admin pertama
 ADMIN_NIM=12345678 \
 ADMIN_EMAIL=admin@himman.local \
 ADMIN_PASSWORD=Admin1234 \
 ADMIN_NAME="Super Admin" \
 npx tsx prisma/create-admin.ts
+```
 
+```bash
 # 6. Jalankan
 npm run dev
+```
 
+```bash
 Buka http://localhost:3000, masuk dengan email/NIM + password Super Admin di atas.
 Variabel environment
 Variabel	Wajib	Keterangan
@@ -109,6 +121,8 @@ npm run start	Jalankan hasil build
 npm run lint	ESLint
 npm run typecheck	TypeScript strict mode
 npm test	Tes unit (node:test + tsx). Tes yang butuh DB dilewati bila DATABASE_URL kosong
+```
+
 🗂️ Struktur proyek
 text
 
