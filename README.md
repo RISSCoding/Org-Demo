@@ -286,4 +286,4 @@ MIT — bebas dipakai dan dimodifikasi dengan mencantumkan atribusi.
 
     Font: Archivo & Source Serif (Google Fonts)
 ```
-<div align="center"> <sub>Dibuat dengan ❤️ untuk HIMMAN UKRI · <a href="https://github.com/<username>/himman-ukri/issues">Laporkan masalah</a></sub> </div> READMEEOF ```
+<div align="center"> <sub>Dibuat dengan ❤️ untuk HIMMAN UKRI · <a href="https://github.com/RISSCoding/org-demo/issues">Laporkan masalah</a></sub> </div>
