@@ -4,7 +4,6 @@ import { auth } from "@/auth";
 import { KtaCard } from "@/components/kta-card";
 import { memberTitle } from "@/lib/member-title";
 import { prisma } from "@/lib/prisma";
-import { ktaVerifyToken } from "@/lib/security";
 
 export const metadata = { title: "KTA Digital — HIMMAN UKRI" };
 export const dynamic = "force-dynamic";
@@ -43,7 +42,7 @@ export default async function KtaPage() {
   const h = await headers();
   const proto = h.get("x-forwarded-proto") ?? "http";
   const host = h.get("host") ?? "localhost:3000";
-  const payload = `${proto}://${host}/verify-member/${ktaVerifyToken(user.nim)}`;
+  const payload = `${proto}://${host}/verify-member/${user.member.ktaNumber}`;
 
   return (
     <div className="space-y-6">

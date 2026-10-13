@@ -63,6 +63,8 @@ jobs:
             --exit-code
 
       - run: bun run lint
+      - run: bunx next typegen
+      - run: bunx next typegen
       - run: bun run typecheck
       - run: bun test
       - run: bun run build

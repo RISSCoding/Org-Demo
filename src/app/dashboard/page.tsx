@@ -5,7 +5,6 @@ import { auth } from "@/auth";
 import { KtaCard } from "@/components/kta-card";
 import { memberTitle } from "@/lib/member-title";
 import { prisma } from "@/lib/prisma";
-import { ktaVerifyToken } from "@/lib/security";
 import { btnLine, btnPrimary, cardCls, cardLink } from "@/lib/ui";
 
 export const metadata = { title: "Dashboard — HIMMAN UKRI" };
@@ -68,7 +67,7 @@ export default async function DashboardHome() {
   const h = await headers();
   const proto = h.get("x-forwarded-proto") ?? "http";
   const host = h.get("host") ?? "localhost:3000";
-  const ktaPayloadUrl = `${proto}://${host}/verify-member/${ktaVerifyToken(user.nim)}`;
+  const ktaPayloadUrl = `${proto}://${host}/verify-member/${user.member!.ktaNumber}`;
 
   const shortcuts = [
     { href: "/dashboard/kta", icon: CreditCard, title: "KTA Digital", desc: "Kartu anggota dengan kode QR." },

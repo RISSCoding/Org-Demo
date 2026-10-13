@@ -5,6 +5,7 @@ import { z } from "zod";
 import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { requireSuperAdmin } from "@/lib/admin-guard";
+import { ktaBase } from "@/lib/kta";
 import { PERMISSION_OPTIONS } from "@/lib/permissions-meta";
 import { prisma } from "@/lib/prisma";
 import type { FormState } from "@/types/forms";
@@ -112,16 +113,16 @@ export async function updateMemberAction(_: FormState, fd: FormData): Promise<Fo
         });
       }
 
-      const defaultKta = (nim: string) => `HIMMAN-${nim}`;
+      const defaultKta = (nim: string, year: number) => ktaBase(nim, year);
       const profile = { status: d.memberStatus, divisionId: d.divisionId ?? null, department: d.department ?? null };
       if (target.member) {
-        const syncKta = target.nim !== d.nim && target.member.ktaNumber === defaultKta(target.nim);
+        const syncKta = (target.nim !== d.nim || target.batchYear !== d.batchYear) && target.member.ktaNumber === defaultKta(target.nim, target.batchYear);
         await tx.member.update({
           where: { userId: d.id },
-          data: { ...profile, ...(syncKta ? { ktaNumber: defaultKta(d.nim) } : {}) },
+          data: { ...profile, ...(syncKta ? { ktaNumber: defaultKta(d.nim, d.batchYear) } : {}) },
         });
       } else if (d.approvalStatus === "APPROVED") {
-        await tx.member.create({ data: { userId: d.id, ktaNumber: defaultKta(d.nim), ...profile } });
+        await tx.member.create({ data: { userId: d.id, ktaNumber: defaultKta(d.nim, d.batchYear), ...profile } });
       }
 
       await tx.auditLog.create({

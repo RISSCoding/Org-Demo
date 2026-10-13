@@ -70,8 +70,8 @@ export const DEPARTEMEN = [
 ] as const;
 
 export const BPH_INTI = [
-  { role: "Ketua", tasks: "Bertanggung jawab atas kepentingan organisasi, ke dalam dan ke luar; mengoordinasikan program kerja; memotivasi dan memantau pengurus dan anggota." },
-  { role: "Wakil Ketua", tasks: "Mewakili Ketua bila berhalangan, dan bertanggung jawab atas koordinasi internal himpunan." },
+  { role: "Ketua Himpunan", tasks: "Bertanggung jawab atas kepentingan organisasi, ke dalam dan ke luar; mengoordinasikan program kerja; memotivasi dan memantau pengurus dan anggota." },
+  { role: "Wakil Ketua Himpunan", tasks: "Mewakili Ketua Himpunan bila berhalangan, dan bertanggung jawab atas koordinasi internal himpunan." },
   { role: "Sekretaris Umum", tasks: "Mengelola administrasi kesekretariatan, menginventarisasi harta benda, mencatat hasil rapat, dan membuat database anggota." },
   { role: "Bendahara Umum", tasks: "Mengelola dan mengalokasikan kas, mengoordinasikan penggalian dana, dan membuat laporan keuangan." },
 ] as const;

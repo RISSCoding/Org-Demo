@@ -9,8 +9,8 @@ export const metadata = { title: "Struktur — HIMMAN UKRI" };
 export const revalidate = 300;
 
 const CORE_MAP: Record<string, OfficerPosition> = {
-  Ketua: "CHAIR",
-  "Wakil Ketua": "VICE_CHAIR",
+  "Ketua Himpunan": "CHAIR",
+  "Wakil Ketua Himpunan": "VICE_CHAIR",
   "Sekretaris Umum": "SECRETARY",
   "Bendahara Umum": "TREASURER",
 };
@@ -25,14 +25,14 @@ function MiniAvatar({ name, url }: { name: string; url: string | null }) {
       <img
         src={url}
         alt=""
-        className="size-6 shrink-0 rounded-full border border-[var(--s-line)] object-cover"
+        className="size-7 shrink-0 rounded-full border border-[var(--s-line)] object-cover"
       />
     );
   }
   return (
     <span
       aria-hidden
-      className="grid size-6 shrink-0 place-items-center rounded-full bg-[var(--s-panel)] text-[10px] font-semibold text-[var(--s-head)]"
+      className="grid size-7 shrink-0 place-items-center rounded-full bg-[var(--s-panel)] text-[11px] font-semibold text-[var(--s-head)]"
     >
       {initials(name)}
     </span>
@@ -41,9 +41,12 @@ function MiniAvatar({ name, url }: { name: string; url: string | null }) {
 
 function PersonChip({ holder }: { holder: { name: string; avatarUrl: string | null } }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-[var(--s-line)] bg-[var(--s-bg)] py-0.5 pr-3 pl-0.5 text-sm">
+    <span
+      className="inline-flex max-w-full items-center gap-2 rounded-full border border-[var(--s-line)] bg-[var(--s-bg)] py-1 pr-3.5 pl-1 text-sm"
+      title={holder.name}
+    >
       <MiniAvatar name={holder.name} url={holder.avatarUrl} />
-      <span className="font-medium text-[var(--s-head)]">{holder.name}</span>
+      <span className="truncate font-medium text-[var(--s-head)]">{holder.name}</span>
     </span>
   );
 }

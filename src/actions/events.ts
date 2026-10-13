@@ -80,7 +80,19 @@ export async function checkInByQr(input: z.infer<typeof checkInSchema>): Promise
   if (scan.kind === "ticket") {
     reg = await prisma.eventRegistration.findUnique({ where: { qrCodeHash: scan.hash }, include });
     if (reg && reg.eventId !== eventId) return { ok: false, error: "Tiket ini untuk event lain." };
+  } else if (scan.kind === "ktaNumber") {
+    // QR KTA format baru: cari user lewat nomor anggota.
+    person = await prisma.user.findFirst({
+      where: { member: { ktaNumber: scan.number } },
+      select: { id: true, fullName: true, nim: true },
+    });
+    if (!person) return { ok: false, error: "Nomor KTA tidak terdaftar." };
+    reg = await prisma.eventRegistration.findUnique({
+      where: { eventId_userId: { eventId, userId: person.id } },
+      include,
+    });
   } else {
+    // QR KTA format lama (nim tertanda tangan) atau NPM yang diketik petugas.
     person = await prisma.user.findUnique({ where: { nim: scan.nim }, select: { id: true, fullName: true, nim: true } });
     if (!person) return { ok: false, error: "NPM tidak ditemukan." };
     reg = await prisma.eventRegistration.findUnique({
