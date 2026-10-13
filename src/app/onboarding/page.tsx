@@ -4,7 +4,6 @@ import { auth } from "@/auth";
 import { Wizard } from "@/components/onboarding/wizard";
 import { memberTitle } from "@/lib/member-title";
 import { prisma } from "@/lib/prisma";
-import { ktaVerifyToken } from "@/lib/security";
 
 export const metadata = { title: "Selamat datang — HIMMAN UKRI" };
 export const dynamic = "force-dynamic";
@@ -68,7 +67,7 @@ export default async function OnboardingPage({
   const h = await headers();
   const proto = h.get("x-forwarded-proto") ?? "http";
   const host = h.get("host") ?? "localhost:3000";
-  const ktaPayloadUrl = `${proto}://${host}/verify-member/${ktaVerifyToken(user.nim)}`;
+  const ktaPayloadUrl = `${proto}://${host}/verify-member/${user.member.ktaNumber}`;
 
   return (
     <Wizard

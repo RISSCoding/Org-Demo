@@ -15,11 +15,15 @@ export function verifySig(payload: string, sig: string) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-/** Token verifikasi KTA: `<npm>.<hash>`. Dipakai di URL /verify-member/<token> dan isi QR. */
-export const ktaVerifyToken = (nim: string) => `${nim}.${sign(`KTA:${nim}`)}`;
-
 /** Format lama `HIMMAN|KTA|<npm>|<hash>`. Dipertahankan agar QR cetak lama tetap terbaca. */
 export const ktaPayload = (nim: string) => `HIMMAN|KTA|${nim}|${sign(`KTA:${nim}`)}`;
+
+/**
+ * Verifikasi KTA lewat nomor anggota (mis. "025207"). Nomor bersifat publik
+ * (tercetak di KTA), jadi tidak ditandatangani. Halaman verify menerapkan
+ * pembatas laju per IP untuk mencegah enumerasi.
+ */
+export const isValidKtaNumber = (v: string) => /^\d{6,7}(-\d{1,2})?$/.test(v);
 
 /** Disimpan di event_registrations.qr_code_hash */
 export const ticketHash = (eventId: string, userId: string) =>

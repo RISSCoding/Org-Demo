@@ -1,5 +1,5 @@
 /**
- * Menyeragamkan nomor KTA anggota lama (HIMMAN-<NPM>) ke aturan AD Pasal 5.
+ * Menyeragamkan nomor KTA anggota lama ke format AD Pasal 5 (mis. 2025 + NIM ...207 → 025207).
  *   npx tsx prisma/regenerate-kta.ts           # dry-run: hanya menampilkan rencana
  *   npx tsx prisma/regenerate-kta.ts --apply   # menerapkan
  * QR KTA memakai NPM, bukan nomor KTA, jadi kartu yang sudah dicetak tetap valid.
