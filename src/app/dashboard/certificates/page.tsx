@@ -35,12 +35,12 @@ export default async function CertificateVault() {
         <div className="grid gap-4 md:grid-cols-2">
           {certs.map((c) => (
             <div key={c.id} className={`${cardCls} flex gap-4 p-5`}>
-              <div className="grid size-11 shrink-0 place-items-center rounded-sm bg-[var(--gold)]/15 text-[var(--gold-text)]">
+              <div className="grid size-11 shrink-0 place-items-center rounded-sm bg-[var(--gold)]/15 text-[var(--state-warning-fg)]">
                 <Award className="size-5" />
               </div>
               <div className="min-w-0 flex-1 space-y-1">
                 <p className="font-medium leading-snug">{c.event.title}</p>
-                <p className="text-xs font-semibold text-[var(--gold-text)]">{c.roleTitle ?? "Peserta"}</p>
+                <p className="text-xs font-semibold text-[var(--state-warning-fg)]">{c.roleTitle ?? "Peserta"}</p>
                 <p className="text-sm text-muted-foreground">
                   {formatDate(c.event.startDate)} · {c.certificateNumber}
                 </p>

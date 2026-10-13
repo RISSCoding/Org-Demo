@@ -1,11 +1,30 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { AppShell } from "@/components/app-shell";
+import { prisma } from "@/lib/prisma";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   const u = session?.user;
   if (!u) redirect("/login?callbackUrl=/dashboard");
+
+  // Anggota yang belum menyelesaikan tutorial diarahkan ke /onboarding.
+  // Admin/ADMIN_EXECUTIVE tidak dipaksa: mereka masuk dari /admin dan
+  // biasanya bukan anggota biasa.
+  const isStaff = u.role === "SUPER_ADMIN" || u.role === "ADMIN_EXECUTIVE";
+  if (!isStaff) {
+    const me = await prisma.user.findUnique({
+      where: { id: u.id },
+      select: {
+        onboardedAt: true,
+        approvalStatus: true,
+        member: { select: { id: true } },
+      },
+    });
+    if (me && me.approvalStatus === "APPROVED" && me.member && !me.onboardedAt) {
+      redirect("/onboarding");
+    }
+  }
 
   return (
     <AppShell

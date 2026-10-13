@@ -130,6 +130,13 @@ enum FeedbackStatus {
   RESOLVED
 }
 
+enum DivisionRole {
+  STAFF
+  DEPT_SECRETARY
+  DEPT_HEAD
+}
+
+
 model Role {
   id          Int              @id @default(autoincrement())
   name        RoleName         @unique
@@ -178,6 +185,8 @@ model User {
   avatarUrl      String?        @map("avatar_url")
   /// Gambar tanda tangan (berkas privat, "/api/signatures/<uuid>.<png|jpg>"). Diunggah sendiri oleh pemiliknya lewat Profil.
   signatureUrl   String?        @map("signature_url")
+  /// Kapan tutorial awal diselesaikan. Null = belum; dashboard akan mengarahkan ke /onboarding.
+  onboardedAt    DateTime?      @map("onboarded_at")
   phoneNumber    String?        @map("phone_number")
   batchYear      Int            @map("batch_year")
   createdAt      DateTime       @default(now()) @map("created_at")
@@ -234,6 +243,7 @@ model Member {
   userId     String       @unique @map("user_id")
   department String?
   divisionId Int?         @map("division_id")
+  divisionRole DivisionRole? @map("division_role")
   status     MemberStatus @default(ACTIVE)
   ktaNumber  String       @unique @map("kta_number")
   user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)

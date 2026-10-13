@@ -1,8 +1,13 @@
 "use client";
 
+import type { DivisionRole } from "@prisma/client";
 import { ChevronDown, Search, UserMinus, UserPlus } from "lucide-react";
 import { useActionState, useId, useState } from "react";
-import { addDivisionMembersAction, removeDivisionMemberAction } from "@/actions/divisions";
+import {
+  addDivisionMembersAction,
+  removeDivisionMemberAction,
+  setMemberDivisionRoleAction,
+} from "@/actions/divisions";
 import { SubmitButton } from "@/components/submit-button";
 import { useFormFeedback } from "@/components/ux/use-form-feedback";
 import { alertErr, btnGhost, btnLine, inputCls } from "@/lib/ui";
@@ -10,21 +15,31 @@ import type { FormState } from "@/types/forms";
 
 /** isMember: sudah punya profil anggota (syarat untuk ditempatkan di divisi). */
 export type DivisionPerson = { id: string; fullName: string; nim: string; isMember: boolean; divisionId: number | null };
-export type DivisionMember = { userId: string; fullName: string; nim: string };
+export type DivisionMember = { userId: string; fullName: string; nim: string; divisionRole: DivisionRole | null };
 
 const MAX_SHOWN = 60;
+
+const ROLE_OPTIONS: { value: DivisionRole; label: string }[] = [
+  { value: "DEPT_HEAD", label: "Kepala Departemen" },
+  { value: "DEPT_SECRETARY", label: "Sekretaris Departemen" },
+  { value: "STAFF", label: "Staf" },
+];
+
+const ROLE_BADGE: Record<DivisionRole, string> = {
+  DEPT_HEAD: "bg-[#ffa500]/20 text-[var(--state-warning-fg)]",
+  DEPT_SECRETARY: "bg-[var(--state-success-bg)] text-[var(--emerald)]",
+  STAFF: "bg-muted text-muted-foreground",
+};
 
 export function DivisionMembers({
   divisionId,
   divisionName,
-  leaderId,
   members,
   candidates,
   divisionNames,
 }: {
   divisionId: number;
   divisionName: string;
-  leaderId: string | null;
   members: DivisionMember[];
   /** Semua akun yang boleh ditempatkan; yang sudah di divisi ini disaring di sini. */
   candidates: DivisionPerson[];
@@ -45,6 +60,7 @@ export function DivisionMembers({
     return res;
   }, {});
   const [removeState, removeAction] = useActionState<FormState, FormData>(removeDivisionMemberAction, {});
+  const [roleState, roleAction] = useActionState<FormState, FormData>(setMemberDivisionRoleAction, {});
   useFormFeedback(addState);
   useFormFeedback(removeState);
 
@@ -83,33 +99,51 @@ export function DivisionMembers({
               </p>
             ) : (
               <ul className="max-h-72 divide-y divide-border overflow-auto rounded-sm border border-border">
-                {members.map((m) => (
-                  <li key={m.userId} className="flex items-center gap-2 px-3 py-1.5">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm">
-                        {m.fullName}
-                        {m.userId === leaderId && (
-                          <span className="ml-2 rounded-sm bg-[#ffa500]/20 px-1.5 py-0.5 text-[11px] font-semibold">Ketua</span>
-                        )}
-                      </p>
-                      <p className="tabular text-xs text-muted-foreground">{m.nim}</p>
-                    </div>
-                    <form action={removeAction}>
-                      <input type="hidden" name="divisionId" value={divisionId} />
-                      <input type="hidden" name="userId" value={m.userId} />
-                      <SubmitButton
-                        className={`${btnGhost} text-red-600 dark:text-red-400`}
-                        aria-label={`Keluarkan ${m.fullName} dari ${divisionName}`}
-                        title="Keluarkan dari divisi"
-                      >
-                        <UserMinus className="size-4" aria-hidden />
-                      </SubmitButton>
-                    </form>
-                  </li>
-                ))}
+                {members.map((m) => {
+                  const role: DivisionRole = m.divisionRole ?? "STAFF";
+                  return (
+                    <li key={m.userId} className="flex items-center gap-2 px-3 py-1.5">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm">{m.fullName}</p>
+                        <p className="tabular text-xs text-muted-foreground">{m.nim}</p>
+                      </div>
+                      <form action={roleAction} className="flex items-center gap-1">
+                        <input type="hidden" name="userId" value={m.userId} />
+                        <input type="hidden" name="divisionId" value={divisionId} />
+                        <label className="sr-only" htmlFor={`r-${uid}-${m.userId}`}>
+                          Jabatan {m.fullName} di {divisionName}
+                        </label>
+                        <select
+                          id={`r-${uid}-${m.userId}`}
+                          name="divisionRole"
+                          defaultValue={role}
+                          onChange={(e) => e.currentTarget.form?.requestSubmit()}
+                          className={`h-8 rounded-sm border border-border bg-background px-2 text-xs font-medium ${ROLE_BADGE[role]}`}
+                        >
+                          {ROLE_OPTIONS.map((o) => (
+                            <option key={o.value} value={o.value}>{o.label}</option>
+                          ))}
+                        </select>
+                      </form>
+                      <form action={removeAction}>
+                        <input type="hidden" name="divisionId" value={divisionId} />
+                        <input type="hidden" name="userId" value={m.userId} />
+                        <SubmitButton
+                          className={`${btnGhost} text-[var(--state-danger-fg)]`}
+                          aria-label={`Keluarkan ${m.fullName} dari ${divisionName}`}
+                          title="Keluarkan dari divisi"
+                        >
+                          <UserMinus className="size-4" aria-hidden />
+                        </SubmitButton>
+                      </form>
+                    </li>
+                  );
+                })}
               </ul>
             )}
             {removeState.error && <p role="alert" className={alertErr}>{removeState.error}</p>}
+            {roleState.error && <p role="alert" className={alertErr}>{roleState.error}</p>}
+            {roleState.success && <p role="status" className="text-xs text-[var(--emerald)]">{roleState.success}</p>}
           </section>
 
           {/* Tambah anggota */}
@@ -169,6 +203,18 @@ export function DivisionMembers({
                   <li className="px-3 py-2 text-xs text-muted-foreground">Menampilkan {MAX_SHOWN} dari {pool.length}. Ketik lebih spesifik untuk mempersempit.</li>
                 )}
               </ul>
+
+              <label className="flex items-center justify-between gap-3 text-sm">
+                <span className="font-medium">Jabatan saat ditambahkan</span>
+                <select name="divisionRole" defaultValue="STAFF" className={`${inputCls} w-auto`}>
+                  {ROLE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Jabatan bisa diubah nanti dari daftar anggota. Ketua Departemen hanya boleh satu orang per divisi.
+              </p>
 
               {addState.error && <p role="alert" className={alertErr}>{addState.error}</p>}
 

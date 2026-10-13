@@ -37,7 +37,7 @@ export function GenerateDuesForm({
         </div>
         <SubmitButton pendingLabel="Membuat tagihan…">Buat tagihan</SubmitButton>
       </div>
-      {fe.amount?.map((e) => <p key={e} className="text-xs text-red-600 dark:text-red-400">{e}</p>)}
+      {fe.amount?.map((e) => <p key={e} className="text-xs text-[var(--state-danger-fg)]">{e}</p>)}
       {state.success && <p className="text-sm text-[var(--emerald)]">{state.success}</p>}
       {state.error && <p role="alert" className={alertErr}>{state.error}</p>}
     </form>

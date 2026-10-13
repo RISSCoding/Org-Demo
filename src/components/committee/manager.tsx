@@ -172,7 +172,7 @@ export function CommitteeRoster({
               {members.map((m) => (
                 <li key={m.id} className="flex items-baseline justify-between gap-2">
                   <span>{m.user.fullName}</span>
-                  {m.role !== "MEMBER" && <span className="shrink-0 text-xs font-medium text-[var(--gold-text)]">{roleLabel(m.role)}</span>}
+                  {m.role !== "MEMBER" && <span className="shrink-0 text-xs font-medium text-[var(--state-warning-fg)]">{roleLabel(m.role)}</span>}
                 </li>
               ))}
             </ul>

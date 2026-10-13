@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text */
 import { Document, Image, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import { inRows } from "@/lib/approval-meta";
 import type { SignatureImage } from "@/lib/signatures";

@@ -61,7 +61,7 @@ export function LetterForm({
   const [nature, setNature] = useState<LetterNature | "">(letter?.nature ?? "");
   const [campus, setCampus] = useState(letter?.campusFunds ?? false);
   const fe = state.fieldErrors ?? {};
-  const err = (k: string) => fe[k]?.map((e) => <p key={e} className="text-xs text-red-600 dark:text-red-400">{e}</p>);
+  const err = (k: string) => fe[k]?.map((e) => <p key={e} className="text-xs text-[var(--state-danger-fg)]">{e}</p>);
 
   const isOut = type === "SURAT_KELUAR";
   const isIn = type === "SURAT_MASUK";
@@ -218,17 +218,17 @@ export function LetterForm({
         {editing && letter.documentUrl && (
           <p className="text-xs text-muted-foreground">
             Sudah ada dokumen terlampir.{" "}
-            <a href={letter.documentUrl} target="_blank" rel="noreferrer" className="font-medium text-[var(--gold-text)] underline underline-offset-4 hover:no-underline">Buka</a>
+            <a href={letter.documentUrl} target="_blank" rel="noreferrer" className="font-medium text-[var(--state-warning-fg)] underline underline-offset-4 hover:no-underline">Buka</a>
           </p>
         )}
         {err("document")}
       </div>
 
       {state.error && (
-        <p role="alert" className="rounded-sm bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{state.error}</p>
+        <p role="alert" className="rounded-sm bg-[var(--state-danger-bg)] px-3 py-2 text-sm text-[var(--state-danger-fg)]">{state.error}</p>
       )}
       {state.success && (
-        <p role="status" className="rounded-sm bg-[var(--emerald)]/15 px-3 py-2 text-sm text-[var(--emerald)]">{state.success}</p>
+        <p role="status" className="rounded-sm bg-[var(--state-success-bg)] px-3 py-2 text-sm text-[var(--emerald)]">{state.success}</p>
       )}
       <SubmitButton pendingLabel="Menyimpan…">{editing ? "Simpan perubahan" : "Simpan"}</SubmitButton>
     </form>

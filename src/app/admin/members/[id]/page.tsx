@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { MemberForm, ResetPasswordForm } from "@/components/member-form";
+import { PageHeader } from "@/components/ui/page-header";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
+import { alertOk } from "@/lib/ui";
 
 export const metadata = { title: "Edit Anggota — HIMMAN UKRI" };
 
@@ -34,18 +36,21 @@ export default async function EditMember({
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div className="space-y-2">
-        <Link href="/admin/members" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+      <div className="space-y-3">
+        <Link
+          href="/admin/members"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
           <ArrowLeft className="size-4" /> Kembali ke daftar anggota
         </Link>
-        <h1 className="s-display s-title text-3xl text-[var(--s-head)]">{u.fullName}</h1>
-        <p className="text-sm text-muted-foreground">
-          {u.nim}{u.member ? ` · ${u.member.ktaNumber}` : ""}
-        </p>
+        <PageHeader
+          title={u.fullName}
+          description={`${u.nim}${u.member ? ` · ${u.member.ktaNumber}` : ""}`}
+        />
       </div>
 
       {created && (
-        <p role="status" className="rounded-sm bg-[var(--emerald)]/10 px-3 py-2 text-sm text-[var(--emerald)]">
+        <p role="status" className={alertOk}>
           Anggota berhasil dibuat. Sampaikan NPM dan password sementara ke yang bersangkutan.
         </p>
       )}

@@ -1,11 +1,13 @@
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, FolderOpen } from "lucide-react";
 import { createResourceAction, deleteResourceAction } from "@/actions/resources-admin";
 import { ConfirmSubmit } from "@/components/confirm-submit";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import { formatDate } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { RESOURCE_CATEGORIES, categoryLabel } from "@/lib/resources";
-import { btnLine, btnPrimary, cardCls, inputCls } from "@/lib/ui";
+import { alertErr, alertOk, btnLine, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
 export const metadata = { title: "Materi — HIMMAN UKRI" };
 export const dynamic = "force-dynamic";
@@ -21,13 +23,13 @@ export default async function AdminResources({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Materi</h1>
-        <p className="text-sm text-muted-foreground">Tautan materi, template, dan panduan yang tampil di portal anggota. Simpan filenya di Google Drive lalu tempel tautannya.</p>
-      </div>
+      <PageHeader
+        title="Materi"
+        description="Tautan materi, template, dan panduan yang tampil di portal anggota. Simpan filenya di Google Drive lalu tempel tautannya."
+      />
 
-      {error && <p role="alert" className="rounded-sm bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
-      {ok && <p role="status" className="rounded-sm bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">{ok}</p>}
+      {error && <p role="alert" className={alertErr}>{error}</p>}
+      {ok && <p role="status" className={alertOk}>{ok}</p>}
 
       <form action={createResourceAction} className={`${cardCls} grid gap-4 p-4 sm:grid-cols-2`}>
         <div className="space-y-1.5">
@@ -51,8 +53,14 @@ export default async function AdminResources({
         <div className="sm:col-span-2"><button type="submit" className={btnPrimary}>Tambah materi</button></div>
       </form>
 
+      {items.length === 0 ? (
+        <EmptyState
+          icon={FolderOpen}
+          title="Belum ada materi"
+          description="Tambahkan tautan materi pertama lewat form di atas. Pastikan filenya bisa diakses oleh anggota (mis. sharing “anyone with the link”)."
+        />
+      ) : (
       <div className={`${cardCls} divide-y divide-border`}>
-        {items.length === 0 && <p className="p-4 text-sm text-muted-foreground">Belum ada materi.</p>}
         {items.map((r) => (
           <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
             <div className="min-w-0">
@@ -63,11 +71,12 @@ export default async function AdminResources({
             </div>
             <form action={deleteResourceAction}>
               <input type="hidden" name="id" value={r.id} />
-              <ConfirmSubmit message={`Hapus materi "${r.title}"?`} className={`${btnLine} text-red-600 dark:text-red-400`}>Hapus</ConfirmSubmit>
+              <ConfirmSubmit message={`Hapus materi "${r.title}"?`} className={`${btnLine} text-[var(--state-danger-fg)]`}>Hapus</ConfirmSubmit>
             </form>
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,313 @@
+/* ============================================================
+   HIMMAN UKRI — Design tokens
+   
+   Tiga lapisan:
+     1. PRIMITIVE      — nilai mentah. Jangan dipakai langsung oleh komponen.
+     2. SEMANTIC       — peran (surface, text, border, state). Ini yang dipakai.
+     3. COMPATIBILITY  — alias nama lama (shadcn, --s-*, --dur-*) agar komponen
+                         eksisting tetap jalan tanpa diubah.
+   
+   Konvensi:
+   - Semua warna pakai hex/rgb agar konsisten lintas mode.
+   - Kalau perlu nilai baru, tambah token di sini — jangan hardcode di komponen.
+   ============================================================ */
+
+/* ---------- 1. PRIMITIVE ---------- */
+:root {
+  /* Netral */
+  --n-0:    #ffffff;
+  --n-25:   #fdfdfd;
+  --n-50:   #fafafa;
+  --n-75:   #f7f7f7;
+  --n-100:  #f5f5f5;
+  --n-150:  #ececec;
+  --n-200:  #e5e5e5;
+  --n-250:  #dedede;
+  --n-300:  #d4d4d4;
+  --n-400:  #a3a3a3;
+  --n-500:  #737373;
+  --n-600:  #525252;
+  --n-700:  #3f3f3f;
+  --n-800:  #262626;
+  --n-850:  #1a1a1a;
+  --n-900:  #141414;
+  --n-925:  #0f0f0f;
+  --n-950:  #0a0a0a;
+  --n-1000: #000000;
+
+  /* Brand kuning (bendera #ffa500) */
+  --brand-50:  #fff8eb;
+  --brand-100: #ffedd0;
+  --brand-200: #ffe0b0;
+  --brand-300: #ffcc80;
+  --brand-400: #ffbb4d;
+  --brand-500: #ffa500;
+  --brand-600: #e59400;
+  --brand-700: #9a5a00;
+  --brand-800: #6b3f00;
+
+  /* State */
+  --emerald-50:  #ecfdf6;
+  --emerald-100: #d1fae5;
+  --emerald-500: #10a37f;
+  --emerald-600: #0b7f60;
+  --emerald-700: #0a6b51;
+  --red-50:      #fef2f2;
+  --red-100:     #fee2e2;
+  --red-500:     #dc2626;
+  --red-600:     #b91c1c;
+  --red-700:     #991b1b;
+  --amber-50:    #fffbeb;
+  --amber-100:   #fef3c7;
+  --amber-500:   #d97706;
+  --amber-700:   #b45309;
+  --blue-50:     #eff6ff;
+  --blue-100:    #dbeafe;
+  --blue-500:    #2563eb;
+  --blue-700:    #1d4ed8;
+
+  /* Spacing (4px base) */
+  --space-0:    0;
+  --space-px:   1px;
+  --space-0-5:  0.125rem;
+  --space-1:    0.25rem;
+  --space-1-5:  0.375rem;
+  --space-2:    0.5rem;
+  --space-2-5:  0.625rem;
+  --space-3:    0.75rem;
+  --space-4:    1rem;
+  --space-5:    1.25rem;
+  --space-6:    1.5rem;
+  --space-7:    1.75rem;
+  --space-8:    2rem;
+  --space-10:   2.5rem;
+  --space-12:   3rem;
+  --space-14:   3.5rem;
+  --space-16:   4rem;
+  --space-20:   5rem;
+  --space-24:   6rem;
+
+  /* Radius — base 10px, shadcn menurunkan dari sini */
+  --radius: 0.625rem;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.10), 0 8px 10px -6px rgb(0 0 0 / 0.04);
+  --shadow-focus: 0 0 0 3px rgb(255 165 0 / 0.30);
+  --shadow-focus-danger: 0 0 0 3px rgb(220 38 38 / 0.25);
+
+  /* Motion */
+  --duration-1: 120ms;
+  --duration-2: 200ms;
+  --duration-3: 320ms;
+  --duration-4: 480ms;
+  --ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Typography */
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+  --text-5xl:  3rem;
+  --leading-tight:   1.15;
+  --leading-snug:    1.32;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.65;
+  --tracking-tight:  -0.015em;
+  --tracking-normal: 0;
+  --tracking-wide:   0.02em;
+  --tracking-wider:  0.06em;
+
+  /* Z-index */
+  --z-base:     0;
+  --z-dropdown: 10;
+  --z-sticky:   20;
+  --z-overlay:  30;
+  --z-modal:    40;
+  --z-popover:  50;
+  --z-toast:    60;
+  --z-max:      100;
+}
+
+/* ---------- 2. SEMANTIC — light ---------- */
+:root {
+  --surface-page:    var(--n-0);
+  --surface-1:       var(--n-0);
+  --surface-2:       var(--n-50);
+  --surface-3:       var(--n-0);
+  --surface-sunken:  var(--n-75);
+  --surface-inverse: var(--n-1000);
+
+  --text-strong:   var(--n-1000);
+  --text-body:     var(--n-800);
+  --text-muted:    var(--n-500);
+  --text-subtle:   var(--n-400);
+  --text-disabled: var(--n-400);
+  --text-inverse:  var(--n-0);
+  --text-on-brand: var(--n-1000);
+  --text-brand:    var(--brand-700);
+
+  --border-subtle:  var(--n-100);
+  --border-default: var(--n-200);
+  --border-strong:  var(--n-300);
+  --border-inverse: rgb(255 255 255 / 0.10);
+  --border-focus:   var(--brand-500);
+
+  --interactive-hover:  rgb(0 0 0 / 0.04);
+  --interactive-active: rgb(0 0 0 / 0.08);
+
+  --state-success-bg:     var(--emerald-50);
+  --state-success-fg:     var(--emerald-700);
+  --state-success-border: rgb(16 163 127 / 0.25);
+
+  --state-danger-bg:      var(--red-50);
+  --state-danger-fg:      var(--red-700);
+  --state-danger-border:  rgb(220 38 38 / 0.25);
+
+  --state-warning-bg:     var(--amber-50);
+  --state-warning-fg:     var(--amber-700);
+  --state-warning-border: rgb(217 119 6 / 0.25);
+
+  --state-info-bg:        var(--blue-50);
+  --state-info-fg:        var(--blue-700);
+  --state-info-border:    rgb(37 99 235 / 0.25);
+}
+
+/* ---------- 2. SEMANTIC — dark ---------- */
+.dark {
+  --surface-page:    var(--n-950);
+  --surface-1:       var(--n-900);
+  --surface-2:       var(--n-850);
+  --surface-3:       var(--n-850);
+  --surface-sunken:  var(--n-925);
+  --surface-inverse: var(--n-0);
+
+  --text-strong:   var(--n-50);
+  --text-body:     var(--n-200);
+  --text-muted:    var(--n-400);
+  --text-subtle:   var(--n-500);
+  --text-disabled: var(--n-600);
+  --text-inverse:  var(--n-950);
+  --text-on-brand: var(--n-1000);
+  --text-brand:    var(--brand-300);
+
+  --border-subtle:  var(--n-850);
+  --border-default: var(--n-800);
+  --border-strong:  var(--n-700);
+  --border-inverse: rgb(0 0 0 / 0.40);
+  --border-focus:   var(--brand-500);
+
+  --interactive-hover:  rgb(255 255 255 / 0.05);
+  --interactive-active: rgb(255 255 255 / 0.09);
+
+  --state-success-bg:     rgb(16 163 127 / 0.14);
+  --state-success-fg:     #34d399;
+  --state-success-border: rgb(16 163 127 / 0.35);
+
+  --state-danger-bg:      rgb(220 38 38 / 0.14);
+  --state-danger-fg:      #f87171;
+  --state-danger-border:  rgb(220 38 38 / 0.35);
+
+  --state-warning-bg:     rgb(255 165 0 / 0.14);
+  --state-warning-fg:     var(--brand-300);
+  --state-warning-border: rgb(255 165 0 / 0.35);
+
+  --state-info-bg:        rgb(37 99 235 / 0.14);
+  --state-info-fg:        #93c5fd;
+  --state-info-border:    rgb(37 99 235 / 0.35);
+
+  /* Shadow nyaris tidak kelihatan di gelap; border yang mengambil alih peran. */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.40);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.50), 0 1px 2px -1px rgb(0 0 0 / 0.50);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.55), 0 2px 4px -2px rgb(0 0 0 / 0.50);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.60), 0 4px 6px -4px rgb(0 0 0 / 0.50);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.70), 0 8px 10px -6px rgb(0 0 0 / 0.50);
+}
+
+/* ---------- 3. COMPATIBILITY — nama lama (jangan dihapus) ---------- */
+:root {
+  /* shadcn tokens */
+  --background: var(--surface-page);
+  --foreground: var(--text-body);
+  --card: var(--surface-1);
+  --card-foreground: var(--text-body);
+  --popover: var(--surface-3);
+  --popover-foreground: var(--text-body);
+  --primary: var(--n-1000);
+  --primary-foreground: var(--n-0);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--n-1000);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--text-muted);
+  --accent: var(--surface-2);
+  --accent-foreground: var(--n-1000);
+  --destructive: var(--red-500);
+  --border: var(--border-default);
+  --input: var(--border-default);
+  --ring: var(--border-focus);
+
+  --chart-1: var(--brand-500);
+  --chart-2: var(--emerald-500);
+  --chart-3: var(--blue-500);
+  --chart-4: var(--n-500);
+  --chart-5: var(--amber-500);
+
+  --sidebar: var(--n-1000);
+  --sidebar-foreground: var(--n-0);
+  --sidebar-primary: var(--brand-500);
+  --sidebar-primary-foreground: var(--n-1000);
+  --sidebar-accent: rgb(255 255 255 / 0.06);
+  --sidebar-accent-foreground: var(--n-0);
+  --sidebar-border: rgb(255 255 255 / 0.08);
+  --sidebar-ring: var(--brand-500);
+
+  /* --s-* (site.css) */
+  --s-bg: var(--surface-page);
+  --s-fg: var(--text-body);
+  --s-head: var(--text-strong);
+  --s-muted: var(--text-muted);
+  --s-line: var(--border-default);
+  --s-panel: var(--surface-2);
+  --s-orange: var(--brand-500);
+  --s-orange-text: var(--text-brand);
+
+  /* --navy / --gold / --emerald */
+  --navy: var(--n-1000);
+  --navy-fg: var(--n-0);
+  --gold: var(--brand-500);
+  --gold-text: var(--text-brand);
+  --emerald: var(--emerald-500);
+
+  /* Motion — nama lama */
+  --dur-1: var(--duration-1);
+  --dur-2: var(--duration-2);
+  --dur-3: var(--duration-3);
+}
+
+.dark {
+  --primary: var(--n-0);
+  --primary-foreground: var(--n-1000);
+  --secondary-foreground: var(--n-0);
+  --accent-foreground: var(--n-0);
+
+  --sidebar: var(--n-900);
+  --sidebar-foreground: var(--n-0);
+  --sidebar-primary: var(--brand-500);
+  --sidebar-primary-foreground: var(--n-1000);
+  --sidebar-accent: rgb(255 255 255 / 0.06);
+  --sidebar-accent-foreground: var(--n-0);
+  --sidebar-border: var(--n-800);
+  --sidebar-ring: var(--brand-500);
+
+  --navy: var(--n-950);
+  --navy-fg: var(--n-0);
+}

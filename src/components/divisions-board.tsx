@@ -51,7 +51,7 @@ export function DivisionsBoard({
             </form>
             <form action={deleteDivisionAction}>
               <input type="hidden" name="id" value={d.id} />
-              <ConfirmSubmit message={`Hapus divisi ${d.name}?`} className={`${btnLine} text-red-600 dark:text-red-400`}>
+              <ConfirmSubmit message={`Hapus divisi ${d.name}?`} className={`${btnLine} text-[var(--state-danger-fg)]`}>
                 Hapus
               </ConfirmSubmit>
             </form>
@@ -60,7 +60,6 @@ export function DivisionsBoard({
           <DivisionMembers
             divisionId={d.id}
             divisionName={d.name}
-            leaderId={d.leaderId}
             members={d.members}
             candidates={people}
             divisionNames={divisionNames}

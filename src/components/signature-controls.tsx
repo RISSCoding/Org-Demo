@@ -73,7 +73,7 @@ function Controls({
       {url && (
         <form action={removeAction}>
           {officerId !== undefined && <input type="hidden" name="id" value={officerId} />}
-          <SubmitButton className={`${btnGhost} -ml-3 text-red-600 dark:text-red-400`} pendingLabel="Menghapus…" aria-label={`Hapus tanda tangan ${who}`}>
+          <SubmitButton className={`${btnGhost} -ml-3 text-[var(--state-danger-fg)]`} pendingLabel="Menghapus…" aria-label={`Hapus tanda tangan ${who}`}>
             <Trash2 className="size-4" aria-hidden />
             Hapus tanda tangan
           </SubmitButton>

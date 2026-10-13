@@ -6,12 +6,14 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { DIVISION_ELIGIBLE_ROLES } from "@/lib/division-roles";
+import { divisionRoleLabel } from "@/lib/member-title";
 import type { FormState } from "@/types/forms";
 
 const back = (kind: "error" | "ok", msg: string): never =>
   redirect(`/admin/divisions?${kind}=${encodeURIComponent(msg)}`);
 
 const nameSchema = z.string().trim().min(2, "Nama divisi minimal 2 karakter").max(60, "Nama divisi maksimal 60 karakter");
+const divisionRoleSchema = z.enum(["STAFF", "DEPT_SECRETARY", "DEPT_HEAD"]);
 
 export async function createDivisionAction(fd: FormData): Promise<void> {
   const user = await requirePermission("member:manage");
@@ -63,17 +65,37 @@ export async function deleteDivisionAction(fd: FormData): Promise<void> {
   return back("ok", "Divisi dihapus.");
 }
 
+/** Cek apakah divisi sudah punya Ketua Departemen lain (selain userId yang dikecualikan). */
+async function findOtherHead(divisionId: number, exceptUserId: string) {
+  return prisma.member.findFirst({
+    where: { divisionId, divisionRole: "DEPT_HEAD", NOT: { userId: exceptUserId } },
+    select: { user: { select: { fullName: true } } },
+  });
+}
+
 export async function addDivisionMembersAction(_: FormState, fd: FormData): Promise<FormState> {
   const admin = await requirePermission("member:manage");
   const divisionId = Number(fd.get("divisionId"));
   if (!Number.isInteger(divisionId)) return { error: "Divisi tidak valid." };
 
+  const roleParsed = divisionRoleSchema.safeParse(fd.get("divisionRole") ?? "STAFF");
+  if (!roleParsed.success) return { error: "Jabatan tidak valid." };
+  const divisionRole = roleParsed.data;
+
   const userIds = [...new Set(fd.getAll("userId").map(String).filter(Boolean))];
   if (userIds.length === 0) return { error: "Pilih minimal satu anggota." };
   if (userIds.length > 200) return { error: "Maksimal 200 anggota sekali tambah." };
+  if (divisionRole === "DEPT_HEAD" && userIds.length > 1) {
+    return { error: "Ketua Departemen hanya boleh satu orang per divisi." };
+  }
 
   const division = await prisma.division.findUnique({ where: { id: divisionId }, select: { id: true, name: true } });
   if (!division) return { error: "Divisi tidak ditemukan." };
+
+  if (divisionRole === "DEPT_HEAD") {
+    const other = await findOtherHead(divisionId, "");
+    if (other) return { error: `${division.name} sudah punya Ketua Departemen (${other.user.fullName}). Turunkan dulu yang lama.` };
+  }
 
   const users = await prisma.user.findMany({
     where: {
@@ -91,14 +113,17 @@ export async function addDivisionMembersAction(_: FormState, fd: FormData): Prom
   const moved = toAdd.filter((u) => u.member?.divisionId != null).length;
 
   await prisma.$transaction([
-    prisma.member.updateMany({ where: { userId: { in: toAdd.map((u) => u.id) } }, data: { divisionId } }),
+    prisma.member.updateMany({
+      where: { userId: { in: toAdd.map((u) => u.id) } },
+      data: { divisionId, divisionRole },
+    }),
     prisma.auditLog.create({
       data: {
         userId: admin.id,
         action: "UPDATE",
         entity: "divisions",
         entityId: String(divisionId),
-        meta: { addedMembers: toAdd.map((u) => u.id), movedFromOtherDivision: moved },
+        meta: { addedMembers: toAdd.map((u) => u.id), divisionRole, movedFromOtherDivision: moved },
       },
     }),
   ]);
@@ -116,7 +141,10 @@ export async function removeDivisionMemberAction(_: FormState, fd: FormData): Pr
   const userId = String(fd.get("userId") ?? "");
   if (!Number.isInteger(divisionId) || !userId) return { error: "Data tidak valid." };
 
-  const res = await prisma.member.updateMany({ where: { userId, divisionId }, data: { divisionId: null } });
+  const res = await prisma.member.updateMany({
+    where: { userId, divisionId },
+    data: { divisionId: null, divisionRole: null },
+  });
   if (res.count === 0) return { error: "Anggota ini sudah tidak ada di divisi tersebut." };
 
   await prisma.auditLog.create({
@@ -125,4 +153,53 @@ export async function removeDivisionMemberAction(_: FormState, fd: FormData): Pr
   revalidatePath("/admin/divisions");
   revalidatePath("/admin/members");
   return { success: "Anggota dikeluarkan dari divisi." };
+}
+
+/** Ubah jabatan satu anggota di divisinya sekarang. */
+export async function setMemberDivisionRoleAction(_: FormState, fd: FormData): Promise<FormState> {
+  const admin = await requirePermission("member:manage");
+  const userId = String(fd.get("userId") ?? "");
+  const divisionId = Number(fd.get("divisionId"));
+  const roleParsed = divisionRoleSchema.safeParse(fd.get("divisionRole"));
+  if (!userId || !Number.isInteger(divisionId) || !roleParsed.success) {
+    return { error: "Data tidak valid." };
+  }
+  const divisionRole = roleParsed.data;
+
+  const member = await prisma.member.findUnique({
+    where: { userId },
+    select: {
+      divisionId: true,
+      divisionRole: true,
+      user: { select: { fullName: true } },
+      division: { select: { name: true } },
+    },
+  });
+  if (!member || member.divisionId !== divisionId) {
+    return { error: "Anggota ini bukan bagian dari divisi tersebut." };
+  }
+  if (member.divisionRole === divisionRole) return { success: "Tidak ada perubahan." };
+
+  if (divisionRole === "DEPT_HEAD") {
+    const other = await findOtherHead(divisionId, userId);
+    if (other) {
+      return { error: `Divisi ${member.division?.name ?? ""} sudah punya Ketua Departemen (${other.user.fullName}). Turunkan dulu yang lama.` };
+    }
+  }
+
+  await prisma.$transaction([
+    prisma.member.update({ where: { userId }, data: { divisionRole } }),
+    prisma.auditLog.create({
+      data: {
+        userId: admin.id,
+        action: "UPDATE",
+        entity: "members",
+        entityId: userId,
+        meta: { divisionId, from: member.divisionRole, to: divisionRole },
+      },
+    }),
+  ]);
+  revalidatePath("/admin/divisions");
+  revalidatePath("/admin/members");
+  return { success: `${member.user.fullName}: ${divisionRoleLabel(divisionRole)}.` };
 }

@@ -1,7 +1,9 @@
 import { FilterForm } from "@/components/filter-form";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
-import { Paperclip, Plus } from "lucide-react";
+import { Paperclip, Plus, Receipt } from "lucide-react";
 import { verifyTransaction, deleteTransaction } from "@/actions/finance";
 import { Badge } from "@/components/badge";
 import { ConfirmSubmit } from "@/components/confirm-submit";
@@ -53,17 +55,17 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Transaksi</h1>
-          <p className="text-sm text-muted-foreground">Buku kas pemasukan dan pengeluaran.</p>
-        </div>
-        {canWrite && (
-          <Link href="/admin/finance/transactions/new" className={btnPrimary}>
-            <Plus className="size-4" /> Tambah transaksi
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title="Transaksi"
+        description="Buku kas pemasukan dan pengeluaran."
+        action={
+          canWrite && (
+            <Link href="/admin/finance/transactions/new" className={btnPrimary}>
+              <Plus className="size-4" /> Tambah transaksi
+            </Link>
+          )
+        }
+      />
 
       <FilterForm action="/admin/finance/transactions" className="flex flex-wrap items-center gap-2">
         <select name="month" defaultValue={sp.month ?? ""} className={sel}>
@@ -89,7 +91,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
       <div className="grid gap-4 sm:grid-cols-3">
         {[
           { l: "Pemasukan", v: rupiah(inc), c: "text-[var(--emerald)]" },
-          { l: "Pengeluaran", v: rupiah(exp), c: "text-red-600 dark:text-red-400" },
+          { l: "Pengeluaran", v: rupiah(exp), c: "text-[var(--state-danger-fg)]" },
           { l: "Selisih", v: rupiah(inc - exp), c: "text-primary" },
         ].map((s) => (
           <div key={s.l} className={`${cardCls} p-4`}>
@@ -99,6 +101,20 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
         ))}
       </div>
 
+      {rows.length === 0 ? (
+        <EmptyState
+          icon={Receipt}
+          title="Tidak ada transaksi"
+          description="Belum ada pemasukan atau pengeluaran pada filter ini. Tambahkan transaksi atau ubah filter bulan."
+          action={
+            canWrite && (
+              <Link href="/admin/finance/transactions/new" className={btnPrimary}>
+                <Plus className="size-4" /> Tambah transaksi
+              </Link>
+            )
+          }
+        />
+      ) : (
       <div className={`${cardCls} overflow-x-auto`}>
         <table className="w-full min-w-[860px]">
           <thead className="border-b border-border">
@@ -108,9 +124,6 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {rows.length === 0 && (
-              <tr><td colSpan={6} className={`${td} text-muted-foreground`}>Tidak ada transaksi.</td></tr>
-            )}
             {rows.map((r) => {
               const verified = !!r.verifiedBy;
               const mine = r.createdBy === user.id;
@@ -123,13 +136,13 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
                     <p className="font-medium">{r.title}</p>
                     {r.note && <p className="text-xs text-muted-foreground">{r.note}</p>}
                     {r.proofOfPaymentUrl && (
-                      <a href={r.proofOfPaymentUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-[var(--gold-text)] underline underline-offset-4 hover:no-underline">
+                      <a href={r.proofOfPaymentUrl} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-[var(--state-warning-fg)] underline underline-offset-4 hover:no-underline">
                         <Paperclip className="size-3" /> Bukti
                       </a>
                     )}
                   </td>
                   <td className={td}>{CATEGORY_LABEL[r.category]}</td>
-                  <td className={`${td} whitespace-nowrap text-right font-medium ${r.type === "INCOME" ? "text-[var(--emerald)]" : "text-red-600 dark:text-red-400"}`}>
+                  <td className={`${td} whitespace-nowrap text-right font-medium ${r.type === "INCOME" ? "text-[var(--emerald)]" : "text-[var(--state-danger-fg)]"}`}>
                     {r.type === "INCOME" ? "+" : "−"}{rupiah(num(r.amount))}
                   </td>
                   <td className={td}>{verified ? <Badge tone="ok">Terverifikasi</Badge> : <Badge tone="warn">Belum</Badge>}</td>
@@ -148,7 +161,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
                             title="Hapus transaksi ini?"
                             message={`“${r.title}” dihapus dari pembukuan. Tindakan ini tidak bisa dibatalkan.`}
                             confirmLabel="Hapus transaksi"
-                            className={`${btnGhost} text-red-600 dark:text-red-400`}
+                            className={`${btnGhost} text-[var(--state-danger-fg)]`}
                           >
                             Hapus
                           </ConfirmSubmit>
@@ -165,6 +178,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
           </tbody>
         </table>
       </div>
+      )}
       {rows.length === 200 && <p className="text-xs text-muted-foreground">Menampilkan 200 transaksi terbaru. Persempit dengan filter.</p>}
     </div>
   );

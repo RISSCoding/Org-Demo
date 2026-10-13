@@ -73,7 +73,7 @@ export function ImportMembersForm() {
       </form>
 
       {preview?.error && (
-        <div role="alert" className="space-y-1 rounded-sm bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+        <div role="alert" className="space-y-1 rounded-sm bg-[var(--state-danger-bg)] px-3 py-2 text-sm text-[var(--state-danger-fg)]">
           <p>{preview.error}</p>
           {preview.sections && preview.sections.length > 0 && <p className="text-xs">Blok yang ada di file: {preview.sections.join(", ")}</p>}
         </div>
@@ -94,7 +94,7 @@ export function ImportMembersForm() {
             </p>
           )}
           {preview.invalid && preview.invalid.length > 0 && (
-            <ul className="list-inside list-disc text-xs text-red-600 dark:text-red-400">
+            <ul className="list-inside list-disc text-xs text-[var(--state-danger-fg)]">
               {preview.invalid.map((x) => <li key={x.row}>Baris {x.row}: {x.reason}</li>)}
             </ul>
           )}
@@ -123,7 +123,7 @@ export function ImportMembersForm() {
         </section>
       )}
 
-      {fatal && <p role="alert" className="rounded-sm bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{fatal}</p>}
+      {fatal && <p role="alert" className="rounded-sm bg-[var(--state-danger-bg)] px-3 py-2 text-sm text-[var(--state-danger-fg)]">{fatal}</p>}
       {totals && (
         <section className={`${cardCls} space-y-2 p-5`}>
           <h2 className="text-lg font-semibold text-[var(--s-head)]">Selesai</h2>
@@ -131,7 +131,7 @@ export function ImportMembersForm() {
             <strong>{totals.created}</strong> akun dibuat, {totals.skipped} dilewati (sudah ada), {totals.failed.length} gagal.
           </p>
           {totals.failed.length > 0 && (
-            <ul className="list-inside list-disc text-xs text-red-600 dark:text-red-400">
+            <ul className="list-inside list-disc text-xs text-[var(--state-danger-fg)]">
               {totals.failed.map((f) => <li key={f.nim}>{f.nim}: {f.reason}</li>)}
             </ul>
           )}

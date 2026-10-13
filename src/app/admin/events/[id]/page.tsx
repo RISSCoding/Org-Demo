@@ -1,17 +1,19 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Pencil, ScanLine, UsersRound } from "lucide-react";
+import { Pencil, ScanLine, UsersRound, UserX } from "lucide-react";
 import { CertificatePanel } from "@/components/certificate-panel";
 import { eventPhase } from "@/components/event-card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import { formatDateTime } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
-import { btnGhost, btnPrimary, cardCls } from "@/lib/ui";
+import { btnLine, btnPrimary, cardCls } from "@/lib/ui";
 
 const statusStyle = {
-  REGISTERED: "bg-muted text-muted-foreground",
-  ATTENDED: "bg-[var(--emerald)]/15 text-[var(--emerald)]",
-  CANCELLED: "bg-red-500/10 text-red-600 dark:text-red-400",
+  REGISTERED: "bg-[var(--surface-2)] text-muted-foreground",
+  ATTENDED: "bg-[var(--state-success-bg)] text-[var(--state-success-fg)]",
+  CANCELLED: "bg-[var(--state-danger-bg)] text-[var(--state-danger-fg)]",
 } as const;
 const statusLabel = { REGISTERED: "Terdaftar", ATTENDED: "Hadir", CANCELLED: "Batal" } as const;
 
@@ -47,26 +49,28 @@ export default async function AdminEventDetail({ params }: { params: Promise<{ i
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="space-y-1">
-          <span className={`rounded-sm px-2 py-0.5 text-xs font-semibold ${phase.cls}`}>{phase.label}</span>
-          <h1 className="s-display s-title text-3xl text-[var(--s-head)]">{event.title}</h1>
-          <p className="text-sm text-muted-foreground">
-            {formatDateTime(event.startDate)} – {formatDateTime(event.endDate)} · {event.location}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link href={`/admin/events/${event.id}/edit`} className={`${btnGhost} border border-border`}>
-            <Pencil className="size-4" /> Edit
-          </Link>
-          <Link href={`/admin/events/${event.id}/committee`} className={`${btnGhost} border border-border`}>
-            <UsersRound className="size-4" /> Kepanitiaan
-          </Link>
-          <Link href={`/admin/events/${event.id}/scan`} className={btnPrimary}>
-            <ScanLine className="size-4" /> Buka scanner
-          </Link>
-        </div>
-      </div>
+      <PageHeader
+        before={
+          <span className={`inline-block rounded-md px-2 py-0.5 text-xs font-medium ${phase.cls}`}>
+            {phase.label}
+          </span>
+        }
+        title={event.title}
+        description={`${formatDateTime(event.startDate)} – ${formatDateTime(event.endDate)} · ${event.location}`}
+        action={
+          <>
+            <Link href={`/admin/events/${event.id}/edit`} className={btnLine}>
+              <Pencil className="size-4" /> Edit
+            </Link>
+            <Link href={`/admin/events/${event.id}/committee`} className={btnLine}>
+              <UsersRound className="size-4" /> Kepanitiaan
+            </Link>
+            <Link href={`/admin/events/${event.id}/scan`} className={btnPrimary}>
+              <ScanLine className="size-4" /> Buka scanner
+            </Link>
+          </>
+        }
+      />
 
       <div className="grid gap-4 sm:grid-cols-3">
         {[
@@ -83,7 +87,7 @@ export default async function AdminEventDetail({ params }: { params: Promise<{ i
 
       <Link
         href={`/admin/events/${event.id}/committee`}
-        className={`${cardCls} group flex flex-wrap items-center justify-between gap-3 p-5 transition-[border-color] duration-200 hover:border-[#ffa500]`}
+        className={`${cardCls} group flex flex-wrap items-center justify-between gap-3 p-5 transition-[border-color] duration-200 hover:border-[var(--brand-500)]`}
       >
         <div>
           <p className="font-medium">Kepanitiaan</p>
@@ -98,34 +102,39 @@ export default async function AdminEventDetail({ params }: { params: Promise<{ i
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-[var(--s-head)]">Peserta</h2>
-        <div className={`${cardCls} overflow-x-auto`}>
-          <table className="w-full min-w-[620px]">
-            <thead className="border-b border-border">
-              <tr>
-                <th className={th}>Nama</th><th className={th}>NPM</th><th className={th}>Angkatan</th>
-                <th className={th}>Status</th><th className={th}>Waktu hadir</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {event.registrations.length === 0 && (
-                <tr><td colSpan={5} className={`${td} text-muted-foreground`}>Belum ada pendaftar.</td></tr>
-              )}
-              {event.registrations.map((r) => (
-                <tr key={r.id}>
-                  <td className={td}>{r.user.fullName}</td>
-                  <td className={td}>{r.user.nim}</td>
-                  <td className={td}>{r.user.batchYear}</td>
-                  <td className={td}>
-                    <span className={`rounded-sm px-2 py-0.5 text-xs font-semibold ${statusStyle[r.status]}`}>
-                      {statusLabel[r.status]}
-                    </span>
-                  </td>
-                  <td className={td}>{r.attendedAt ? formatDateTime(r.attendedAt) : "—"}</td>
+        {event.registrations.length === 0 ? (
+          <EmptyState
+            icon={UserX}
+            title="Belum ada pendaftar"
+            description="Peserta yang mendaftar lewat portal anggota akan muncul di sini."
+          />
+        ) : (
+          <div className={`${cardCls} overflow-x-auto`}>
+            <table className="w-full min-w-[620px]">
+              <thead className="border-b border-border">
+                <tr>
+                  <th className={th}>Nama</th><th className={th}>NPM</th><th className={th}>Angkatan</th>
+                  <th className={th}>Status</th><th className={th}>Waktu hadir</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {event.registrations.map((r) => (
+                  <tr key={r.id} className="hover:bg-[var(--interactive-hover)]">
+                    <td className={td}>{r.user.fullName}</td>
+                    <td className={td}>{r.user.nim}</td>
+                    <td className={td}>{r.user.batchYear}</td>
+                    <td className={td}>
+                      <span className={`rounded-md px-2 py-0.5 text-xs font-medium ${statusStyle[r.status]}`}>
+                        {statusLabel[r.status]}
+                      </span>
+                    </td>
+                    <td className={td}>{r.attendedAt ? formatDateTime(r.attendedAt) : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   );

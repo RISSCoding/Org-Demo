@@ -1,4 +1,6 @@
 import { FilterForm } from "@/components/filter-form";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { Pencil, Plus, Search } from "lucide-react";
@@ -83,24 +85,26 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Anggota</h1>
-          <p className="text-sm text-muted-foreground">
-            {canEdit ? "Tambah anggota, setujui pendaftaran, ubah data, peran, dan izin." : "Setujui pendaftaran dan lihat daftar anggota."}
-          </p>
-        </div>
-        {canEdit && (
-          <Link href="/admin/members/new" className={btnPrimary}>
-            <Plus className="size-4" /> Tambah anggota
-          </Link>
-        )}
-      </div>
+      <PageHeader
+        title="Anggota"
+        description={
+          canEdit
+            ? "Tambah anggota, setujui pendaftaran, ubah data, peran, dan izin."
+            : "Setujui pendaftaran dan lihat daftar anggota."
+        }
+        action={
+          canEdit && (
+            <Link href="/admin/members/new" className={btnPrimary}>
+              <Plus className="size-4" /> Tambah anggota
+            </Link>
+          )
+        }
+      />
 
       {pending.length > 0 && (
         <section id="menunggu" className="scroll-mt-24 space-y-3">
           <h2 className="text-lg font-semibold text-[var(--s-head)]">
-            Menunggu persetujuan <span className="text-[var(--gold-text)]">({pending.length})</span>
+            Menunggu persetujuan <span className="text-[var(--state-warning-fg)]">({pending.length})</span>
           </h2>
           <div className={`${cardCls} overflow-x-auto`}>
             <table className="w-full min-w-[640px]">
@@ -127,7 +131,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
                           title={`Tolak pendaftaran ${u.fullName}?`}
                           message="Pendaftar ini tidak akan bisa masuk ke portal. Hanya Super Admin yang bisa mengubah keputusan ini nanti."
                           confirmLabel="Tolak pendaftaran"
-                          className={`${btnGhost} text-red-600 dark:text-red-400`}
+                          className={`${btnGhost} text-[var(--state-danger-fg)]`}
                         >
                           Tolak
                         </ConfirmSubmit>
@@ -167,6 +171,24 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
           )}
         </FilterForm>
 
+        {users.length === 0 ? (
+          <EmptyState
+            icon={Search}
+            title={q || role || status || approval ? "Tidak ada anggota yang cocok" : "Belum ada anggota"}
+            description={
+              q || role || status || approval
+                ? "Coba ubah filter atau kosongkan pencarian."
+                : canEdit
+                  ? "Tambahkan anggota pertama lewat tombol di atas."
+                  : "Anggota akan muncul di sini setelah disetujui."
+            }
+            action={
+              (q || role || status || approval) && (
+                <Link href="/admin/members" className={btnGhost}>Hapus semua filter</Link>
+              )
+            }
+          />
+        ) : (
         <div className={`${cardCls} overflow-x-auto`}>
           <table className="w-full min-w-[820px]">
             <thead className="border-b border-border">
@@ -177,9 +199,6 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {users.length === 0 && (
-                <tr><td colSpan={canEdit ? 7 : 6} className={`${td} text-muted-foreground`}>Tidak ada anggota yang cocok.</td></tr>
-              )}
               {users.map((u) => (
                 <tr key={u.id} className="hover:bg-muted/50">
                   <td className={td}>
@@ -213,6 +232,7 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
             </tbody>
           </table>
         </div>
+        )}
 
         {pages > 1 && (
           <div className="flex items-center justify-between text-sm">

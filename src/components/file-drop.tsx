@@ -164,7 +164,7 @@ export function FileDrop({
         </p>
       )}
       {problem && (
-        <p id={`${id}-err`} role="alert" className="ux-slide-in flex items-start gap-1.5 text-[13px] leading-snug text-red-600 dark:text-red-400">
+        <p id={`${id}-err`} role="alert" className="ux-slide-in flex items-start gap-1.5 text-[13px] leading-snug text-[var(--state-danger-fg)]">
           <AlertCircle className="mt-px size-3.5 shrink-0" aria-hidden /> {problem}
         </p>
       )}

@@ -44,7 +44,7 @@ export function EventForm({ event }: { event?: EventFormValues }) {
           className={`${inputCls} h-auto py-2`}
         />
         {fe.description?.map((e) => (
-          <p key={e} className="text-xs text-red-600 dark:text-red-400">{e}</p>
+          <p key={e} className="text-xs text-[var(--state-danger-fg)]">{e}</p>
         ))}
       </div>
 
@@ -80,7 +80,7 @@ export function EventForm({ event }: { event?: EventFormValues }) {
           className="block w-full text-sm file:mr-3 file:h-10 file:rounded-sm file:border-0 file:bg-muted file:px-4 file:text-sm hover:file:bg-border"
         />
         {fe.banner?.map((e) => (
-          <p key={e} className="text-xs text-red-600 dark:text-red-400">{e}</p>
+          <p key={e} className="text-xs text-[var(--state-danger-fg)]">{e}</p>
         ))}
       </div>
 
@@ -90,7 +90,7 @@ export function EventForm({ event }: { event?: EventFormValues }) {
       </label>
 
       {state.error && (
-        <p role="alert" className="rounded-sm bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+        <p role="alert" className="rounded-sm bg-[var(--state-danger-bg)] px-3 py-2 text-sm text-[var(--state-danger-fg)]">
           {state.error}
         </p>
       )}

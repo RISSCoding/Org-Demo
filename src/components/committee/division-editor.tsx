@@ -66,10 +66,10 @@ function DeleteDivision({ eventId, division }: { eventId: string; division: Divi
     <form ref={form} action={action}>
       <input type="hidden" name="eventId" value={eventId} />
       <input type="hidden" name="id" value={division.id} />
-      <button type="button" className={`${btnGhost} text-red-600 dark:text-red-400`} onClick={() => setOpen(true)} aria-label={`Hapus divisi ${division.name}`}>
+      <button type="button" className={`${btnGhost} text-[var(--state-danger-fg)]`} onClick={() => setOpen(true)} aria-label={`Hapus divisi ${division.name}`}>
         <Trash2 className="size-4" />
       </button>
-      {state.error && <p role="alert" className="mt-2 text-[13px] text-red-600 dark:text-red-400">{state.error}</p>}
+      {state.error && <p role="alert" className="mt-2 text-[13px] text-[var(--state-danger-fg)]">{state.error}</p>}
       <ConfirmDialog
         open={open}
         onOpenChange={setOpen}

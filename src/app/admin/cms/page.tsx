@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { PostCategory, Prisma } from "@prisma/client";
-import { ExternalLink, Plus } from "lucide-react";
+import { ExternalLink, Newspaper, Plus } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 import { formatDate, formatDateTime } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
@@ -42,15 +44,15 @@ export default async function AdminCms({ searchParams }: { searchParams: Promise
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Berita & Artikel</h1>
-          <p className="text-sm text-muted-foreground">Tulis dan terbitkan informasi resmi untuk halaman Berita.</p>
-        </div>
-        <Link href="/admin/cms/new" className={btnPrimary}>
-          <Plus className="size-4" /> Tulis baru
-        </Link>
-      </div>
+      <PageHeader
+        title="Berita & Artikel"
+        description="Tulis dan terbitkan informasi resmi untuk halaman Berita."
+        action={
+          <Link href="/admin/cms/new" className={btnPrimary}>
+            <Plus className="size-4" /> Tulis baru
+          </Link>
+        }
+      />
 
       <form method="get" className="flex flex-wrap items-center gap-2">
         <input name="q" defaultValue={sp.q ?? ""} placeholder="Cari judul…" className={`${inputCls} w-full sm:w-64`} />
@@ -66,15 +68,32 @@ export default async function AdminCms({ searchParams }: { searchParams: Promise
         {(q || status || category) && <Link href="/admin/cms" className={btnGhost}>Reset</Link>}
       </form>
 
+      {posts.length === 0 ? (
+        <EmptyState
+          icon={Newspaper}
+          title={q || status || category ? "Tidak ada tulisan yang cocok" : "Belum ada tulisan"}
+          description={
+            q || status || category
+              ? "Coba ubah filter atau kosongkan pencarian."
+              : "Tulis berita atau pengumuman pertama. Bisa disimpan sebagai draf dulu."
+          }
+          action={
+            q || status || category ? (
+              <Link href="/admin/cms" className={btnGhost}>Hapus semua filter</Link>
+            ) : (
+              <Link href="/admin/cms/new" className={btnPrimary}>
+                <Plus className="size-4" /> Tulis yang pertama
+              </Link>
+            )
+          }
+        />
+      ) : (
       <div className={`${cardCls} overflow-x-auto`}>
         <table className="w-full min-w-[720px]">
           <thead className="border-b border-border">
             <tr><th className={th}>Judul</th><th className={th}>Kategori</th><th className={th}>Status</th><th className={th}>Penulis</th><th className={th} /></tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {posts.length === 0 && (
-              <tr><td colSpan={5} className={`${td} text-muted-foreground`}>Belum ada tulisan yang cocok.</td></tr>
-            )}
             {posts.map((p) => {
               const live = p.publishedAt && p.publishedAt <= now;
               return (
@@ -106,6 +125,7 @@ export default async function AdminCms({ searchParams }: { searchParams: Promise
           </tbody>
         </table>
       </div>
+      )}
       {posts.length === 200 && <p className="text-xs text-muted-foreground">Menampilkan 200 tulisan teratas. Persempit dengan filter.</p>}
     </div>
   );

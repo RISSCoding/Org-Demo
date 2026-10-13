@@ -126,7 +126,7 @@ function Advisors({ advisors }: { advisors: AdvisorRow[] }) {
               <span className="min-w-0 flex-1 truncate text-sm">{a.name}</span>
               <form action={removeAction}>
                 <input type="hidden" name="id" value={a.id} />
-                <SubmitButton className={`${btnGhost} text-red-600 dark:text-red-400`} aria-label={`Keluarkan ${a.name} dari Dewan Pembina`} title="Keluarkan dari Dewan Pembina">
+                <SubmitButton className={`${btnGhost} text-[var(--state-danger-fg)]`} aria-label={`Keluarkan ${a.name} dari Dewan Pembina`} title="Keluarkan dari Dewan Pembina">
                   <UserMinus className="size-4" aria-hidden />
                 </SubmitButton>
               </form>

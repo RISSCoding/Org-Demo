@@ -28,7 +28,7 @@ export async function CommitteeRecap({ eventId, meetingsHref }: { eventId: strin
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           Hari-H tercatat otomatis lewat scanner saat panitia menunjukkan QR KTA. Rapat tercatat lewat absensi kode.{" "}
-          <Link href={meetingsHref} className="font-medium text-[var(--gold-text)] underline underline-offset-4">Kelola rapat</Link>
+          <Link href={meetingsHref} className="font-medium text-[var(--state-warning-fg)] underline underline-offset-4">Kelola rapat</Link>
         </p>
       </div>
 
@@ -69,7 +69,7 @@ export async function CommitteeRecap({ eventId, meetingsHref }: { eventId: strin
                         {cert ? (
                           <Link href={`/verify-certificate/${cert}`} target="_blank" className="text-[var(--emerald)] underline underline-offset-4">Terbit</Link>
                         ) : m.attendedAt ? (
-                          <span className="text-[var(--gold-text)]">Memenuhi syarat</span>
+                          <span className="text-[var(--state-warning-fg)]">Memenuhi syarat</span>
                         ) : (
                           <span className="text-muted-foreground">Belum hadir hari-H</span>
                         )}

@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { FinanceCharts } from "@/components/finance-charts";
 import { FinanceReports, type ReportSearchParams } from "@/components/finance-reports";
+import { PageHeader } from "@/components/ui/page-header";
 import { currentMonthKey, hasFinanceWrite, monthLabel, monthOptions, rupiah } from "@/lib/finance";
 import { getOverview, syncOverdue } from "@/lib/finance-service";
 import { resolveScope } from "@/lib/finance-statements";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
-import { btnGhost, btnPrimary, cardCls, inputCls } from "@/lib/ui";
+import { btnLine, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
 export const metadata = { title: "Keuangan — HIMMAN UKRI" };
 
@@ -27,34 +28,34 @@ export default async function FinanceOverview({ searchParams }: { searchParams: 
   const totalDues = duesAgg.reduce((a, d) => a + d._count, 0);
 
   const stats = [
-    { label: "Saldo kas", value: rupiah(ov.balance), accent: ov.balance < 0 ? "text-red-600 dark:text-red-400" : "text-primary" },
-    { label: `Pemasukan ${monthLabel(key)}`, value: rupiah(ov.thisMonth.income), accent: "text-[var(--emerald)]" },
-    { label: `Pengeluaran ${monthLabel(key)}`, value: rupiah(ov.thisMonth.expense), accent: "text-red-600 dark:text-red-400" },
-    { label: "Iuran bulan ini", value: totalDues ? `${paid} / ${totalDues} lunas` : "Belum ada tagihan", accent: "text-[var(--gold-text)]" },
+    { label: "Saldo kas", value: rupiah(ov.balance), accent: ov.balance < 0 ? "text-[var(--state-danger-fg)]" : "text-primary" },
+    { label: `Pemasukan ${monthLabel(key)}`, value: rupiah(ov.thisMonth.income), accent: "text-[var(--state-success-fg)]" },
+    { label: `Pengeluaran ${monthLabel(key)}`, value: rupiah(ov.thisMonth.expense), accent: "text-[var(--state-danger-fg)]" },
+    { label: "Iuran bulan ini", value: totalDues ? `${paid} / ${totalDues} lunas` : "Belum ada tagihan", accent: "text-[var(--state-warning-fg)]" },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Keuangan</h1>
-          <p className="text-sm text-muted-foreground">
-            {scope === "verified"
-              ? "Angka di sini hanya dari transaksi yang sudah diverifikasi."
-              : "Angka di sini termasuk transaksi yang belum diverifikasi."}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/admin/finance/dues" className={`${btnGhost} border border-border`}>Iuran kas</Link>
-          <Link href="/admin/finance/transactions" className={`${btnGhost} border border-border`}>Transaksi</Link>
-          {hasFinanceWrite(user) && (
-            <Link href="/admin/finance/transactions/new" className={btnPrimary}>Tambah transaksi</Link>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title="Keuangan"
+        description={
+          scope === "verified"
+            ? "Angka di sini hanya dari transaksi yang sudah diverifikasi."
+            : "Angka di sini termasuk transaksi yang belum diverifikasi."
+        }
+        action={
+          <>
+            <Link href="/admin/finance/dues" className={btnLine}>Iuran kas</Link>
+            <Link href="/admin/finance/transactions" className={btnLine}>Transaksi</Link>
+            {hasFinanceWrite(user) && (
+              <Link href="/admin/finance/transactions/new" className={btnPrimary}>Tambah transaksi</Link>
+            )}
+          </>
+        }
+      />
 
       {(unverified > 0 || awaiting > 0) && (
-        <div className="space-y-2 rounded-sm border border-[var(--gold)]/40 bg-[var(--gold)]/10 px-4 py-3 text-sm">
+        <div className="space-y-2 border border-[var(--state-warning-border)] bg-[var(--state-warning-bg)] px-4 py-3 text-sm text-[var(--state-warning-fg)]">
           {unverified > 0 && (
             <p>
               <strong>{unverified}</strong> transaksi belum diverifikasi.{" "}
@@ -95,7 +96,7 @@ export default async function FinanceOverview({ searchParams }: { searchParams: 
             ))}
           </select>
           <button type="submit" name="format" value="pdf" className={btnPrimary}>Unduh PDF</button>
-          <button type="submit" name="format" value="xlsx" className={`${btnGhost} h-10 border border-border`}>Unduh Excel</button>
+          <button type="submit" name="format" value="xlsx" className={btnLine}>Unduh Excel</button>
         </form>
       </section>
     </div>

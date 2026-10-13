@@ -53,7 +53,7 @@ export default async function LetterDetail({ params }: { params: Promise<{ id: s
               title="Hapus arsip surat ini?"
               confirmLabel="Hapus arsip"
               message="Arsip beserta dokumennya dihapus. Nomor urut tidak akan dipakai ulang."
-              className={`${btnGhost} text-red-600 dark:text-red-400`}
+              className={`${btnGhost} text-[var(--state-danger-fg)]`}
             >
               Hapus
             </ConfirmSubmit>
@@ -99,7 +99,7 @@ export default async function LetterDetail({ params }: { params: Promise<{ id: s
                   <p className="font-medium">{sg.label}</p>
                   <p className="text-muted-foreground">{sg.name ?? "Belum ditentukan"}</p>
                 </div>
-                <span className={`inline-flex items-center gap-1 text-xs ${sg.signatureUrl ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground"}`}>
+                <span className={`inline-flex items-center gap-1 text-xs ${sg.signatureUrl ? "text-[var(--state-success-fg)]" : "text-muted-foreground"}`}>
                   {sg.signatureUrl ? <Check className="size-3.5" aria-hidden /> : <Minus className="size-3.5" aria-hidden />}
                   {sg.signatureUrl ? "Tanda tangan ada" : "Tanda tangan belum diunggah, dibiarkan kosong"}
                 </span>

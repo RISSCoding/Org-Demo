@@ -25,7 +25,7 @@ export default async function PublicFinance({ searchParams }: { searchParams: Pr
   const stats = [
     { l: "Saldo kas", v: rupiah(ov.balance), c: "text-primary" },
     { l: `Pemasukan ${monthLabel(key)}`, v: rupiah(ov.thisMonth.income), c: "text-[var(--emerald)]" },
-    { l: `Pengeluaran ${monthLabel(key)}`, v: rupiah(ov.thisMonth.expense), c: "text-red-600 dark:text-red-400" },
+    { l: `Pengeluaran ${monthLabel(key)}`, v: rupiah(ov.thisMonth.expense), c: "text-[var(--state-danger-fg)]" },
   ];
 
   return (
@@ -60,7 +60,7 @@ export default async function PublicFinance({ searchParams }: { searchParams: Pr
               </div>
               <div className="flex shrink-0 items-center gap-3">
                 <Badge>{CATEGORY_LABEL[t.category]}</Badge>
-                <span className={`text-sm font-medium ${t.type === "INCOME" ? "text-[var(--emerald)]" : "text-red-600 dark:text-red-400"}`}>
+                <span className={`text-sm font-medium ${t.type === "INCOME" ? "text-[var(--emerald)]" : "text-[var(--state-danger-fg)]"}`}>
                   {t.type === "INCOME" ? "+" : "−"}{rupiah(num(t.amount))}
                 </span>
               </div>

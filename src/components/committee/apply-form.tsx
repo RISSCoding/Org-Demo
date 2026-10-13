@@ -74,7 +74,7 @@ export function CommitteeApplyForm({ eventId, divisions }: { eventId: string; di
         />
         <div className="flex justify-between gap-3 text-[13px] text-muted-foreground">
           <p>Ceritakan alasan dan apa yang bisa kamu bantu. Minimal 30 karakter.</p>
-          <p className={`tabular shrink-0 ${len > 0 && len < 30 ? "text-[var(--gold-text)]" : ""}`}>{len}/1000</p>
+          <p className={`tabular shrink-0 ${len > 0 && len < 30 ? "text-[var(--state-warning-fg)]" : ""}`}>{len}/1000</p>
         </div>
         <FieldError list={fe.motivation} />
       </div>

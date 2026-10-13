@@ -54,7 +54,7 @@ export function ReviewForm({
                 ))}
               </select>
               {left !== null && (
-                <p className={`text-[13px] ${left === 0 && String(application.assignedDivisionId) !== divisionId ? "text-red-600 dark:text-red-400" : "text-muted-foreground"}`}>
+                <p className={`text-[13px] ${left === 0 && String(application.assignedDivisionId) !== divisionId ? "text-[var(--state-danger-fg)]" : "text-muted-foreground"}`}>
                   {left === 0 && String(application.assignedDivisionId) !== divisionId ? "Kuota divisi ini sudah penuh." : `Sisa ${left} slot.`}
                 </p>
               )}

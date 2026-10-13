@@ -32,7 +32,7 @@ function Msg({ state }: { state: FormState }) {
   return (
     <>
       {state.error && (
-        <p role="alert" className="rounded-sm bg-red-500/10 px-3 py-2 text-sm text-red-600 dark:text-red-400">{state.error}</p>
+        <p role="alert" className="rounded-sm bg-[var(--state-danger-bg)] px-3 py-2 text-sm text-[var(--state-danger-fg)]">{state.error}</p>
       )}
       {state.success && (
         <p role="status" className="rounded-sm bg-[var(--emerald)]/10 px-3 py-2 text-sm text-[var(--emerald)]">{state.success}</p>

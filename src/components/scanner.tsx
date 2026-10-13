@@ -12,8 +12,8 @@ type Entry = { id: number; kind: Kind; title: string; sub: string; at: string };
 
 const tone: Record<Kind, { box: string; icon: React.ElementType; label: string; flash: string }> = {
   ok: { box: "border-[var(--emerald)] bg-[var(--emerald)]/10", icon: CheckCircle2, label: "Berhasil", flash: "bg-[var(--emerald)]" },
-  dup: { box: "border-[var(--gold)] bg-[var(--gold)]/10", icon: AlertTriangle, label: "Sudah check-in", flash: "bg-[#c77d00]" },
-  err: { box: "border-red-500 bg-red-500/10", icon: XCircle, label: "Ditolak", flash: "bg-red-600" },
+  dup: { box: "border-[var(--gold)] bg-[var(--state-warning-bg)]", icon: AlertTriangle, label: "Sudah check-in", flash: "bg-[#c77d00]" },
+  err: { box: "border-red-500 bg-[var(--state-danger-bg)]", icon: XCircle, label: "Ditolak", flash: "bg-red-600" },
 };
 
 const MUTE_KEY = "himman:scanner-muted";

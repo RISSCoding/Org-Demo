@@ -18,7 +18,12 @@ export default auth((req) => {
   const user = req.auth?.user;
   const path = nextUrl.pathname;
 
-  if ((path.startsWith("/admin") || path.startsWith("/dashboard")) && !user) {
+  // Halaman yang butuh login.
+  const needsAuth =
+    path.startsWith("/admin") ||
+    path.startsWith("/dashboard") ||
+    path.startsWith("/onboarding");
+  if (needsAuth && !user) {
     const url = new URL("/login", nextUrl);
     url.searchParams.set("callbackUrl", path);
     return NextResponse.redirect(url);

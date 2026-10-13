@@ -108,7 +108,7 @@ export function FeedbackForm() {
       </label>
 
       {state.error && (
-        <p role="alert" className="ux-nudge flex items-start gap-2 border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">
+        <p role="alert" className="ux-nudge flex items-start gap-2 border border-[var(--state-danger-border)] bg-[var(--state-danger-bg)] px-3 py-2 text-sm text-[var(--state-danger-fg)]">
           <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden /> {state.error}
         </p>
       )}

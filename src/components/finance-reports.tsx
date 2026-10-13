@@ -22,6 +22,7 @@ import {
 } from "@/lib/finance-ledger";
 import { loadBook, resolveScope } from "@/lib/finance-statements";
 import { prisma } from "@/lib/prisma";
+import { Tabs } from "@/components/ui/tabs";
 import { alertErr, btnLine, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
 export type ReportSearchParams = { tab?: string; from?: string; to?: string; scope?: string; account?: string };
@@ -113,7 +114,7 @@ export async function FinanceReports({
       </FilterForm>
 
       {staff && scope === "verified" && book.unverifiedExcluded > 0 && (
-        <p className="rounded-sm border border-[var(--gold)]/40 bg-[var(--gold)]/10 px-4 py-2.5 text-sm">
+        <p className="rounded-sm border border-[var(--state-warning-border)] bg-[var(--state-warning-bg)] px-4 py-2.5 text-sm">
           <strong>{book.unverifiedExcluded}</strong> transaksi pada periode ini belum diverifikasi dan tidak ikut dihitung.{" "}
           <Link href="/admin/finance/transactions?status=unverified" className="font-medium underline underline-offset-4">Tinjau</Link>
         </p>
@@ -125,23 +126,15 @@ export async function FinanceReports({
       )}
       {!staff && <p className="text-xs text-muted-foreground">Hanya memuat transaksi yang sudah diverifikasi bendahara.</p>}
 
-      <nav aria-label="Jenis laporan" className="flex flex-wrap gap-1 border-b border-border">
-        {REPORT_TABS.map((t) => (
-          <Link
-            key={t.key}
-            href={hrefFor({ tab: t.key, account: undefined })}
-            scroll={false}
-            aria-current={t.key === tab ? "page" : undefined}
-            className={`-mb-px border-b-2 px-4 py-2.5 text-sm transition-colors ${
-              t.key === tab
-                ? "border-[#ffa500] font-semibold text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t.label}
-          </Link>
-        ))}
-      </nav>
+      <Tabs
+        ariaLabel="Jenis laporan"
+        value={tab}
+        items={REPORT_TABS.map((t) => ({
+          value: t.key,
+          label: t.label,
+          href: hrefFor({ tab: t.key, account: undefined }),
+        }))}
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
@@ -264,7 +257,7 @@ function LedgerView({
     return (
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
-          <Link href={backHref} scroll={false} className="text-sm font-medium text-[var(--gold-text)] underline underline-offset-4 hover:no-underline">
+          <Link href={backHref} scroll={false} className="text-sm font-medium text-[var(--state-warning-fg)] underline underline-offset-4 hover:no-underline">
             ← Semua akun
           </Link>
           <h3 className="font-semibold">{a.code} — {a.name}</h3>
@@ -448,7 +441,7 @@ function IncomeStatementView({ book }: { book: Book }) {
       </div>
       <div
         className={`flex justify-between gap-3 border-t-2 pt-3 text-base font-semibold ${
-          surplus ? "border-[var(--emerald)] text-[var(--emerald)]" : "border-red-500 text-red-600 dark:text-red-400"
+          surplus ? "border-[var(--emerald)] text-[var(--emerald)]" : "border-red-500 text-[var(--state-danger-fg)]"
         }`}
       >
         <span>{surplus ? "Surplus bersih" : "Defisit bersih"}</span>

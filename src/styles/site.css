@@ -1,28 +1,11 @@
 /* Tema HIMMAN. Dipakai situs publik (.site) dan area masuk/dashboard/admin (.app) supaya satu bahasa desain.
    Warna mengikuti AD Pasal 3-4: hitam, putih, abu, kuning (bendera #FFA500). */
+/* Nilai warna ada di src/styles/tokens.css (--s-*). */
 .site,
 .app {
-  --s-bg: #ffffff;
-  --s-fg: #262626;
-  --s-head: #000000;
-  --s-muted: #666666;
-  --s-line: #d9d9d9;
-  --s-panel: #f1f1f1;
-  --s-orange: #ffa500;
-  --s-orange-text: #9a5a00;
   background: var(--s-bg);
   color: var(--s-fg);
   font-family: var(--font-archivo), system-ui, sans-serif;
-}
-.dark .site,
-.dark .app {
-  --s-bg: #000000;
-  --s-fg: #e6e6e6;
-  --s-head: #ffffff;
-  --s-muted: #a3a3a3;
-  --s-line: #2f2f2f;
-  --s-panel: #141414;
-  --s-orange-text: #ffa500;
 }
 
 .s-display {
@@ -73,14 +56,6 @@
    Prinsip: gerak hanya untuk menunjukkan apa yang berubah (buka, tutup, simpan, gagal),
    durasi pendek (120-320 ms), easing keluar yang lembut, dan hormati prefers-reduced-motion.
    ========================================================================== */
-:root {
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --dur-1: 120ms;
-  --dur-2: 200ms;
-  --dur-3: 320ms;
-}
-
 html {
   -webkit-tap-highlight-color: transparent;
   scroll-padding-top: 5rem;

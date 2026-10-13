@@ -28,7 +28,7 @@ export default async function VerifyResult({ params }: { params: Promise<{ id: s
     return (
       <div className="space-y-6">
         <div className="flex items-start gap-3 border border-l-4 border-[var(--s-line)] border-l-red-600 p-5">
-          <XCircle className="mt-0.5 size-6 shrink-0 text-red-600 dark:text-red-400" aria-hidden />
+          <XCircle className="mt-0.5 size-6 shrink-0 text-[var(--state-danger-fg)]" aria-hidden />
           <div>
             <h1 className="s-display text-2xl text-[var(--s-head)]">Sertifikat tidak ditemukan</h1>
             <p className="s-serif mt-2 text-[var(--s-muted)]">
