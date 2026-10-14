@@ -1,14 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
-import { Bell, X } from "lucide-react";
+import { useSyncExternalStore, useState } from "react";
+import { Bell, Check, X } from "lucide-react";
 
 const STORAGE_KEY = "notification-consent-dismissed";
 const REAPPEAR_DAYS = 14;
 const EVENT = "notification-consent-change";
 
-/** Berlangganan event internal + event `storage` antar tab. */
 function subscribe(cb: () => void) {
   if (typeof window === "undefined") return () => {};
   window.addEventListener(EVENT, cb);
@@ -19,40 +18,58 @@ function subscribe(cb: () => void) {
   };
 }
 
-/** `true` = banner harus tampil. Snapshot dibaca dari localStorage. */
 function getSnapshot(): boolean {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return true;
     const at = Number(raw);
     if (!Number.isFinite(at)) return true;
-    const days = (Date.now() - at) / (1000 * 60 * 60 * 24);
-    return days >= REAPPEAR_DAYS;
+    return (Date.now() - at) / (1000 * 60 * 60 * 24) >= REAPPEAR_DAYS;
   } catch {
     return true;
   }
 }
 
-/** Server tidak punya localStorage → jangan render. Setelah hydration,
- *  React otomatis pakai getSnapshot dan banner muncul tanpa mismatch. */
 function getServerSnapshot(): boolean {
   return false;
 }
 
 export function ConsentBanner() {
   const visible = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [justDismissed, setJustDismissed] = useState(false);
 
-  if (!visible) return null;
+  if (!visible && !justDismissed) return null;
 
   const dismiss = () => {
     try {
       localStorage.setItem(STORAGE_KEY, String(Date.now()));
-      // Beri tahu subscriber supaya snapshot dibaca ulang.
       window.dispatchEvent(new Event(EVENT));
+      setJustDismissed(true);
+      // Kembalikan ke `null` setelah 4 detik supaya banner benar-benar hilang.
+      setTimeout(() => setJustDismissed(false), 4000);
     } catch {
-      // Diamkan; banner akan muncul lagi setelah refresh.
+      // localStorage diblokir — biarkan banner tetap tampil.
     }
   };
+
+  // Feedback singkat setelah user menutup pengingat.
+  if (justDismissed) {
+    return (
+      <div className="flex items-center gap-2.5 rounded-md border border-[var(--state-success-border)] bg-[var(--state-success-bg)] px-3 py-2 text-sm text-[var(--state-success-fg)]">
+        <Check className="size-4 shrink-0" aria-hidden />
+        <p className="min-w-0 flex-1 truncate">
+          Pengingat disembunyikan 14 hari.{" "}
+          <Link
+            href="/dashboard/settings/notifications"
+            className="font-medium underline underline-offset-4 hover:no-underline"
+          >
+            Buka Notifikasi
+          </Link>{" "}
+          untuk mengaktifkan email kapan saja.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-2.5 rounded-md border border-[var(--border-default)] bg-[var(--surface-2)] px-3 py-2 text-sm">
@@ -75,7 +92,8 @@ export function ConsentBanner() {
       <button
         type="button"
         onClick={dismiss}
-        aria-label="Tutup pengingat"
+        aria-label="Sembunyikan pengingat selama 14 hari"
+        title="Sembunyikan selama 14 hari"
         className="grid size-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-[var(--interactive-hover)] hover:text-foreground"
       >
         <X className="size-4" aria-hidden />

@@ -28,20 +28,25 @@ export type WizardUser = {
   ktaSubtitle: string | null;
   ktaPayload: string;
   memberStatus: MemberStatus;
-  emailConsentActive: boolean;
+  /** Kalau user pernah mencabut consent email, kita tidak pre-check. */
+  emailRevokedAt: string | null;
 };
 
-type Step = "profile" | "signature" | "kta" | "notifications" | "tour" | "done";
+type Step = "profile" | "signature" | "kta" | "tour" | "notifications" | "done";
 
 const STEP_LABEL: Record<Step, string> = {
   profile: "Profil",
   signature: "Tanda tangan",
   kta: "KTA digital",
-  notifications: "Notifikasi",
   tour: "Panduan singkat",
+  notifications: "Notifikasi",
   done: "Selesai",
 };
-const STEP_ORDER: Step[] = ["profile", "signature", "kta", "notifications", "tour", "done"];
+
+// Notifikasi pindah ke paling akhir (sebelum selesai).
+// Alasannya: user baru belum paham portal, jadi keputusan consent
+// lebih baik ditanyakan setelah mereka lihat fitur utama.
+const STEP_ORDER: Step[] = ["profile", "signature", "kta", "tour", "notifications", "done"];
 
 function initialStep(user: WizardUser): Step {
   return user.phoneNumber ? "signature" : "profile";
@@ -105,9 +110,9 @@ export function Wizard({ user, replay = false }: { user: WizardUser; replay?: bo
 
       {step === "profile" && <ProfileStep user={user} onNext={() => setStep("signature")} />}
       {step === "signature" && <SignatureStep user={user} onNext={() => setStep("kta")} />}
-      {step === "kta" && <KtaStep user={user} onNext={() => setStep("notifications")} />}
-      {step === "notifications" && <NotificationStep user={user} onNext={() => setStep("tour")} />}
-      {step === "tour" && <TourStep onNext={() => setStep("done")} />}
+      {step === "kta" && <KtaStep user={user} onNext={() => setStep("tour")} />}
+      {step === "tour" && <TourStep onNext={() => setStep("notifications")} />}
+      {step === "notifications" && <NotificationStep user={user} onNext={() => setStep("done")} />}
       {step === "done" && <DoneStep onFinish={finish} pending={finishing} replay={replay} />}
     </div>
   );
@@ -175,7 +180,7 @@ function ProfileStep({ user, onNext }: { user: WizardUser; onNext: () => void })
         )}
 
         <SubmitButton pendingLabel="Menyimpan…" className={btnPrimary}>
-          Lanjut <ArrowRight className="size-4 transition-transform duration-fast ease-[var(--ease-out)] group-hover:translate-x-0.5" aria-hidden />
+          Lanjut <ArrowRight className="size-4" aria-hidden />
         </SubmitButton>
       </form>
     </section>
@@ -276,7 +281,7 @@ function KtaStep({ user, onNext }: { user: WizardUser; onNext: () => void }) {
 
       <div className="flex flex-wrap gap-2 pt-2">
         <button type="button" onClick={onNext} className={btnPrimary}>
-          Lanjut <ArrowRight className="size-4 transition-transform duration-fast ease-[var(--ease-out)] group-hover:translate-x-0.5" aria-hidden />
+          Lanjut <ArrowRight className="size-4" aria-hidden />
         </button>
         <Link href="/dashboard/kta" className={btnLine}>
           Buka halaman KTA
@@ -286,114 +291,7 @@ function KtaStep({ user, onNext }: { user: WizardUser; onNext: () => void }) {
   );
 }
 
-/* ============== Step 4: Notifikasi ============== */
-
-function NotificationStep({ user, onNext }: { user: WizardUser; onNext: () => void }) {
-  const [email, setEmail] = useState(user.emailConsentActive);
-  const [pending, start] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSave = () => {
-    setError(null);
-    start(async () => {
-      try {
-        await saveNotificationConsent({ inapp: true, email, whatsapp: false });
-        onNext();
-      } catch {
-        setError("Gagal menyimpan preferensi. Coba lagi atau lewati dulu.");
-      }
-    });
-  };
-
-  return (
-    <section className={`${cardCls} space-y-5 p-5 sm:p-6`}>
-      <header className="space-y-1">
-        <div className="flex items-center gap-2 text-[var(--state-warning-fg)]">
-          <Bell className="size-5" aria-hidden />
-          <span className="text-xs font-semibold uppercase tracking-wide">Notifikasi</span>
-        </div>
-        <h2 className="text-lg font-semibold">Mau diingatkan soal apa?</h2>
-        <p className="text-sm text-muted-foreground">
-          Supaya kamu tidak lupa iuran, ketinggalan event, atau tidak tahu hasil seleksi panitia.
-        </p>
-      </header>
-
-      {/* In-app (wajib) */}
-      <div className="flex items-start gap-3 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3">
-        <Bell className="mt-0.5 size-5 shrink-0 text-[var(--gold-text)]" aria-hidden />
-        <div className="flex-1">
-          <p className="text-sm font-medium">Notifikasi di dalam aplikasi</p>
-          <p className="text-sm text-muted-foreground">
-            Bagian dari layanan — muncul di bell icon setiap kali ada yang butuh perhatianmu.
-            Tidak bisa dimatikan.
-          </p>
-        </div>
-      </div>
-
-      {/* Email (opsional) */}
-      <div className="flex items-start gap-3">
-        <Mail className="mt-0.5 size-5 shrink-0 text-[var(--gold-text)]" aria-hidden />
-        <div className="flex-1">
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={email}
-              onChange={(e) => setEmail(e.target.checked)}
-              className="mt-0.5 size-4 accent-[#ffa500]"
-            />
-            <span>
-              <span className="block text-sm font-medium">
-                Email <span className="text-muted-foreground">(opsional)</span>
-              </span>
-              <span className="block text-sm text-muted-foreground">
-                Pengingat iuran, hasil seleksi, dan event — dikirim ke{" "}
-                <strong className="font-medium text-foreground">{user.email}</strong>.
-              </span>
-            </span>
-          </label>
-        </div>
-      </div>
-
-      {/* WhatsApp (disabled) */}
-      <div className="flex items-start gap-3 opacity-70">
-        <MessageCircle className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
-        <div className="flex-1">
-          <p className="flex items-center gap-2 text-sm font-medium">
-            WhatsApp
-            <span className="rounded-md bg-[var(--surface-2)] px-2 py-0.5 text-xs font-medium text-muted-foreground">
-              Segera hadir
-            </span>
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Pengingat yang sama, tapi langsung ke WhatsApp. Bisa dimatikan kapan saja.
-          </p>
-        </div>
-      </div>
-
-      {error && (
-        <p role="alert" className={alertErr}>
-          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden /> {error}
-        </p>
-      )}
-
-      <p className="text-xs text-muted-foreground">
-        Preferensi bisa diubah kapan saja di menu <strong>Notifikasi → Pengaturan</strong>.
-      </p>
-
-      <div className="flex flex-wrap gap-2">
-        <button type="button" disabled={pending} onClick={handleSave} className={btnPrimary}>
-          {pending ? "Menyimpan…" : "Simpan & lanjut"}
-          {!pending && <ArrowRight className="size-4 transition-transform duration-fast ease-[var(--ease-out)] group-hover:translate-x-0.5" aria-hidden />}
-        </button>
-        <button type="button" disabled={pending} onClick={onNext} className={btnGhost}>
-          Lewati dulu
-        </button>
-      </div>
-    </section>
-  );
-}
-
-/* ============== Step 5: Tour ============== */
+/* ============== Step 4: Tour ============== */
 
 function TourStep({ onNext }: { onNext: () => void }) {
   const items = [
@@ -437,8 +335,111 @@ function TourStep({ onNext }: { onNext: () => void }) {
       </ul>
 
       <button type="button" onClick={onNext} className={btnPrimary}>
-        Mengerti, lanjut <ArrowRight className="size-4 transition-transform duration-fast ease-[var(--ease-out)] group-hover:translate-x-0.5" aria-hidden />
+        Mengerti, lanjut <ArrowRight className="size-4" aria-hidden />
       </button>
+    </section>
+  );
+}
+
+/* ============== Step 5: Notifikasi ============== */
+
+function NotificationStep({ user, onNext }: { user: WizardUser; onNext: () => void }) {
+  // Default: NYALA. Kecuali user pernah mencabut consent sebelumnya
+  // (dilacak via emailRevokedAt), baru default mati.
+  const [email, setEmail] = useState(() => !user.emailRevokedAt);
+  const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSave = () => {
+    setError(null);
+    start(async () => {
+      try {
+        await saveNotificationConsent({ inapp: true, email, whatsapp: false });
+        onNext();
+      } catch {
+        setError("Gagal menyimpan preferensi. Coba lagi atau lewati dulu.");
+      }
+    });
+  };
+
+  return (
+    <section className={`${cardCls} space-y-5 p-5 sm:p-6`}>
+      <header className="space-y-1">
+        <div className="flex items-center gap-2 text-[var(--state-warning-fg)]">
+          <Bell className="size-5" aria-hidden />
+          <span className="text-xs font-semibold uppercase tracking-wide">Notifikasi</span>
+        </div>
+        <h2 className="text-lg font-semibold">Mau diingatkan lewat email?</h2>
+        <p className="text-sm text-muted-foreground">
+          Supaya tidak lupa iuran dan tahu hasil seleksi panitia. Bisa dimatikan kapan saja.
+        </p>
+      </header>
+
+      {/* In-app (wajib) */}
+      <div className="flex items-start gap-3 rounded-md border border-[var(--border-subtle)] bg-[var(--surface-2)] px-4 py-3">
+        <Bell className="mt-0.5 size-5 shrink-0 text-[var(--gold-text)]" aria-hidden />
+        <div className="flex-1">
+          <p className="text-sm font-medium">Notifikasi di dalam aplikasi</p>
+          <p className="text-sm text-muted-foreground">
+            Selalu aktif — muncul di bell icon setiap kali ada yang butuh perhatianmu.
+          </p>
+        </div>
+      </div>
+
+      {/* Email (default ON, bisa dimatikan) */}
+      <div className="flex items-start gap-3">
+        <Mail className="mt-0.5 size-5 shrink-0 text-[var(--gold-text)]" aria-hidden />
+        <div className="flex-1">
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={email}
+              onChange={(e) => setEmail(e.target.checked)}
+              className="mt-0.5 size-4 accent-[#ffa500]"
+            />
+            <span>
+              <span className="block text-sm font-medium">Email</span>
+              <span className="block text-sm text-muted-foreground">
+                Pengingat iuran, hasil seleksi, dan event — dikirim ke{" "}
+                <strong className="font-medium text-foreground">{user.email}</strong>.
+                Bisa dimatikan kapan saja di Pengaturan.
+              </span>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      {/* WhatsApp (disabled) */}
+      <div className="flex items-start gap-3 opacity-70">
+        <MessageCircle className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
+        <div className="flex-1">
+          <p className="flex items-center gap-2 text-sm font-medium">
+            WhatsApp
+            <span className="rounded-md bg-[var(--surface-2)] px-2 py-0.5 text-xs font-medium text-muted-foreground">
+              Segera hadir
+            </span>
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Pengingat yang sama, tapi langsung ke WhatsApp.
+          </p>
+        </div>
+      </div>
+
+      {error && (
+        <p role="alert" className={alertErr}>
+          <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden /> {error}
+        </p>
+      )}
+
+      <div className="flex flex-wrap gap-2">
+        <button type="button" disabled={pending} onClick={handleSave} className={btnPrimary}>
+          {pending ? "Menyimpan…" : "Simpan & lanjut"}
+          {!pending && <ArrowRight className="size-4" aria-hidden />}
+        </button>
+        <button type="button" disabled={pending} onClick={onNext} className={btnGhost}>
+          Lewati dulu
+        </button>
+      </div>
     </section>
   );
 }
@@ -466,7 +467,7 @@ function DoneStep({ onFinish, pending, replay }: { onFinish: () => void; pending
         className={`${btnPrimary} mx-auto`}
       >
         {pending ? "Membuka…" : replay ? "Kembali ke Profil" : "Ke dashboard"}
-        <ArrowRight className="size-4 transition-transform duration-fast ease-[var(--ease-out)] group-hover:translate-x-0.5" aria-hidden />
+        <ArrowRight className="size-4" aria-hidden />
       </button>
     </section>
   );
