@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { rateLimit } from "@/lib/rate-limit";
 import { sendEmail } from "@/lib/email";
 import { renderPasswordResetEmail } from "@/lib/email-templates";
-import { createResetToken, markTokenUsed, verifyResetToken } from "@/lib/password-reset";
+import { createResetToken, verifyResetToken } from "@/lib/password-reset";
 import type { FormState } from "@/types/forms";
 
 const TOKEN_TTL_MINUTES = 30;
