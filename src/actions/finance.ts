@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { parseWIB } from "@/lib/datetime";
 import { CATEGORY_LABEL, MONTH_RE, monthLabel } from "@/lib/finance";
 import { writeJournals } from "@/lib/finance-journal";
+import { notify } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { saveProofImage } from "@/lib/private-files";
 import { requirePermission } from "@/lib/rbac";
@@ -188,6 +189,15 @@ export async function approveDues(fd: FormData): Promise<void> {
       data: { userId: user.id, action: "APPROVE_DUES", entity: "member_dues", entityId: id },
     });
   });
+
+  await notify({
+    userId: dues.userId,
+    type: "DUES_VERIFIED",
+    title: `Iuran ${monthLabel(dues.monthYear)} sudah diverifikasi`,
+    body: "Terima kasih sudah membayar. Status tagihanmu sekarang lunas.",
+    link: "/dashboard/dues",
+  });
+
   refresh();
 }
 
@@ -201,5 +211,14 @@ export async function rejectDues(fd: FormData): Promise<void> {
   await prisma.auditLog.create({
     data: { userId: user.id, action: "REJECT_DUES_PROOF", entity: "member_dues", entityId: id },
   });
+
+  await notify({
+    userId: dues.userId,
+    type: "DUES_REJECTED",
+    title: `Bukti iuran ${monthLabel(dues.monthYear)} ditolak`,
+    body: "Bukti transfer tidak bisa diverifikasi. Silakan unggah ulang bukti yang benar.",
+    link: "/dashboard/dues",
+  });
+
   refresh();
 }

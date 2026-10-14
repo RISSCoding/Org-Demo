@@ -24,6 +24,7 @@ export default async function OnboardingPage({
     select: {
       fullName: true,
       nim: true,
+      email: true,
       batchYear: true,
       phoneNumber: true,
       avatarUrl: true,
@@ -39,6 +40,7 @@ export default async function OnboardingPage({
           division: { select: { name: true } },
         },
       },
+      notificationPreference: { select: { emailEnabled: true } },
     },
   });
 
@@ -75,6 +77,7 @@ export default async function OnboardingPage({
       user={{
         fullName: user.fullName,
         nim: user.nim,
+        email: user.email,
         batchYear: user.batchYear,
         phoneNumber: user.phoneNumber,
         avatarUrl: user.avatarUrl,
@@ -84,6 +87,7 @@ export default async function OnboardingPage({
         ktaSubtitle,
         ktaPayload: ktaPayloadUrl,
         memberStatus: user.member.status,
+        emailConsentActive: user.notificationPreference?.emailEnabled ?? false,
       }}
     />
   );

@@ -5,13 +5,14 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { RoleName } from "@prisma/client";
 import {
-  Award, BookOpen, CalendarDays, ChevronDown, HelpCircle, Landmark, CreditCard, LayoutDashboard, LogOut, Mail,
+  Award, Bell, BookOpen, CalendarDays, ChevronDown, HelpCircle, Landmark, CreditCard, LayoutDashboard, LogOut, Mail,
   Menu, MessageSquare, Newspaper, PanelLeftClose, PanelLeftOpen, Settings, ShieldCheck, User, Users, Wallet, X,
 } from "lucide-react";
 import { useFormStatus } from "react-dom";
 import { logoutAction } from "@/actions/login";
 import { Brand } from "@/components/brand";
 import { Breadcrumb, type Crumb } from "@/components/breadcrumb";
+import { NotificationBell } from "@/components/notifications/bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Spinner } from "@/components/ui/spinner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -112,6 +113,7 @@ const memberNav: Section[] = [
     title: "Akun",
     entries: [
       { label: "Profil Saya", icon: User, href: "/dashboard/profile" },
+      { label: "Notifikasi", icon: Bell, href: "/dashboard/notifications" },
       { label: "Bantuan", icon: HelpCircle, href: "/dashboard/help" },
     ],
   },
@@ -492,6 +494,7 @@ export function AppShell({
             <Breadcrumb items={crumbs} label="Posisi halaman" />
 
             <div className="ml-auto flex items-center gap-3">
+              {variant === "member" && <NotificationBell />}
               <ThemeToggle />
               <div className="hidden text-right leading-tight sm:block">
                 <p className="text-sm font-medium">{user.name}</p>
