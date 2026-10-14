@@ -1,43 +1,57 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Bell, X } from "lucide-react";
 
 const STORAGE_KEY = "notification-consent-dismissed";
 const REAPPEAR_DAYS = 14;
+const EVENT = "notification-consent-change";
+
+/** Berlangganan event internal + event `storage` antar tab. */
+function subscribe(cb: () => void) {
+  if (typeof window === "undefined") return () => {};
+  window.addEventListener(EVENT, cb);
+  window.addEventListener("storage", cb);
+  return () => {
+    window.removeEventListener(EVENT, cb);
+    window.removeEventListener("storage", cb);
+  };
+}
+
+/** `true` = banner harus tampil. Snapshot dibaca dari localStorage. */
+function getSnapshot(): boolean {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return true;
+    const at = Number(raw);
+    if (!Number.isFinite(at)) return true;
+    const days = (Date.now() - at) / (1000 * 60 * 60 * 24);
+    return days >= REAPPEAR_DAYS;
+  } catch {
+    return true;
+  }
+}
+
+/** Server tidak punya localStorage → jangan render. Setelah hydration,
+ *  React otomatis pakai getSnapshot dan banner muncul tanpa mismatch. */
+function getServerSnapshot(): boolean {
+  return false;
+}
 
 export function ConsentBanner() {
-  // `mounted=false` di server DAN di client saat render pertama.
-  // Efek baru membaca localStorage setelah mount, supaya tidak ada
-  // hydration mismatch (server render null, client render null dulu,
-  // baru banner muncul setelah effect).
-  const [mounted, setMounted] = useState(false);
-  const [hidden, setHidden] = useState(false);
+  const visible = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
-  useEffect(() => {
-    setMounted(true);
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const at = Number(raw);
-      if (!Number.isFinite(at)) return;
-      const days = (Date.now() - at) / (1000 * 60 * 60 * 24);
-      if (days < REAPPEAR_DAYS) setHidden(true);
-    } catch {
-      // localStorage bisa diblokir; anggap belum di-dismiss.
-    }
-  }, []);
-
-  if (!mounted || hidden) return null;
+  if (!visible) return null;
 
   const dismiss = () => {
     try {
       localStorage.setItem(STORAGE_KEY, String(Date.now()));
+      // Beri tahu subscriber supaya snapshot dibaca ulang.
+      window.dispatchEvent(new Event(EVENT));
     } catch {
-      // Diamkan
+      // Diamkan; banner akan muncul lagi setelah refresh.
     }
-    setHidden(true);
   };
 
   return (
