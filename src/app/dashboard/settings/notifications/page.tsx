@@ -3,8 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
 import { getConsent, getPreferences } from "@/lib/notifications";
 import { PageHeader } from "@/components/ui/page-header";
-import { PreferencesForm } from "@/components/notifications/preferences-form";
-import { ConsentPanel } from "@/components/notifications/consent-panel";
+import { SettingsForm } from "@/components/notifications/settings-form";
 import { prisma } from "@/lib/prisma";
 import { cardCls, linkCls } from "@/lib/ui";
 
@@ -38,16 +37,8 @@ export default async function NotificationSettings() {
         description="Pilih di mana kamu mau diingatkan, dan tentang apa saja."
       />
 
-      {/* 1. Kanal — yang paling penting, muncul pertama */}
-      <section className={`${cardCls} space-y-5 p-5`}>
-        <div>
-          <h2 className="text-lg font-semibold">Kirim pengingat ke mana</h2>
-          <p className="text-sm text-muted-foreground">
-            Notifikasi di dalam aplikasi selalu aktif. Kamu bisa menambahkan email dan WhatsApp
-            supaya tidak lupa hal penting.
-          </p>
-        </div>
-        <ConsentPanel
+      <section className={`${cardCls} p-5`}>
+        <SettingsForm
           initial={{
             email: prefs.emailEnabled,
             whatsapp: prefs.whatsappEnabled,
@@ -57,20 +48,6 @@ export default async function NotificationSettings() {
             emailRevokedAt: consent?.emailRevokedAt?.toISOString() ?? null,
             whatsappConsentAt: consent?.whatsappConsentAt?.toISOString() ?? null,
             whatsappRevokedAt: consent?.whatsappRevokedAt?.toISOString() ?? null,
-          }}
-        />
-      </section>
-
-      {/* 2. Jenis notifikasi — fine-tuning setelah kanal */}
-      <section className={`${cardCls} space-y-5 p-5`}>
-        <div>
-          <h2 className="text-lg font-semibold">Pengingat tentang apa</h2>
-          <p className="text-sm text-muted-foreground">
-            Pilih jenis pemberitahuan yang ingin kamu terima. Matikan yang menurutmu tidak perlu.
-          </p>
-        </div>
-        <PreferencesForm
-          initial={{
             duesDue: prefs.duesDue,
             eventReminder: prefs.eventReminder,
             committeeDecided: prefs.committeeDecided,

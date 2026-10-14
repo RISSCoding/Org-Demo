@@ -81,7 +81,7 @@ export default async function DashboardHome() {
 
   return (
     <div className="space-y-8">
-      {!user.notificationConsent && <ConsentBanner />}
+      {!user.notificationConsent && <ConsentBanner userRole={session!.user.role} />}
 
       <div className="space-y-2">
         <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Halo, {user.fullName.split(" ")[0]}</h1>

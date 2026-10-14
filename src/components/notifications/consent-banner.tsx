@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSyncExternalStore, useState } from "react";
 import { Bell, Check, X } from "lucide-react";
+import type { RoleName } from "@prisma/client";
 
 const STORAGE_KEY = "notification-consent-dismissed";
 const REAPPEAR_DAYS = 14;
@@ -34,9 +35,14 @@ function getServerSnapshot(): boolean {
   return false;
 }
 
-export function ConsentBanner() {
+export function ConsentBanner({ userRole }: { userRole: RoleName }) {
   const visible = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const [justDismissed, setJustDismissed] = useState(false);
+
+  // Admin/pengurus tidak perlu diingatkan — mereka yang mengirim notifikasi,
+  // bukan menerima. Skip banner untuk staf.
+  const isStaff = userRole === "SUPER_ADMIN" || userRole === "ADMIN_EXECUTIVE";
+  if (isStaff) return null;
 
   if (!visible && !justDismissed) return null;
 
@@ -45,14 +51,12 @@ export function ConsentBanner() {
       localStorage.setItem(STORAGE_KEY, String(Date.now()));
       window.dispatchEvent(new Event(EVENT));
       setJustDismissed(true);
-      // Kembalikan ke `null` setelah 4 detik supaya banner benar-benar hilang.
       setTimeout(() => setJustDismissed(false), 4000);
     } catch {
       // localStorage diblokir — biarkan banner tetap tampil.
     }
   };
 
-  // Feedback singkat setelah user menutup pengingat.
   if (justDismissed) {
     return (
       <div className="flex items-center gap-2.5 rounded-md border border-[var(--state-success-border)] bg-[var(--state-success-bg)] px-3 py-2 text-sm text-[var(--state-success-fg)]">

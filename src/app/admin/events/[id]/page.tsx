@@ -5,6 +5,7 @@ import { CertificatePanel } from "@/components/certificate-panel";
 import { eventPhase } from "@/components/event-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
+import { BackLink } from "@/components/ui/back-link";
 import { formatDateTime } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
@@ -49,6 +50,7 @@ export default async function AdminEventDetail({ params }: { params: Promise<{ i
 
   return (
     <div className="space-y-6">
+      <BackLink href="/admin/events" label="Kembali ke daftar event" />
       <PageHeader
         before={
           <span className={`inline-block rounded-md px-2 py-0.5 text-xs font-medium ${phase.cls}`}>

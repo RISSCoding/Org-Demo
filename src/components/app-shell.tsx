@@ -113,7 +113,7 @@ const memberNav: Section[] = [
     title: "Akun",
     entries: [
       { label: "Profil Saya", icon: User, href: "/dashboard/profile" },
-      { label: "Notifikasi", icon: Bell, href: "/dashboard/notifications" },
+      { label: "Notifikasi", icon: Bell, href: "/dashboard/notifications", badge: "notifications" },
       { label: "Bantuan", icon: HelpCircle, href: "/dashboard/help" },
     ],
   },

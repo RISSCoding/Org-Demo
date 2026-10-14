@@ -10,15 +10,17 @@ export type ShellCounts = {
   members?: number;
   finance?: number;
   feedback?: number;
+  /** Notifikasi belum dibaca milik user sendiri (untuk badge sidebar). */
+  notifications?: number;
 };
 
-type ShellUser = { role: string; permissions: string[] };
+type ShellUser = { id: string; role: string; permissions: string[] };
 
 export async function getShellCounts(user: ShellUser): Promise<ShellCounts> {
   const can = (perm: string) =>
     user.role === "SUPER_ADMIN" || user.permissions.includes(perm);
 
-  const [members, finance, feedback] = await Promise.all([
+  const [members, finance, feedback, notifications] = await Promise.all([
     can("member:manage")
       ? prisma.user.count({ where: { approvalStatus: "PENDING" } })
       : 0,
@@ -33,6 +35,9 @@ export async function getShellCounts(user: ShellUser): Promise<ShellCounts> {
     can("aspirasi:manage")
       ? prisma.feedback.count({ where: { status: "OPEN" } })
       : 0,
+    // Notifikasi belum dibaca user sendiri. Berbeda dari yang lain:
+    // ini per-user, bukan agregat antrean.
+    prisma.notification.count({ where: { userId: user.id, readAt: null } }),
   ]);
 
   // Angka 0 → undefined supaya badge "0" tidak dirender.
@@ -40,5 +45,6 @@ export async function getShellCounts(user: ShellUser): Promise<ShellCounts> {
     members: members || undefined,
     finance: finance || undefined,
     feedback: feedback || undefined,
+    notifications: notifications || undefined,
   };
 }

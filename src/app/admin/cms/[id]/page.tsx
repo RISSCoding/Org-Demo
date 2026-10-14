@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { deletePostAction } from "@/actions/posts-admin";
 import { ConfirmSubmit } from "@/components/confirm-submit";
 import { PostForm } from "@/components/post-form";
+import { BackLink } from "@/components/ui/back-link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import { toInputValue } from "@/lib/datetime";
@@ -20,6 +21,7 @@ export default async function EditPost({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="space-y-6">
+      <BackLink href="/admin/cms" label="Kembali ke daftar tulisan" />
       <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Edit tulisan</h1>
       <PostForm
         post={{
