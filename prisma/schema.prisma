@@ -211,6 +211,7 @@ model User {
   notifications          Notification[]
   notificationPreference NotificationPreference?
   notificationConsent    NotificationConsent?
+  passwordResetTokens    PasswordResetToken[]
   @@map("users")
 }
 
@@ -643,4 +644,21 @@ model NotificationConsent {
   updatedAt         DateTime @updatedAt @map("updated_at")
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@map("notification_consents")
+}
+
+
+/// Token reset password. Menyimpan hash (bukan plaintext), sekali pakai,
+/// kedaluwarsa 30 menit. Setelah satu dipakai, semua token user dihapus.
+model PasswordResetToken {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  tokenHash   String    @unique @map("token_hash")
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz(3)
+  usedAt      DateTime? @map("used_at") @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  requestedIp String?   @map("requested_ip")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
 }

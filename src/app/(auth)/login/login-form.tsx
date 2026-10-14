@@ -19,7 +19,14 @@ export function LoginForm({ callbackUrl }: { callbackUrl: string }) {
       </div>
       <input type="hidden" name="callbackUrl" value={callbackUrl} />
       <Field label="NPM atau email" name="identifier" autoComplete="username" autoFocus required />
-      <Field label="Password" name="password" type="password" autoComplete="current-password" required />
+      <div className="space-y-1">
+        <Field label="Password" name="password" type="password" autoComplete="current-password" required />
+        <div className="text-right">
+          <Link href="/forgot-password" className="text-xs font-medium text-[var(--gold-text)] underline underline-offset-4 transition-colors hover:no-underline">
+            Lupa password?
+          </Link>
+        </div>
+      </div>
       {state.error && (
         <p role="alert" className={alertErr}>
           <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden /> {state.error}
