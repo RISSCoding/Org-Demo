@@ -11,6 +11,7 @@ import { prisma } from "@/lib/prisma";
 import { ticketPayload } from "@/lib/qr";
 import Link from "next/link";
 import { btnLine, cardCls } from "@/lib/ui";
+import { BackLink } from "@/components/ui/back-link";
 
 export default async function MemberEventDetail({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -41,6 +42,7 @@ export default async function MemberEventDetail({ params }: { params: Promise<{ 
 
   return (
     <div className="max-w-3xl space-y-6">
+      <BackLink href="/dashboard/events" label="Kembali ke daftar event" />
       <div className="overflow-hidden rounded-sm border-b-4 border-[#ffa500] bg-black">
         {event.bannerUrl && (
           // eslint-disable-next-line @next/next/no-img-element

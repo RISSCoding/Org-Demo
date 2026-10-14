@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { EventForm } from "@/components/event-form";
+import { BackLink } from "@/components/ui/back-link";
 import { toInputValue } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
@@ -12,6 +13,7 @@ export default async function EditEvent({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="space-y-6">
+      <BackLink href={`/admin/events/${e.id}`} label="Kembali ke detail event" />
       <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Edit event</h1>
       <EventForm
         event={{

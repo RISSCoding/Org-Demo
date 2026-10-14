@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Scanner } from "@/components/scanner";
+import { BackLink } from "@/components/ui/back-link";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 
@@ -13,6 +14,7 @@ export default async function ScanPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="space-y-6">
+      <BackLink href={`/admin/events/${event.id}`} label="Kembali ke detail event" />
       <div>
         <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Check-in: {event.title}</h1>
         <p className="text-sm text-muted-foreground">

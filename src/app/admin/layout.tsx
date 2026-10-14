@@ -9,7 +9,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!u) redirect("/login?callbackUrl=/admin");
   if (u.role !== "SUPER_ADMIN" && u.role !== "ADMIN_EXECUTIVE") redirect("/dashboard");
 
-  const counts = await getShellCounts({ role: u.role, permissions: u.permissions });
+  const counts = await getShellCounts({ id: u.id, role: u.role, permissions: u.permissions });
 
   return (
     <AppShell
