@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { Award, CalendarDays, CreditCard, MessageSquare, Wallet } from "lucide-react";
 import { auth } from "@/auth";
 import { KtaCard } from "@/components/kta-card";
+import { ConsentBanner } from "@/components/notifications/consent-banner";
 import { memberTitle } from "@/lib/member-title";
 import { prisma } from "@/lib/prisma";
 import { btnLine, btnPrimary, cardCls, cardLink } from "@/lib/ui";
@@ -34,6 +35,7 @@ export default async function DashboardHome() {
             division: { select: { name: true } },
           },
         },
+        notificationConsent: { select: { userId: true } },
       },
     }),
     prisma.memberDues.count({ where: { userId, status: { in: ["PENDING", "OVERDUE"] } } }),
@@ -79,6 +81,8 @@ export default async function DashboardHome() {
 
   return (
     <div className="space-y-8">
+      {!user.notificationConsent && <ConsentBanner />}
+
       <div className="space-y-2">
         <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Halo, {user.fullName.split(" ")[0]}</h1>
         <p className="text-sm text-muted-foreground">
