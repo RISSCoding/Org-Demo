@@ -35,35 +35,16 @@ export default async function NotificationSettings() {
 
       <PageHeader
         title="Pengaturan notifikasi"
-        description="Pilih pemberitahuan apa yang mau kamu terima, dan di mana kamu menerimanya."
+        description="Pilih di mana kamu mau diingatkan, dan tentang apa saja."
       />
 
+      {/* 1. Kanal — yang paling penting, muncul pertama */}
       <section className={`${cardCls} space-y-5 p-5`}>
         <div>
-          <h2 className="text-lg font-semibold">Jenis notifikasi</h2>
+          <h2 className="text-lg font-semibold">Kirim pengingat ke mana</h2>
           <p className="text-sm text-muted-foreground">
-            Pemberitahuan yang kamu terima di dalam aplikasi (bell icon).
-          </p>
-        </div>
-        <PreferencesForm
-          initial={{
-            duesDue: prefs.duesDue,
-            eventReminder: prefs.eventReminder,
-            committeeDecided: prefs.committeeDecided,
-            feedbackResponse: prefs.feedbackResponse,
-            announcement: prefs.announcement,
-            digestMode: prefs.digestMode === "daily" ? "daily" : "instant",
-            quietHoursStart: prefs.quietHoursStart,
-            quietHoursEnd: prefs.quietHoursEnd,
-          }}
-        />
-      </section>
-
-      <section className={`${cardCls} space-y-5 p-5`}>
-        <div>
-          <h2 className="text-lg font-semibold">Kanal di luar aplikasi</h2>
-          <p className="text-sm text-muted-foreground">
-            Notifikasi juga bisa dikirim ke email dan WhatsApp. Bisa dicabut kapan saja.
+            Notifikasi di dalam aplikasi selalu aktif. Kamu bisa menambahkan email dan WhatsApp
+            supaya tidak lupa hal penting.
           </p>
         </div>
         <ConsentPanel
@@ -76,6 +57,28 @@ export default async function NotificationSettings() {
             emailRevokedAt: consent?.emailRevokedAt?.toISOString() ?? null,
             whatsappConsentAt: consent?.whatsappConsentAt?.toISOString() ?? null,
             whatsappRevokedAt: consent?.whatsappRevokedAt?.toISOString() ?? null,
+          }}
+        />
+      </section>
+
+      {/* 2. Jenis notifikasi — fine-tuning setelah kanal */}
+      <section className={`${cardCls} space-y-5 p-5`}>
+        <div>
+          <h2 className="text-lg font-semibold">Pengingat tentang apa</h2>
+          <p className="text-sm text-muted-foreground">
+            Pilih jenis pemberitahuan yang ingin kamu terima. Matikan yang menurutmu tidak perlu.
+          </p>
+        </div>
+        <PreferencesForm
+          initial={{
+            duesDue: prefs.duesDue,
+            eventReminder: prefs.eventReminder,
+            committeeDecided: prefs.committeeDecided,
+            feedbackResponse: prefs.feedbackResponse,
+            announcement: prefs.announcement,
+            digestMode: prefs.digestMode === "daily" ? "daily" : "instant",
+            quietHoursStart: prefs.quietHoursStart,
+            quietHoursEnd: prefs.quietHoursEnd,
           }}
         />
       </section>
