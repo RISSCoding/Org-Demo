@@ -1,10 +1,9 @@
 import { BRAND } from "@/lib/brand";
 
 /**
- * Logo brand sebagai SVG. Kalau `public/logo.png` ada, pakai itu.
- * Kalau tidak, render inisial dalam lingkaran kuning — placeholder netral.
- *
- * Ukuran mengikuti prop `size` (px) atau kelas `className`.
+ * Logo brand sebagai SVG.
+ * Ukuran bisa lewat `size` (px) atau `className` (mis. `size-full` untuk
+ * mengisi container induknya).
  */
 export function BrandMark({
   size = 32,
@@ -13,26 +12,23 @@ export function BrandMark({
   size?: number;
   className?: string;
 }) {
-  const s = size;
+  const style = size > 0 ? { width: size, height: size } : undefined;
   return (
     <span
       className={`inline-grid shrink-0 place-items-center rounded-full ${className}`}
-      style={{ width: s, height: s }}
+      style={style}
       aria-label={BRAND.short}
       role="img"
     >
       <svg
         viewBox="0 0 100 100"
-        width={s}
-        height={s}
+        preserveAspectRatio="xMidYMid meet"
+        style={{ width: "100%", height: "100%", display: "block" }}
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
       >
-        {/* Lingkaran luar kuning */}
         <circle cx="50" cy="50" r="48" fill="#ffa500" />
-        {/* Lingkaran dalam gelap */}
         <circle cx="50" cy="50" r="38" fill="#0a0a0a" />
-        {/* Inisial */}
         <text
           x="50"
           y="58"

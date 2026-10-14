@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { FEEDBACK_STATUSES } from "@/lib/feedback";
+import { notify } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { ForbiddenError, requirePermission, UnauthorizedError } from "@/lib/rbac";
 import type { FormState } from "@/types/forms";
@@ -66,6 +67,23 @@ export async function updateFeedbackAction(_: FormState, fd: FormData): Promise<
   ]);
 
   revalidatePath("/admin", "layout");
+  // Kalau status jadi RESOLVED dan ada pengirim non-anonim, kabari.
+  if (d.status === "RESOLVED" && response && current.status !== "RESOLVED") {
+    const sender = await prisma.feedback.findUnique({
+      where: { id: d.id },
+      select: { senderId: true, isAnonymous: true, subject: true },
+    });
+    if (sender?.senderId && !sender.isAnonymous) {
+      await notify({
+        userId: sender.senderId,
+        type: "FEEDBACK_RESPONSE",
+        title: `Tanggapan untuk: ${sender.subject}`,
+        body: "Komisi III sudah menanggapi pesanmu. Buka Pesan Saya untuk membacanya.",
+        link: `/dashboard/feedback`,
+      });
+    }
+  }
+
   revalidatePath("/admin/feedback");
   revalidatePath(`/admin/feedback/${d.id}`);
   revalidatePath("/dashboard/feedback");

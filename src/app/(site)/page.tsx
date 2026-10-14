@@ -17,19 +17,19 @@ export default async function Home() {
     <>
       {/* Hero */}
       <section className="bg-black text-white">
-        <div className={`${container} grid items-center gap-12 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:py-24`}>
+        <div className={`${container} grid items-center gap-8 py-12 sm:gap-12 sm:py-16 lg:grid-cols-[1.1fr_0.9fr] lg:py-24`}>
           <div className="space-y-7">
-            <h1 className="s-display text-4xl sm:text-5xl lg:text-6xl">{ORG.name}</h1>
+            <h1 className="s-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl">{ORG.name}</h1>
             <p className="text-lg text-white/80">{ORG.univ}</p>
             <p className="s-serif max-w-xl text-lg text-white/70">
-              Wadah mahasiswa manajemen untuk mengembangkan potensi, saling berkomunikasi, dan belajar memimpin.
+              Wadah anggota untuk mengembangkan potensi, saling berkomunikasi, dan belajar memimpin.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link href="/register" className={btnOrange}>Daftar jadi anggota</Link>
               <Link href="/kegiatan" className={btnLineLight}>Lihat kegiatan</Link>
             </div>
           </div>
-          <LogoMark />
+          <LogoMark className="order-first lg:order-none" />
         </div>
       </section>
 
@@ -37,7 +37,7 @@ export default async function Home() {
       <section id="departemen" className="scroll-mt-16 py-16">
         <div className={`${container} grid gap-8 md:grid-cols-[15rem_1fr]`}>
           <div className="space-y-3">
-            <h2 className="s-display text-2xl text-[var(--s-head)]">Lima departemen</h2>
+            <h2 className="s-display text-2xl text-[var(--s-head)]">{DEPARTEMEN.length} departemen</h2>
             <p className="text-sm text-[var(--s-muted)]">Tempat kamu bisa ikut bekerja dan belajar.</p>
           </div>
           <dl>

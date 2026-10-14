@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { allocateKtaNumber } from "@/lib/kta";
+import { notify } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 
@@ -31,6 +32,17 @@ export async function decideUser(formData: FormData): Promise<void> {
       data: { userId: admin.id, action: decision, entity: "users", entityId: u.id },
     });
   });
+  // Kalau approved, kirim notifikasi selamat datang.
+  if (decision === "APPROVED") {
+    await notify({
+      userId,
+      type: "SYSTEM",
+      title: "Akunmu sudah disetujui",
+      body: "Selamat bergabung. Buka dashboard untuk melihat KTA digitalmu.",
+      link: "/dashboard",
+    });
+  }
+
   revalidatePath("/admin/members");
   revalidatePath("/admin", "layout");
 }

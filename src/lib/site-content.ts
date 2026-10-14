@@ -68,7 +68,7 @@ export const BPP = [
 
 // GBHO Pasal 6-8
 export const VISI =
-  "Terbentuknya pribadi mahasiswa manajemen yang aktif, kreatif, berwawasan kebangsaan, serta mempunyai jiwa pemimpin dan entrepreneurship.";
+  "Terbentuknya pribadi anggota yang aktif, kreatif, berwawasan luas, serta mempunyai jiwa pemimpin dan kewirausahaan.";
 
 export const MISI = [
   "Menghimpun dan menyalurkan potensi anggota dalam satu wadah organisasi.",
@@ -76,7 +76,7 @@ export const MISI = [
   "Melaksanakan peningkatan kapasitas dan keterampilan pengurus.",
   "Menumbuhkan kepekaan dan inisiatif anggota terhadap kondisi lingkungan sekitar.",
   "Mengontrol berjalannya sistem pengembangan karakter anggota.",
-  "Menyusun program kerja sesuai kebutuhan dan kemampuan mahasiswa manajemen, dan universitas pada umumnya.",
+  "Menyusun program kerja sesuai kebutuhan dan kemampuan anggota, dan universitas pada umumnya.",
 ] as const;
 
 export const ASAS = [
@@ -84,7 +84,7 @@ export const ASAS = [
   ["Religius", "Seluruh aktivitas memperhatikan nilai religius dan dapat dipertanggungjawabkan kepada Tuhan Yang Maha Esa."],
   ["Mobilitas", "Organisasi memberi ruang gerak vertikal dan horizontal, sehingga suasananya dialogis dan dinamis."],
   ["Intelektualitas", "Seluruh aktivitas berdasar pada keilmuan yang dapat dipertanggungjawabkan."],
-  ["Manfaat", "Kegiatan dan usaha, di dalam maupun di luar fakultas, memberi manfaat sebesar-besarnya bagi pengembangan mahasiswa manajemen."],
+  ["Manfaat", "Kegiatan dan usaha, di dalam maupun di luar fakultas, memberi manfaat sebesar-besarnya bagi pengembangan anggota."],
   ["Kekeluargaan", "Organisasi adalah usaha bersama yang dijiwai semangat kekeluargaan dan gotong royong."],
   ["Demokrasi", "Kebijakan dan penanganan masalah ditempuh lewat musyawarah untuk mufakat."],
 ] as const;

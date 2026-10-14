@@ -5,6 +5,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { parseWIB } from "@/lib/datetime";
 import { getEventAccess, requireMeetingManager } from "@/lib/committee";
+import { notifyMany } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import type { FormState } from "@/types/forms";
 
@@ -48,6 +49,28 @@ export async function createMeetingAction(_: FormState, fd: FormData): Promise<F
     }),
     prisma.auditLog.create({ data: { userId: actor.user.id, action: "COMMITTEE_MEETING_CREATE", entity: "events", entityId: eventId, meta: { title: parsed.data.title } } }),
   ]);
+
+  // Notifikasi ke semua panitia yang diterima di event ini.
+  const committees = await prisma.committeeApplication.findMany({
+    where: { eventId, status: "ACCEPTED" },
+    select: { userId: true },
+  });
+  const startsAt = parseWIB(parsed.data.startsAt);
+  const startsText = startsAt.toLocaleString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Jakarta",
+  });
+  await notifyMany(committees.map((c) => c.userId), {
+    type: "COMMITTEE_MEETING",
+    title: `Rapat baru: ${parsed.data.title}`,
+    body: `${startsText}${parsed.data.location ? ` · ${parsed.data.location}` : ""}`,
+    link: `/dashboard/events/${event.slug}/panitia/rapat`,
+  });
+
   refresh(event.slug);
   return { success: "Rapat dibuat. Buka absensi saat rapat dimulai." };
 }

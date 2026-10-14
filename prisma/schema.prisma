@@ -208,6 +208,9 @@ model User {
   auditLogs     AuditLog[]
   resources     Resource[]
   officerRoles  OrgOfficer[]
+  notifications          Notification[]
+  notificationPreference NotificationPreference?
+  notificationConsent    NotificationConsent?
   @@map("users")
 }
 
@@ -547,4 +550,97 @@ model RateLimit {
   count       Int
   windowStart DateTime @map("window_start") @db.Timestamptz(3)
   @@map("rate_limits")
+}
+
+
+enum NotificationType {
+  DUES_DUE
+  DUES_VERIFIED
+  DUES_REJECTED
+  EVENT_REMINDER
+  EVENT_REGISTERED
+  COMMITTEE_DECIDED
+  COMMITTEE_MEETING
+  FEEDBACK_RESPONSE
+  ANNOUNCEMENT
+  SYSTEM
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  body      String?
+  link      String?
+  readAt    DateTime?        @map("read_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs      NotificationJob[]
+  @@index([userId, readAt, createdAt])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+enum NotificationChannel {
+  EMAIL
+  WHATSAPP
+}
+
+enum NotificationJobStatus {
+  PENDING
+  SENT
+  FAILED
+  SKIPPED
+}
+
+/// Antrean pengiriman notifikasi ke kanal eksternal (email, WA).
+/// Worker membaca tabel ini setiap menit; UI tidak menunggu proses kirim.
+model NotificationJob {
+  id             String                @id @default(cuid())
+  notificationId String                @map("notification_id")
+  channel        NotificationChannel
+  status         NotificationJobStatus @default(PENDING)
+  attempts       Int                   @default(0)
+  lastError      String?               @map("last_error")
+  scheduledAt    DateTime              @default(now()) @map("scheduled_at") @db.Timestamptz(3)
+  sentAt         DateTime?             @map("sent_at") @db.Timestamptz(3)
+  createdAt      DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  notification   Notification          @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  @@index([status, scheduledAt])
+  @@index([notificationId])
+  @@map("notification_jobs")
+}
+
+model NotificationPreference {
+  userId           String   @id @map("user_id")
+  duesDue          Boolean  @default(true)  @map("dues_due")
+  eventReminder    Boolean  @default(true)  @map("event_reminder")
+  committeeDecided Boolean  @default(true)  @map("committee_decided")
+  feedbackResponse Boolean  @default(true)  @map("feedback_response")
+  announcement     Boolean  @default(false) @map("announcement")
+  inappEnabled     Boolean  @default(true)  @map("inapp_enabled")
+  emailEnabled     Boolean  @default(false) @map("email_enabled")
+  whatsappEnabled  Boolean  @default(false) @map("whatsapp_enabled")
+  digestMode       String   @default("instant") @map("digest_mode")
+  quietHoursStart  Int?     @map("quiet_hours_start")
+  quietHoursEnd    Int?     @map("quiet_hours_end")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("notification_preferences")
+}
+
+model NotificationConsent {
+  userId            String   @id @map("user_id")
+  inappAcceptedAt   DateTime? @map("inapp_accepted_at")
+  emailConsentAt    DateTime? @map("email_consent_at")
+  emailRevokedAt    DateTime? @map("email_revoked_at")
+  whatsappConsentAt DateTime? @map("whatsapp_consent_at")
+  whatsappRevokedAt DateTime? @map("whatsapp_revoked_at")
+  consentVersion    String   @map("consent_version")
+  acceptedIp        String?  @map("accepted_ip")
+  acceptedUserAgent String?  @map("accepted_user_agent")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("notification_consents")
 }

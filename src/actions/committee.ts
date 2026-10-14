@@ -4,6 +4,7 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { parseWIB } from "@/lib/datetime";
 import { requireEventManager } from "@/lib/committee";
+import { notify } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/rbac";
 import type { FormState } from "@/types/forms";
@@ -227,7 +228,7 @@ export async function decideApplicationAction(_: FormState, fd: FormData): Promi
 
   const app = await prisma.committeeApplication.findUnique({
     where: { id: d.applicationId },
-    select: { id: true, eventId: true, userId: true, role: true, status: true, user: { select: { fullName: true } }, event: { select: { slug: true } } },
+    select: { id: true, eventId: true, userId: true, role: true, status: true, user: { select: { fullName: true } }, event: { select: { slug: true, title: true } } },
   });
   if (!app) return fail("Pendaftaran tidak ditemukan.");
   const actor = await requireEventManager(app.eventId);
@@ -273,6 +274,34 @@ export async function decideApplicationAction(_: FormState, fd: FormData): Promi
     }),
   ]);
   refresh(app.eventId, app.event.slug);
+
+  // Notifikasi ke pendaftar tentang hasil seleksi.
+  const messages: Record<typeof d.decision, { title: string; body: string }> = {
+    ACCEPTED: {
+      title: `Kamu diterima jadi panitia ${app.event.title ?? "event"}`,
+      body: "Buka halaman kepanitiaan untuk melihat divisi dan tugasmu.",
+    },
+    WAITLIST: {
+      title: `Kamu masuk cadangan kepanitiaan`,
+      body: "Kami akan menghubungi kalau ada slot yang tersedia.",
+    },
+    REJECTED: {
+      title: `Hasil seleksi panitia sudah keluar`,
+      body: "Kali ini belum bisa kami terima. Terima kasih sudah mendaftar.",
+    },
+    PENDING: {
+      title: "Pendaftaran panitia dikembalikan ke antrean",
+      body: "Pengurus akan meninjau ulang pendaftaranmu.",
+    },
+  };
+  await notify({
+    userId: app.userId,
+    type: "COMMITTEE_DECIDED",
+    title: messages[d.decision].title,
+    body: messages[d.decision].body,
+    link: `/dashboard/events/${app.event.slug}/panitia`,
+  });
+
   const word = { ACCEPTED: "diterima", WAITLIST: "dijadikan cadangan", REJECTED: "ditandai belum diterima", PENDING: "dikembalikan ke antrean" }[d.decision];
   return { success: `${app.user.fullName} ${word}.` };
 }
