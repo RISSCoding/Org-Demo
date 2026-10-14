@@ -41,6 +41,7 @@ export default async function OnboardingPage({
         },
       },
       notificationPreference: { select: { emailEnabled: true } },
+      notificationConsent: { select: { emailRevokedAt: true } },
     },
   });
 
@@ -87,7 +88,7 @@ export default async function OnboardingPage({
         ktaSubtitle,
         ktaPayload: ktaPayloadUrl,
         memberStatus: user.member.status,
-        emailConsentActive: user.notificationPreference?.emailEnabled ?? false,
+        emailRevokedAt: user.notificationConsent?.emailRevokedAt?.toISOString() ?? null,
       }}
     />
   );
