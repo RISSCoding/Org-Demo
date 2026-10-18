@@ -10,6 +10,7 @@ import {
   FEEDBACK_CATEGORIES, FEEDBACK_STATUSES, isFeedbackCategory, isFeedbackStatus, STATUS_LABEL, STATUS_TONE,
 } from "@/lib/feedback";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, cardCls, inputCls } from "@/lib/ui";
 
@@ -36,7 +37,7 @@ export default async function FeedbackInbox({ searchParams }: { searchParams: Pr
 
   const [rows, counts] = await Promise.all([
     // Urutan enum di database: OPEN, REVIEWED, RESOLVED, jadi pesan baru selalu di atas.
-    prisma.feedback.findMany({
+    tenantPrisma.feedback.findMany({
       where,
       orderBy: [{ status: "asc" }, { createdAt: "desc" }],
       take: 100,
@@ -46,7 +47,7 @@ export default async function FeedbackInbox({ searchParams }: { searchParams: Pr
         sender: { select: { fullName: true } },
       },
     }),
-    prisma.feedback.groupBy({ by: ["status"], _count: { _all: true } }),
+    tenantPrisma.feedback.groupBy({ by: ["status"], _count: { _all: true } }),
   ]);
   const countOf = (s: (typeof FEEDBACK_STATUSES)[number]) => counts.find((c) => c.status === s)?._count._all ?? 0;
 

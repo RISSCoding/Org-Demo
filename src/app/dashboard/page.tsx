@@ -3,24 +3,29 @@ import { headers } from "next/headers";
 import { Award, CalendarDays, CreditCard, MessageSquare, Wallet } from "lucide-react";
 import { auth } from "@/auth";
 import { KtaCard } from "@/components/kta-card";
-import { ConsentBanner } from "@/components/notifications/consent-banner";
 import { memberTitle } from "@/lib/member-title";
-import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant"; // Perubahan disini
 import { btnLine, btnPrimary, cardCls, cardLink } from "@/lib/ui";
+import { ConsentBanner } from "@/components/notifications/consent-banner";
 
-export const metadata = { title: "Dashboard — ORG" };
+export const metadata = { title: "Dashboard — Portal Organisasi" };
 export const dynamic = "force-dynamic";
 
 const STATUS_LABEL = { ACTIVE: "Aktif", INACTIVE: "Nonaktif", ALUMNI: "Alumni" } as const;
 
 export default async function DashboardHome() {
-  const session = await auth();
+  const session = await auth()
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);;
   const userId = session!.user.id;
+  const orgId = session!.user.organizationId;
+
+  if (!orgId) throw new Error("Sesi tidak memiliki organizationId"); // Inisialisasi Prisma Tenant
   const since = new Date();
   since.setDate(since.getDate() - 14);
 
   const [user, unpaid, upcoming, results] = await Promise.all([
-    prisma.user.findUniqueOrThrow({
+    tenantPrisma.user.findUniqueOrThrow({
       where: { id: userId },
       select: {
         fullName: true,
@@ -38,15 +43,14 @@ export default async function DashboardHome() {
         notificationConsent: { select: { userId: true } },
       },
     }),
-    prisma.memberDues.count({ where: { userId, status: { in: ["PENDING", "OVERDUE"] } } }),
-    prisma.eventRegistration.findMany({
+    tenantPrisma.memberDues.count({ where: { userId, status: { in: ["PENDING", "OVERDUE"] } } }),
+    tenantPrisma.eventRegistration.findMany({
       where: { userId, status: "REGISTERED", event: { startDate: { gte: new Date() } } },
       orderBy: { event: { startDate: "asc" } },
       take: 3,
       select: { id: true, event: { select: { title: true, slug: true, startDate: true, location: true } } },
     }),
-    // Hasil seleksi panitia dalam 14 hari terakhir, supaya pendaftar tahu tanpa harus mengecek manual.
-    prisma.committeeApplication.findMany({
+    tenantPrisma.committeeApplication.findMany({
       where: { userId, status: { in: ["ACCEPTED", "WAITLIST", "REJECTED"] }, decidedAt: { gte: since } },
       orderBy: { decidedAt: "desc" },
       select: { status: true, event: { select: { title: true, slug: true } } },
@@ -65,11 +69,12 @@ export default async function DashboardHome() {
     : null;
   const ktaSubtitle = officerPosition && user.member?.division ? `Departemen ${user.member.division.name}` : null;
 
-  // QR berisi URL verifikasi publik; konsisten dengan halaman /dashboard/kta.
   const h = await headers();
   const proto = h.get("x-forwarded-proto") ?? "http";
   const host = h.get("host") ?? "localhost:3000";
-  const ktaPayloadUrl = `${proto}://${host}/verify-member/${user.member!.ktaNumber}`;
+  const ktaPayloadUrl = user.member
+    ? `${proto}://${host}/verify-member/${user.member.ktaNumber}`
+    : "";
 
   const shortcuts = [
     { href: "/dashboard/kta", icon: CreditCard, title: "KTA Digital", desc: "Kartu anggota dengan kode QR." },
@@ -81,21 +86,21 @@ export default async function DashboardHome() {
 
   return (
     <div className="space-y-8">
-      {!user.notificationConsent && <ConsentBanner userRole={session!.user.role} />}
-
       <div className="space-y-2">
         <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Halo, {user.fullName.split(" ")[0]}</h1>
         <p className="text-sm text-muted-foreground">
           Status keanggotaan:{" "}
-          <span className={`inline-block rounded-sm px-2 py-0.5 text-xs font-semibold ${user.member ? "bg-[var(--state-success-bg)] text-[var(--emerald)]" : "bg-[#ffa500]/20 text-[var(--state-warning-fg)]"}`}>
+          <span className={`inline-block rounded-sm px-2 py-0.5 text-xs font-semibold ${user.member ? "bg-[var(--emerald)]/15 text-[var(--emerald)]" : "bg-[#ffa500]/20 text-[var(--gold-text)]"}`}>
             {user.member ? STATUS_LABEL[user.member.status] : "Belum terdaftar"}
           </span>
           {ktaTitle && <> · {ktaTitle}</>}
         </p>
       </div>
 
+      {!user.notificationConsent && <ConsentBanner userRole={session!.user.role} />}
+
       {unpaid > 0 && (
-        <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-sm border border-[var(--state-warning-border)] bg-[var(--state-warning-bg)] px-4 py-3 text-sm">
+        <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-sm border border-[var(--gold)]/40 bg-[var(--gold)]/10 px-4 py-3 text-sm">
           <p>
             Kamu punya <strong>{unpaid}</strong> tagihan iuran kas yang belum lunas.
           </p>
@@ -167,7 +172,7 @@ export default async function DashboardHome() {
           {shortcuts.map(({ href, icon: Icon, title, desc }) => (
             <li key={href}>
               <Link href={href} className={`${cardLink} flex h-full items-start gap-3 p-4`}>
-                <Icon className="mt-0.5 size-5 shrink-0 text-[var(--state-warning-fg)]" aria-hidden />
+                <Icon className="mt-0.5 size-5 shrink-0 text-[var(--gold-text)]" aria-hidden />
                 <span>
                   <span className="block font-medium">{title}</span>
                   <span className="block text-sm text-muted-foreground">{desc}</span>

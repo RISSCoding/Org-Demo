@@ -11,6 +11,7 @@ import {
   normalizeActivity, numberCode, wibYearMonth,
 } from "@/lib/letters";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { deletePrivate, letterFileName, saveLetterPdf } from "@/lib/private-files";
 import { ForbiddenError, requirePermission } from "@/lib/rbac";
 import { UploadError } from "@/lib/storage";
@@ -38,7 +39,7 @@ const base = {
 /** Kegiatan yang ditautkan harus ada; mengembalikan galat bidang bila tidak. */
 async function checkEvent(eventId: string | undefined): Promise<FormState | null> {
   if (!eventId) return null;
-  const ev = await prisma.event.findUnique({ where: { id: eventId }, select: { id: true } });
+  const ev = await tenantPrisma.event.findUnique({ where: { id: eventId }, select: { id: true } });
   return ev ? null : fail({ eventId: ["Kegiatan tidak ditemukan."] });
 }
 
@@ -89,6 +90,8 @@ async function readPdf(fd: FormData): Promise<{ url?: string; error?: string }> 
 
 export async function createLetterAction(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requirePermission("secretariat:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
+
   const parsed = createSchema.safeParse({
     type: fd.get("type"),
     kind: text(fd, "kind"),
@@ -173,7 +176,7 @@ export async function createLetterAction(_: FormState, fd: FormData): Promise<Fo
 export async function updateLetterAction(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requirePermission("secretariat:manage");
   const id = String(fd.get("id") ?? "");
-  const letter = await prisma.officialLetter.findUnique({ where: { id } });
+  const letter = await tenantPrisma.officialLetter.findUnique({ where: { id } });
   if (!letter) return { error: "Surat tidak ditemukan." };
 
   const parsed = z
@@ -203,7 +206,7 @@ export async function updateLetterAction(_: FormState, fd: FormData): Promise<Fo
   if (doc.error) return fail({ document: [doc.error] });
 
   await prisma.$transaction([
-    prisma.officialLetter.update({
+    tenantPrisma.officialLetter.update({
       where: { id },
       data: {
         subject: d.subject,
@@ -214,7 +217,7 @@ export async function updateLetterAction(_: FormState, fd: FormData): Promise<Fo
         ...(doc.url ? { documentUrl: doc.url } : {}),
       },
     }),
-    prisma.auditLog.create({
+    tenantPrisma.auditLog.create({
       data: { userId: user.id, action: "UPDATE", entity: "official_letters", entityId: id, meta: { replacedDocument: !!doc.url, ...(needsApproval ? { eventId: d.eventId ?? null, campusFunds: d.campusFunds === true } : {}) } },
     }),
   ]);
@@ -234,12 +237,12 @@ const dayOf = (d: Date) =>
 export async function forwardLetterAction(fd: FormData): Promise<void> {
   const user = await requirePermission("secretariat:manage");
   const id = String(fd.get("id") ?? "");
-  const letter = await prisma.officialLetter.findUnique({ where: { id }, select: { type: true, forwardedAt: true } });
+  const letter = await tenantPrisma.officialLetter.findUnique({ where: { id }, select: { type: true, forwardedAt: true } });
   if (!letter || letter.type !== "SURAT_MASUK" || letter.forwardedAt) return;
 
   await prisma.$transaction([
-    prisma.officialLetter.update({ where: { id }, data: { forwardedAt: new Date() } }),
-    prisma.auditLog.create({ data: { userId: user.id, action: "FORWARD", entity: "official_letters", entityId: id } }),
+    tenantPrisma.officialLetter.update({ where: { id }, data: { forwardedAt: new Date() } }),
+    tenantPrisma.auditLog.create({ data: { userId: user.id, action: "FORWARD", entity: "official_letters", entityId: id } }),
   ]);
   refresh();
 }
@@ -249,12 +252,12 @@ export async function deleteLetterAction(fd: FormData): Promise<void> {
   const user = await requirePermission("secretariat:manage");
   if (user.role !== "SUPER_ADMIN") throw new ForbiddenError("Hanya Super Admin yang boleh menghapus surat.");
   const id = String(fd.get("id") ?? "");
-  const letter = await prisma.officialLetter.findUnique({ where: { id } });
+  const letter = await tenantPrisma.officialLetter.findUnique({ where: { id } });
   if (!letter) return;
 
   await prisma.$transaction([
-    prisma.officialLetter.delete({ where: { id } }),
-    prisma.auditLog.create({
+    tenantPrisma.officialLetter.delete({ where: { id } }),
+    tenantPrisma.auditLog.create({
       data: {
         userId: user.id,
         action: "DELETE",

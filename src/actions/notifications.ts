@@ -5,19 +5,23 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { UnauthorizedError } from "@/lib/rbac";
 
 const CONSENT_VERSION = "v1-2026-10";
 
 async function me() {
   const session = await auth();
+
   if (!session?.user) throw new UnauthorizedError();
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);
   return session.user.id;
 }
 
 export async function markNotificationRead(id: string): Promise<void> {
   const userId = await me();
-  await prisma.notification.updateMany({
+  await tenantPrisma.notification.updateMany({
     where: { id, userId, readAt: null },
     data: { readAt: new Date() },
   });
@@ -26,7 +30,7 @@ export async function markNotificationRead(id: string): Promise<void> {
 
 export async function markAllNotificationsRead(): Promise<void> {
   const userId = await me();
-  await prisma.notification.updateMany({
+  await tenantPrisma.notification.updateMany({
     where: { userId, readAt: null },
     data: { readAt: new Date() },
   });
@@ -35,7 +39,7 @@ export async function markAllNotificationsRead(): Promise<void> {
 
 export async function deleteNotification(id: string): Promise<void> {
   const userId = await me();
-  await prisma.notification.deleteMany({ where: { id, userId } });
+  await tenantPrisma.notification.deleteMany({ where: { id, userId } });
   revalidatePath("/dashboard", "layout");
 }
 
@@ -53,7 +57,7 @@ const prefsSchema = z.object({
 export async function saveNotificationPreferences(input: z.input<typeof prefsSchema>): Promise<void> {
   const userId = await me();
   const d = prefsSchema.parse(input);
-  await prisma.notificationPreference.upsert({
+  await tenantPrisma.notificationPreference.upsert({
     where: { userId },
     create: { userId, ...d },
     update: d,
@@ -76,9 +80,9 @@ export async function saveNotificationConsent(input: z.input<typeof consentSchem
   const ua = h.get("user-agent") ?? null;
   const now = new Date();
 
-  const existing = await prisma.notificationConsent.findUnique({ where: { userId } });
+  const existing = await tenantPrisma.notificationConsent.findUnique({ where: { userId } });
 
-  await prisma.notificationConsent.upsert({
+  await tenantPrisma.notificationConsent.upsert({
     where: { userId },
     create: {
       userId,
@@ -99,14 +103,14 @@ export async function saveNotificationConsent(input: z.input<typeof consentSchem
     },
   });
 
-  await prisma.notificationPreference.upsert({
+  await tenantPrisma.notificationPreference.upsert({
     where: { userId },
     create: { userId, emailEnabled: d.email, whatsappEnabled: d.whatsapp },
     update: { emailEnabled: d.email, whatsappEnabled: d.whatsapp },
   });
 
   if (d.whatsappNumber) {
-    await prisma.user.update({ where: { id: userId }, data: { phoneNumber: d.whatsappNumber } });
+    await tenantPrisma.user.update({ where: { id: userId }, data: { phoneNumber: d.whatsappNumber } });
   }
 
   revalidatePath("/dashboard", "layout");
@@ -116,12 +120,12 @@ export async function saveNotificationConsent(input: z.input<typeof consentSchem
 export async function revokeEmailConsent(): Promise<void> {
   const userId = await me();
   const now = new Date();
-  await prisma.notificationConsent.upsert({
+  await tenantPrisma.notificationConsent.upsert({
     where: { userId },
     create: { userId, consentVersion: CONSENT_VERSION, emailRevokedAt: now },
     update: { emailRevokedAt: now },
   });
-  await prisma.notificationPreference.upsert({
+  await tenantPrisma.notificationPreference.upsert({
     where: { userId },
     create: { userId, emailEnabled: false },
     update: { emailEnabled: false },
@@ -132,12 +136,12 @@ export async function revokeEmailConsent(): Promise<void> {
 export async function revokeWhatsappConsent(): Promise<void> {
   const userId = await me();
   const now = new Date();
-  await prisma.notificationConsent.upsert({
+  await tenantPrisma.notificationConsent.upsert({
     where: { userId },
     create: { userId, consentVersion: CONSENT_VERSION, whatsappRevokedAt: now },
     update: { whatsappRevokedAt: now },
   });
-  await prisma.notificationPreference.upsert({
+  await tenantPrisma.notificationPreference.upsert({
     where: { userId },
     create: { userId, whatsappEnabled: false },
     update: { whatsappEnabled: false },

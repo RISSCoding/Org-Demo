@@ -6,6 +6,7 @@ import { currentMonthKey, hasFinanceWrite, monthLabel, monthOptions, rupiah } fr
 import { getOverview, syncOverdue } from "@/lib/finance-service";
 import { resolveScope } from "@/lib/finance-statements";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { btnLine, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
@@ -13,6 +14,8 @@ export const metadata = { title: "Keuangan — ORG" };
 
 export default async function FinanceOverview({ searchParams }: { searchParams: Promise<ReportSearchParams> }) {
   const user = await requirePermission("finance:read");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
+
   const sp = await searchParams;
   await syncOverdue();
   const key = currentMonthKey();
@@ -20,9 +23,9 @@ export default async function FinanceOverview({ searchParams }: { searchParams: 
 
   const [ov, unverified, awaiting, duesAgg] = await Promise.all([
     getOverview({ verifiedOnly: scope === "verified" }),
-    prisma.financialTransaction.count({ where: { verifiedBy: null } }),
-    prisma.memberDues.count({ where: { proofUrl: { not: null }, status: { not: "PAID" } } }),
-    prisma.memberDues.groupBy({ by: ["status"], where: { monthYear: key }, _count: true }),
+    tenantPrisma.financialTransaction.count({ where: { verifiedBy: null } }),
+    tenantPrisma.memberDues.count({ where: { proofUrl: { not: null }, status: { not: "PAID" } } }),
+    tenantPrisma.memberDues.groupBy({ by: ["status"], where: { monthYear: key }, _count: true }),
   ]);
   const paid = duesAgg.find((d) => d.status === "PAID")?._count ?? 0;
   const totalDues = duesAgg.reduce((a, d) => a + d._count, 0);

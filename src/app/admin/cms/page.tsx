@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { formatDate, formatDateTime } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { CATEGORY_LABEL } from "@/lib/site-data";
 import { btnGhost, btnPrimary, cardCls, inputCls } from "@/lib/ui";
@@ -31,7 +32,7 @@ export default async function AdminCms({ searchParams }: { searchParams: Promise
   if (status === "scheduled") where.publishedAt = { gt: now };
   if (status === "published") where.publishedAt = { lte: now };
 
-  const posts = await prisma.cmsPost.findMany({
+  const posts = await tenantPrisma.cmsPost.findMany({
     where,
     orderBy: [{ publishedAt: { sort: "desc", nulls: "first" } }, { title: "asc" }],
     take: 200,

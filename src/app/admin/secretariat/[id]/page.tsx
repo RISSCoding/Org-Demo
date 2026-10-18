@@ -13,6 +13,7 @@ import { dateKey } from "@/lib/finance";
 import { KIND_LABEL, LETTER_LABEL } from "@/lib/letters";
 import { getOfficerNames } from "@/lib/officers";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, btnLine, cardCls } from "@/lib/ui";
 
@@ -20,13 +21,15 @@ export const metadata = { title: "Detail Arsip — ORG" };
 
 export default async function LetterDetail({ params }: { params: Promise<{ id: string }> }) {
   const user = await requirePermission("secretariat:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
+
   const { id } = await params;
-  const letter = await prisma.officialLetter.findUnique({ where: { id } });
+  const letter = await tenantPrisma.officialLetter.findUnique({ where: { id } });
   if (!letter) notFound();
 
   const [events, approvalSigners] = await Promise.all([
     isApprovalDoc(letter.type)
-      ? prisma.event.findMany({ orderBy: { startDate: "desc" }, take: 200, select: { id: true, title: true } })
+      ? tenantPrisma.event.findMany({ orderBy: { startDate: "desc" }, take: 200, select: { id: true, title: true } })
       : Promise.resolve([]),
     resolveApprovalSigners(letter),
   ]);

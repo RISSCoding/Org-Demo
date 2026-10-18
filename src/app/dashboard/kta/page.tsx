@@ -4,13 +4,17 @@ import { auth } from "@/auth";
 import { KtaCard } from "@/components/kta-card";
 import { memberTitle } from "@/lib/member-title";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 
 export const metadata = { title: "KTA Digital — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function KtaPage() {
-  const session = await auth();
-  const user = await prisma.user.findUniqueOrThrow({
+  const session = await auth()
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);;
+
+  const user = await tenantPrisma.user.findUniqueOrThrow({
     where: { id: session!.user.id },
     select: {
       fullName: true,

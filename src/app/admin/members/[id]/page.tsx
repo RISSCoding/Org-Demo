@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { MemberForm, ResetPasswordForm } from "@/components/member-form";
 import { PageHeader } from "@/components/ui/page-header";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { alertOk } from "@/lib/ui";
 
@@ -17,12 +18,14 @@ export default async function EditMember({
   searchParams: Promise<{ created?: string }>;
 }) {
   const me = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(me.organizationId!);
+
   if (me.role !== "SUPER_ADMIN") redirect("/admin/members");
 
   const { id } = await params;
   const { created } = await searchParams;
   const [u, divisions] = await Promise.all([
-    prisma.user.findUnique({
+    tenantPrisma.user.findUnique({
       where: { id },
       include: {
         role: true,
@@ -30,7 +33,7 @@ export default async function EditMember({
         extraPerms: { include: { permission: true } },
       },
     }),
-    prisma.division.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    tenantPrisma.division.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
   ]);
   if (!u) notFound();
 

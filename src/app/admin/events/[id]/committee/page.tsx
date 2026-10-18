@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { CommitteeManager } from "@/components/committee/manager";
 import { formatDateTime } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 
 export const metadata = { title: "Kepanitiaan — ORG" };
@@ -18,7 +19,7 @@ export default async function AdminCommittee({
   await requirePermission("event:manage");
   const { id } = await params;
   const { s } = await searchParams;
-  const event = await prisma.event.findUnique({ where: { id }, select: { id: true, slug: true, title: true, startDate: true, location: true } });
+  const event = await tenantPrisma.event.findUnique({ where: { id }, select: { id: true, slug: true, title: true, startDate: true, location: true } });
   if (!event) notFound();
 
   return (

@@ -4,15 +4,19 @@ import { Badge } from "@/components/badge";
 import { formatDate } from "@/lib/datetime";
 import { SENDER_STATUS, STATUS_TONE } from "@/lib/feedback";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { btnPrimary, cardCls, linkCls } from "@/lib/ui";
 
 export const metadata = { title: "Pesan Saya — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function MyFeedback() {
-  const session = await auth();
+  const session = await auth()
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);;
+
   // Hanya pesan yang dikirim dengan identitas. Pesan anonim memang tidak terhubung ke akun mana pun.
-  const items = await prisma.feedback.findMany({
+  const items = await tenantPrisma.feedback.findMany({
     where: { senderId: session!.user.id, isAnonymous: false },
     orderBy: { createdAt: "desc" },
     take: 50,

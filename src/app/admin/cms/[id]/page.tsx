@@ -4,6 +4,7 @@ import { ConfirmSubmit } from "@/components/confirm-submit";
 import { PostForm } from "@/components/post-form";
 import { BackLink } from "@/components/ui/back-link";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { toInputValue } from "@/lib/datetime";
 import { postRawText } from "@/lib/site-data";
@@ -14,7 +15,7 @@ export const metadata = { title: "Edit Tulisan — ORG" };
 export default async function EditPost({ params }: { params: Promise<{ id: string }> }) {
   await requirePermission("cms:write");
   const { id } = await params;
-  const p = await prisma.cmsPost.findUnique({ where: { id } });
+  const p = await tenantPrisma.cmsPost.findUnique({ where: { id } });
   if (!p) notFound();
   const now = new Date();
   const scheduled = p.publishedAt !== null && p.publishedAt > now;

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { DIVISION_ELIGIBLE_ROLES } from "@/lib/division-roles";
 import { divisionRoleLabel } from "@/lib/member-title";
@@ -17,14 +18,16 @@ const divisionRoleSchema = z.enum(["STAFF", "DEPT_SECRETARY", "DEPT_HEAD"]);
 
 export async function createDivisionAction(fd: FormData): Promise<void> {
   const user = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
+
   const name = nameSchema.safeParse(fd.get("name"));
   if (!name.success) return back("error", name.error.issues[0].message);
 
-  if (await prisma.division.findUnique({ where: { name: name.data }, select: { id: true } })) {
+  if (await tenantPrisma.division.findUnique({ where: { name: name.data }, select: { id: true } })) {
     return back("error", "Nama divisi sudah dipakai.");
   }
-  const d = await prisma.division.create({ data: { name: name.data } });
-  await prisma.auditLog.create({ data: { userId: user.id, action: "CREATE", entity: "divisions", entityId: String(d.id) } });
+  const d = await tenantPrisma.division.create({ data: { name: name.data } });
+  await tenantPrisma.auditLog.create({ data: { userId: user.id, action: "CREATE", entity: "divisions", entityId: String(d.id) } });
   revalidatePath("/admin/divisions");
   return back("ok", "Divisi ditambahkan.");
 }
@@ -38,14 +41,14 @@ export async function updateDivisionAction(fd: FormData): Promise<void> {
 
   const leaderRaw = String(fd.get("leaderId") ?? "");
   const leaderId = leaderRaw === "" ? null : leaderRaw;
-  if (leaderId && !(await prisma.user.findUnique({ where: { id: leaderId }, select: { id: true } }))) {
+  if (leaderId && !(await tenantPrisma.user.findUnique({ where: { id: leaderId }, select: { id: true } }))) {
     return back("error", "Ketua divisi tidak ditemukan.");
   }
-  const clash = await prisma.division.findFirst({ where: { name: name.data, NOT: { id } }, select: { id: true } });
+  const clash = await tenantPrisma.division.findFirst({ where: { name: name.data, NOT: { id } }, select: { id: true } });
   if (clash) return back("error", "Nama divisi sudah dipakai.");
 
-  await prisma.division.update({ where: { id }, data: { name: name.data, leaderId } });
-  await prisma.auditLog.create({ data: { userId: user.id, action: "UPDATE", entity: "divisions", entityId: String(id) } });
+  await tenantPrisma.division.update({ where: { id }, data: { name: name.data, leaderId } });
+  await tenantPrisma.auditLog.create({ data: { userId: user.id, action: "UPDATE", entity: "divisions", entityId: String(id) } });
   revalidatePath("/admin/divisions");
   revalidatePath("/admin/members");
   return back("ok", "Divisi disimpan.");
@@ -56,18 +59,18 @@ export async function deleteDivisionAction(fd: FormData): Promise<void> {
   const id = Number(fd.get("id"));
   if (!Number.isInteger(id)) return back("error", "Divisi tidak valid.");
 
-  const count = await prisma.member.count({ where: { divisionId: id } });
+  const count = await tenantPrisma.member.count({ where: { divisionId: id } });
   if (count > 0) return back("error", `Divisi masih punya ${count} anggota. Keluarkan dulu semuanya lewat panel Anggota sebelum menghapus.`);
 
-  await prisma.division.delete({ where: { id } });
-  await prisma.auditLog.create({ data: { userId: user.id, action: "DELETE", entity: "divisions", entityId: String(id) } });
+  await tenantPrisma.division.delete({ where: { id } });
+  await tenantPrisma.auditLog.create({ data: { userId: user.id, action: "DELETE", entity: "divisions", entityId: String(id) } });
   revalidatePath("/admin/divisions");
   return back("ok", "Divisi dihapus.");
 }
 
 /** Cek apakah divisi sudah punya Ketua Departemen lain (selain userId yang dikecualikan). */
 async function findOtherHead(divisionId: number, exceptUserId: string) {
-  return prisma.member.findFirst({
+  return tenantPrisma.member.findFirst({
     where: { divisionId, divisionRole: "DEPT_HEAD", NOT: { userId: exceptUserId } },
     select: { user: { select: { fullName: true } } },
   });
@@ -89,7 +92,7 @@ export async function addDivisionMembersAction(_: FormState, fd: FormData): Prom
     return { error: "Ketua Departemen hanya boleh satu orang per divisi." };
   }
 
-  const division = await prisma.division.findUnique({ where: { id: divisionId }, select: { id: true, name: true } });
+  const division = await tenantPrisma.division.findUnique({ where: { id: divisionId }, select: { id: true, name: true } });
   if (!division) return { error: "Divisi tidak ditemukan." };
 
   if (divisionRole === "DEPT_HEAD") {
@@ -97,7 +100,7 @@ export async function addDivisionMembersAction(_: FormState, fd: FormData): Prom
     if (other) return { error: `${division.name} sudah punya Ketua Departemen (${other.user.fullName}). Turunkan dulu yang lama.` };
   }
 
-  const users = await prisma.user.findMany({
+  const users = await tenantPrisma.user.findMany({
     where: {
       id: { in: userIds },
       approvalStatus: "APPROVED",
@@ -113,11 +116,11 @@ export async function addDivisionMembersAction(_: FormState, fd: FormData): Prom
   const moved = toAdd.filter((u) => u.member?.divisionId != null).length;
 
   await prisma.$transaction([
-    prisma.member.updateMany({
+    tenantPrisma.member.updateMany({
       where: { userId: { in: toAdd.map((u) => u.id) } },
       data: { divisionId, divisionRole },
     }),
-    prisma.auditLog.create({
+    tenantPrisma.auditLog.create({
       data: {
         userId: admin.id,
         action: "UPDATE",
@@ -141,13 +144,13 @@ export async function removeDivisionMemberAction(_: FormState, fd: FormData): Pr
   const userId = String(fd.get("userId") ?? "");
   if (!Number.isInteger(divisionId) || !userId) return { error: "Data tidak valid." };
 
-  const res = await prisma.member.updateMany({
+  const res = await tenantPrisma.member.updateMany({
     where: { userId, divisionId },
     data: { divisionId: null, divisionRole: null },
   });
   if (res.count === 0) return { error: "Anggota ini sudah tidak ada di divisi tersebut." };
 
-  await prisma.auditLog.create({
+  await tenantPrisma.auditLog.create({
     data: { userId: admin.id, action: "UPDATE", entity: "divisions", entityId: String(divisionId), meta: { removedMember: userId } },
   });
   revalidatePath("/admin/divisions");
@@ -166,7 +169,7 @@ export async function setMemberDivisionRoleAction(_: FormState, fd: FormData): P
   }
   const divisionRole = roleParsed.data;
 
-  const member = await prisma.member.findUnique({
+  const member = await tenantPrisma.member.findUnique({
     where: { userId },
     select: {
       divisionId: true,
@@ -188,8 +191,8 @@ export async function setMemberDivisionRoleAction(_: FormState, fd: FormData): P
   }
 
   await prisma.$transaction([
-    prisma.member.update({ where: { userId }, data: { divisionRole } }),
-    prisma.auditLog.create({
+    tenantPrisma.member.update({ where: { userId }, data: { divisionRole } }),
+    tenantPrisma.auditLog.create({
       data: {
         userId: admin.id,
         action: "UPDATE",

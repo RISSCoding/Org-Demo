@@ -3,15 +3,18 @@ import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { NewMemberForm } from "@/components/new-member-form";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 
 export const metadata = { title: "Tambah Anggota — ORG" };
 
 export default async function NewMemberPage() {
   const me = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(me.organizationId!);
+
   if (me.role !== "SUPER_ADMIN") redirect("/admin/members");
 
-  const divisions = await prisma.division.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } });
+  const divisions = await tenantPrisma.division.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } });
 
   return (
     <div className="max-w-3xl space-y-6">

@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { Wizard } from "@/components/onboarding/wizard";
 import { memberTitle } from "@/lib/member-title";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 
 export const metadata = { title: "Selamat datang — ORG" };
 export const dynamic = "force-dynamic";
@@ -17,9 +18,12 @@ export default async function OnboardingPage({
   const isReplay = replay === "1";
 
   const session = await auth();
+
   if (!session?.user) redirect("/login?callbackUrl=/onboarding");
 
-  const user = await prisma.user.findUniqueOrThrow({
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);
+
+  const user = await tenantPrisma.user.findUniqueOrThrow({
     where: { id: session.user.id },
     select: {
       fullName: true,

@@ -9,6 +9,7 @@ import { formatDate } from "@/lib/datetime";
 import { currentMonthKey, duesState, hasFinanceWrite, MONTH_RE, monthLabel, monthOptions, num, rupiah } from "@/lib/finance";
 import { getDuesAmount, syncOverdue } from "@/lib/finance-service";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, cardCls, inputCls } from "@/lib/ui";
 
@@ -16,6 +17,8 @@ export const metadata = { title: "Iuran Kas — ORG" };
 
 export default async function DuesAdmin({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
   const user = await requirePermission("finance:read");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
+
   const canWrite = hasFinanceWrite(user);
   await syncOverdue();
 
@@ -23,7 +26,7 @@ export default async function DuesAdmin({ searchParams }: { searchParams: Promis
   const month = sp.month && MONTH_RE.test(sp.month) ? sp.month : currentMonthKey();
 
   const [dues, amount] = await Promise.all([
-    prisma.memberDues.findMany({
+    tenantPrisma.memberDues.findMany({
       where: { monthYear: month },
       orderBy: { user: { fullName: "asc" } },
       select: {

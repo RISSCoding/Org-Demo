@@ -12,6 +12,7 @@ export const authConfig = {
         token.nim = user.nim;
         token.role = user.role;
         token.permissions = user.permissions;
+        token.organizationId = user.organizationId;
       }
       return token;
     },
@@ -20,6 +21,7 @@ export const authConfig = {
       session.user.nim = token.nim;
       session.user.role = token.role;
       session.user.permissions = token.permissions;
+      session.user.organizationId = token.organizationId;
       return session;
     },
   },

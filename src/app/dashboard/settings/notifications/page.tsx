@@ -5,19 +5,23 @@ import { getConsent, getPreferences } from "@/lib/notifications";
 import { PageHeader } from "@/components/ui/page-header";
 import { SettingsForm } from "@/components/notifications/settings-form";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { cardCls, linkCls } from "@/lib/ui";
 
 export const metadata = { title: "Pengaturan Notifikasi — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function NotificationSettings() {
-  const session = await auth();
+  const session = await auth()
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);;
+
   const userId = session!.user.id;
 
   const [prefs, consent, user] = await Promise.all([
     getPreferences(userId),
     getConsent(userId),
-    prisma.user.findUnique({
+    tenantPrisma.user.findUnique({
       where: { id: userId },
       select: { email: true, phoneNumber: true },
     }),

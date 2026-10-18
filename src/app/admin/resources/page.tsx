@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { formatDate } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { RESOURCE_CATEGORIES, categoryLabel } from "@/lib/resources";
 import { alertErr, alertOk, btnLine, btnPrimary, cardCls, inputCls } from "@/lib/ui";
@@ -19,7 +20,7 @@ export default async function AdminResources({
 }) {
   await requirePermission("cms:write");
   const { error, ok } = await searchParams;
-  const items = await prisma.resource.findMany({ orderBy: { createdAt: "desc" } });
+  const items = await tenantPrisma.resource.findMany({ orderBy: { createdAt: "desc" } });
 
   return (
     <div className="space-y-6">

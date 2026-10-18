@@ -5,6 +5,7 @@ import { DIVISION_ELIGIBLE_ROLES } from "@/lib/division-roles";
 import { OFFICER_LABEL, OFFICER_SLOTS } from "@/lib/officer-meta";
 import { getOfficers } from "@/lib/officers";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { PageHeader } from "@/components/ui/page-header";
 import { alertErr, alertOk, btnPrimary, cardCls, inputCls } from "@/lib/ui";
@@ -21,7 +22,7 @@ export default async function AdminDivisions({
   const { error, ok } = await searchParams;
 
   const [divisions, users, officers] = await Promise.all([
-    prisma.division.findMany({
+    tenantPrisma.division.findMany({
       orderBy: { name: "asc" },
       include: {
         members: {
@@ -32,7 +33,7 @@ export default async function AdminDivisions({
         },
       },
     }),
-    prisma.user.findMany({
+    tenantPrisma.user.findMany({
       where: { approvalStatus: "APPROVED", role: { name: { in: [...DIVISION_ELIGIBLE_ROLES] } } },
       orderBy: { fullName: "asc" },
       select: { id: true, fullName: true, nim: true, signatureUrl: true, member: { select: { divisionId: true } } },

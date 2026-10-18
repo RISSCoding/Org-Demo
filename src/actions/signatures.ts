@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { saveSignatureImage } from "@/lib/private-files";
 import { requirePermission, UnauthorizedError } from "@/lib/rbac";
 import { discardSignature } from "@/lib/signatures";
@@ -14,6 +15,8 @@ const FIELD = "signature";
 async function meId() {
   const session = await auth();
   if (!session?.user) throw new UnauthorizedError();
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);
   return session.user.id;
 }
 
@@ -43,10 +46,10 @@ export async function saveMySignatureAction(_: FormState, fd: FormData): Promise
   const read = await readSignature(fd);
   if ("error" in read) return { error: read.error };
 
-  const before = await prisma.user.findUnique({ where: { id: userId }, select: { signatureUrl: true } });
+  const before = await tenantPrisma.user.findUnique({ where: { id: userId }, select: { signatureUrl: true } });
   await prisma.$transaction([
-    prisma.user.update({ where: { id: userId }, data: { signatureUrl: read.url } }),
-    prisma.auditLog.create({ data: { userId, action: "SIGNATURE_SET", entity: "users", entityId: userId } }),
+    tenantPrisma.user.update({ where: { id: userId }, data: { signatureUrl: read.url } }),
+    tenantPrisma.auditLog.create({ data: { userId, action: "SIGNATURE_SET", entity: "users", entityId: userId } }),
   ]);
   await discardSignature(before?.signatureUrl);
 
@@ -56,12 +59,12 @@ export async function saveMySignatureAction(_: FormState, fd: FormData): Promise
 
 export async function removeMySignatureAction(): Promise<FormState> {
   const userId = await meId();
-  const before = await prisma.user.findUnique({ where: { id: userId }, select: { signatureUrl: true } });
+  const before = await tenantPrisma.user.findUnique({ where: { id: userId }, select: { signatureUrl: true } });
   if (!before?.signatureUrl) return { error: "Belum ada tanda tangan yang tersimpan." };
 
   await prisma.$transaction([
-    prisma.user.update({ where: { id: userId }, data: { signatureUrl: null } }),
-    prisma.auditLog.create({ data: { userId, action: "SIGNATURE_REMOVE", entity: "users", entityId: userId } }),
+    tenantPrisma.user.update({ where: { id: userId }, data: { signatureUrl: null } }),
+    tenantPrisma.auditLog.create({ data: { userId, action: "SIGNATURE_REMOVE", entity: "users", entityId: userId } }),
   ]);
   await discardSignature(before.signatureUrl);
 
@@ -79,7 +82,7 @@ export async function removeMySignatureAction(): Promise<FormState> {
 async function manualHolder(fd: FormData) {
   const id = Number(fd.get("id"));
   if (!Number.isInteger(id)) return { error: "Data tidak valid." } as const;
-  const officer = await prisma.orgOfficer.findUnique({ where: { id }, select: { id: true, userId: true, signatureUrl: true } });
+  const officer = await tenantPrisma.orgOfficer.findUnique({ where: { id }, select: { id: true, userId: true, signatureUrl: true } });
   if (!officer) return { error: "Jabatan ini sudah tidak ada." } as const;
   if (officer.userId) {
     return { error: "Pemegang jabatan ini punya akun. Tanda tangannya diunggah sendiri lewat menu Profil." } as const;
@@ -89,6 +92,7 @@ async function manualHolder(fd: FormData) {
 
 export async function saveOfficerSignatureAction(_: FormState, fd: FormData): Promise<FormState> {
   const admin = await requirePermission("member:manage");
+
   const target = await manualHolder(fd);
   if ("error" in target) return { error: target.error };
 
@@ -97,8 +101,8 @@ export async function saveOfficerSignatureAction(_: FormState, fd: FormData): Pr
 
   const { officer } = target;
   await prisma.$transaction([
-    prisma.orgOfficer.update({ where: { id: officer.id }, data: { signatureUrl: read.url } }),
-    prisma.auditLog.create({ data: { userId: admin.id, action: "SIGNATURE_SET", entity: "org_officers", entityId: String(officer.id) } }),
+    tenantPrisma.orgOfficer.update({ where: { id: officer.id }, data: { signatureUrl: read.url } }),
+    tenantPrisma.auditLog.create({ data: { userId: admin.id, action: "SIGNATURE_SET", entity: "org_officers", entityId: String(officer.id) } }),
   ]);
   await discardSignature(officer.signatureUrl);
 
@@ -114,8 +118,8 @@ export async function removeOfficerSignatureAction(_: FormState, fd: FormData): 
   const { officer } = target;
   if (!officer.signatureUrl) return { error: "Belum ada tanda tangan yang tersimpan." };
   await prisma.$transaction([
-    prisma.orgOfficer.update({ where: { id: officer.id }, data: { signatureUrl: null } }),
-    prisma.auditLog.create({ data: { userId: admin.id, action: "SIGNATURE_REMOVE", entity: "org_officers", entityId: String(officer.id) } }),
+    tenantPrisma.orgOfficer.update({ where: { id: officer.id }, data: { signatureUrl: null } }),
+    tenantPrisma.auditLog.create({ data: { userId: admin.id, action: "SIGNATURE_REMOVE", entity: "org_officers", entityId: String(officer.id) } }),
   ]);
   await discardSignature(officer.signatureUrl);
 

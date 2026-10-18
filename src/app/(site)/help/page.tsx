@@ -1,10 +1,12 @@
 import { HelpView, type HelpTab } from "@/components/help-view";
+import { BookOpen, Users } from "lucide-react";
 
-export const metadata = { title: "Bantuan — ORG" };
+export const metadata = { title: "Pusat Bantuan — Portal Organisasi" };
 export const dynamic = "force-dynamic";
 
 const TABS: HelpTab[] = [
-  { key: "anggota", label: "Panduan anggota", file: "docs/PANDUAN_ANGGOTA.md" },
+  { key: "platform", label: "Tentang Platform", file: "docs/PANDUAN_PLATFORM.md", icon: <BookOpen className="size-4" /> },
+  { key: "anggota", label: "Mulai Menggunakan", file: "docs/PANDUAN_ANGGOTA.md", icon: <Users className="size-4" /> },
 ];
 
 export default async function HelpPage({
@@ -14,10 +16,10 @@ export default async function HelpPage({
 }) {
   const { tab } = await searchParams;
   return (
-    <div className="mx-auto w-full max-w-4xl px-6 py-14">
+    <div className="mx-auto w-full max-w-6xl px-6 py-14">
       <HelpView
-        title="Pusat bantuan"
-        description="Panduan memakai portal anggota ORG. Untuk pertanyaan lain, hubungi pengurus."
+        title="Pusat Bantuan"
+        description="Pelajari tentang platform multi-tenant ini, atau baca panduan dasar untuk mulai menggunakan portal."
         tabs={TABS}
         activeKey={tab}
         basePath="/help"

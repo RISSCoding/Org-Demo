@@ -7,6 +7,7 @@ import { FeedbackAdminForm } from "@/components/feedback-admin-form";
 import { formatDateTime } from "@/lib/datetime";
 import { STATUS_LABEL, STATUS_TONE } from "@/lib/feedback";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, cardCls } from "@/lib/ui";
 
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic";
 export default async function FeedbackDetail({ params }: { params: Promise<{ id: string }> }) {
   await requirePermission("aspirasi:manage");
   const { id } = await params;
-  const item = await prisma.feedback.findUnique({
+  const item = await tenantPrisma.feedback.findUnique({
     where: { id },
     include: { sender: { select: { fullName: true, nim: true } } },
   });

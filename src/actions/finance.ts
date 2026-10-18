@@ -8,6 +8,7 @@ import { CATEGORY_LABEL, MONTH_RE, monthLabel } from "@/lib/finance";
 import { writeJournals } from "@/lib/finance-journal";
 import { notify } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { saveProofImage } from "@/lib/private-files";
 import { requirePermission } from "@/lib/rbac";
 import { UploadError } from "@/lib/storage";
@@ -31,6 +32,8 @@ const txSchema = z.object({
 
 export async function addTransactionAction(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requirePermission("finance:write");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
+
   const note = String(fd.get("note") ?? "").trim();
   const parsed = txSchema.safeParse({
     type: fd.get("type"),
@@ -83,15 +86,15 @@ export async function addTransactionAction(_: FormState, fd: FormData): Promise<
 export async function verifyTransaction(fd: FormData): Promise<void> {
   const user = await requirePermission("finance:write");
   const id = String(fd.get("id") ?? "");
-  const tx = await prisma.financialTransaction.findUnique({ where: { id } });
+  const tx = await tenantPrisma.financialTransaction.findUnique({ where: { id } });
   if (!tx || tx.verifiedBy) return;
   if (tx.createdBy === user.id && user.role !== "SUPER_ADMIN") return;
 
-  await prisma.financialTransaction.update({
+  await tenantPrisma.financialTransaction.update({
     where: { id },
     data: { verifiedBy: user.id, verifiedAt: new Date() },
   });
-  await prisma.auditLog.create({
+  await tenantPrisma.auditLog.create({
     data: { userId: user.id, action: "VERIFY", entity: "financial_transactions", entityId: id },
   });
   refresh();
@@ -101,15 +104,15 @@ export async function verifyTransaction(fd: FormData): Promise<void> {
 export async function deleteTransaction(fd: FormData): Promise<void> {
   const user = await requirePermission("finance:write");
   const id = String(fd.get("id") ?? "");
-  const tx = await prisma.financialTransaction.findUnique({
+  const tx = await tenantPrisma.financialTransaction.findUnique({
     where: { id },
     include: { _count: { select: { dues: true } } },
   });
   if (!tx || tx.verifiedBy || tx._count.dues > 0) return;
   if (tx.createdBy !== user.id && user.role !== "SUPER_ADMIN") return;
 
-  await prisma.financialTransaction.delete({ where: { id } });
-  await prisma.auditLog.create({
+  await tenantPrisma.financialTransaction.delete({ where: { id } });
+  await tenantPrisma.auditLog.create({
     data: { userId: user.id, action: "DELETE", entity: "financial_transactions", entityId: id, meta: { title: tx.title } },
   });
   refresh();
@@ -133,20 +136,20 @@ export async function generateDuesAction(_: FormState, fd: FormData): Promise<Fo
   }
   const { month, amount } = parsed.data;
 
-  const members = await prisma.member.findMany({
+  const members = await tenantPrisma.member.findMany({
     where: { status: "ACTIVE", user: { approvalStatus: "APPROVED" } },
     select: { userId: true },
   });
-  const res = await prisma.memberDues.createMany({
+  const res = await tenantPrisma.memberDues.createMany({
     data: members.map((m) => ({ userId: m.userId, monthYear: month, amount })),
     skipDuplicates: true,
   });
-  await prisma.appSetting.upsert({
+  await tenantPrisma.appSetting.upsert({
     where: { key: "dues_amount" },
     create: { key: "dues_amount", value: String(amount) },
     update: { value: String(amount) },
   });
-  await prisma.auditLog.create({
+  await tenantPrisma.auditLog.create({
     data: { userId: user.id, action: "GENERATE_DUES", entity: "member_dues", meta: { month, amount, created: res.count } },
   });
   refresh();
@@ -158,7 +161,7 @@ export async function generateDuesAction(_: FormState, fd: FormData): Promise<Fo
 export async function approveDues(fd: FormData): Promise<void> {
   const user = await requirePermission("finance:write");
   const id = String(fd.get("id") ?? "");
-  const dues = await prisma.memberDues.findUnique({
+  const dues = await tenantPrisma.memberDues.findUnique({
     where: { id },
     include: { user: { select: { fullName: true, nim: true } } },
   });
@@ -204,11 +207,11 @@ export async function approveDues(fd: FormData): Promise<void> {
 export async function rejectDues(fd: FormData): Promise<void> {
   const user = await requirePermission("finance:write");
   const id = String(fd.get("id") ?? "");
-  const dues = await prisma.memberDues.findUnique({ where: { id } });
+  const dues = await tenantPrisma.memberDues.findUnique({ where: { id } });
   if (!dues || dues.status === "PAID" || !dues.proofUrl) return;
 
-  await prisma.memberDues.update({ where: { id }, data: { proofUrl: null, submittedAt: null } });
-  await prisma.auditLog.create({
+  await tenantPrisma.memberDues.update({ where: { id }, data: { proofUrl: null, submittedAt: null } });
+  await tenantPrisma.auditLog.create({
     data: { userId: user.id, action: "REJECT_DUES_PROOF", entity: "member_dues", entityId: id },
   });
 

@@ -260,7 +260,12 @@ export function AppShell({
       : { href: "/admin", label: "Panel Admin", icon: ShieldCheck };
 
   // Breadcrumb: [section induk] / [grup] / [label halaman aktif]
-  const crumbs: Crumb[] = [{ label: variant === "admin" ? "Panel Admin" : "Portal Anggota" }];
+  const crumbs: Crumb[] = [
+    {
+      label: variant === "admin" ? "Panel Admin" : "Portal Anggota",
+      href: variant === "admin" ? "/admin" : "/dashboard",
+    },
+  ];
   if (current && current.href !== "/admin" && current.href !== "/dashboard") {
     if (current.group) crumbs.push({ label: current.group });
     crumbs.push({ label: current.label });
