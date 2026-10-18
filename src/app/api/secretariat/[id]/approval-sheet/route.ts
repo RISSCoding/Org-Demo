@@ -4,6 +4,7 @@ import { APPROVAL_DOC_LABEL, isApprovalDoc } from "@/lib/approval-meta";
 import { formatDate, formatDateTime } from "@/lib/datetime";
 import { PARTY_LABEL } from "@/lib/letters";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { ForbiddenError, requirePermission, UnauthorizedError } from "@/lib/rbac";
 import { loadSignature } from "@/lib/signatures";
 
@@ -18,7 +19,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   }
 
   const { id } = await ctx.params;
-  const letter = await prisma.officialLetter.findUnique({
+  const letter = await tenantPrisma.officialLetter.findUnique({
     where: { id },
     select: {
       type: true,

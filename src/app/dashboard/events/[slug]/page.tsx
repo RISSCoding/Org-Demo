@@ -8,6 +8,7 @@ import { QrBox } from "@/components/qr-box";
 import { COMMITTEE_STATUS, type CommitteeStatusKey } from "@/lib/committee-meta";
 import { formatDateTime } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { ticketPayload } from "@/lib/qr";
 import Link from "next/link";
 import { btnLine, cardCls } from "@/lib/ui";
@@ -15,20 +16,23 @@ import { BackLink } from "@/components/ui/back-link";
 
 export default async function MemberEventDetail({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const session = await auth();
+  const session = await auth()
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);;
+
   const userId = session!.user.id;
 
-  const event = await prisma.event.findUnique({
+  const event = await tenantPrisma.event.findUnique({
     where: { slug },
     include: { _count: { select: { registrations: { where: { status: { not: "CANCELLED" } } } } } },
   });
   if (!event) notFound();
 
-  const reg = await prisma.eventRegistration.findUnique({
+  const reg = await tenantPrisma.eventRegistration.findUnique({
     where: { eventId_userId: { eventId: event.id, userId } },
   });
 
-  const committeeApp = await prisma.committeeApplication.findUnique({
+  const committeeApp = await tenantPrisma.committeeApplication.findUnique({
     where: { eventId_userId: { eventId: event.id, userId } },
     select: { status: true },
   });

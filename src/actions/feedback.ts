@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import type { FeedbackState } from "@/types/feedback";
 
 const schema = z.object({
@@ -50,8 +51,11 @@ export async function submitFeedback(_: FeedbackState, fd: FormData): Promise<Fe
   let senderId: string | null = null;
   if (!anonymous) {
     const session = await auth();
+
     if (!session?.user) {
       return { error: "Masuk dulu untuk menyertakan identitas, atau centang \"Kirim tanpa nama\"." };
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);
     }
     senderId = session.user.id;
   }
@@ -63,7 +67,7 @@ export async function submitFeedback(_: FeedbackState, fd: FormData): Promise<Fe
   for (let attempt = 0; attempt < 3; attempt++) {
     const code = newCode();
     try {
-      await prisma.feedback.create({
+      await tenantPrisma.feedback.create({
         data: { isAnonymous: anonymous, senderId, trackingCode: code, ...parsed.data },
       });
       revalidatePath("/admin", "layout");

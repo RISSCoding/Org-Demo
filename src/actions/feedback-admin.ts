@@ -5,6 +5,7 @@ import { z } from "zod";
 import { FEEDBACK_STATUSES } from "@/lib/feedback";
 import { notify } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { ForbiddenError, requirePermission, UnauthorizedError } from "@/lib/rbac";
 import type { FormState } from "@/types/forms";
 
@@ -36,7 +37,7 @@ export async function updateFeedbackAction(_: FormState, fd: FormData): Promise<
   }
   const d = parsed.data;
 
-  const current = await prisma.feedback.findUnique({
+  const current = await tenantPrisma.feedback.findUnique({
     where: { id: d.id },
     select: { status: true, response: true },
   });
@@ -46,7 +47,7 @@ export async function updateFeedbackAction(_: FormState, fd: FormData): Promise<
   const responseChanged = response !== current.response;
 
   await prisma.$transaction([
-    prisma.feedback.update({
+    tenantPrisma.feedback.update({
       where: { id: d.id },
       data: {
         status: d.status,
@@ -55,7 +56,7 @@ export async function updateFeedbackAction(_: FormState, fd: FormData): Promise<
       },
     }),
     // Isi pesan tidak dicatat di log; cukup siapa mengubah apa.
-    prisma.auditLog.create({
+    tenantPrisma.auditLog.create({
       data: {
         userId: user.id,
         action: "UPDATE",
@@ -69,7 +70,7 @@ export async function updateFeedbackAction(_: FormState, fd: FormData): Promise<
   revalidatePath("/admin", "layout");
   // Kalau status jadi RESOLVED dan ada pengirim non-anonim, kabari.
   if (d.status === "RESOLVED" && response && current.status !== "RESOLVED") {
-    const sender = await prisma.feedback.findUnique({
+    const sender = await tenantPrisma.feedback.findUnique({
       where: { id: d.id },
       select: { senderId: true, isAnonymous: true, subject: true },
     });

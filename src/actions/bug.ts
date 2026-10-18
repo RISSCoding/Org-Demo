@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import type { FeedbackState } from "@/types/feedback";
 
 const AREAS = [
@@ -60,7 +61,10 @@ export async function submitBugReport(_: FeedbackState, fd: FormData): Promise<F
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   if (limited(ip)) return { error: "Terlalu banyak kiriman. Coba lagi dalam satu jam." };
 
-  const session = await auth();
+  const session = await auth()
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);;
+
   const ua = h.get("user-agent") ?? "—";
   const contactLine = d.contact
     ? `Kontak: ${d.contact}`
@@ -89,7 +93,7 @@ export async function submitBugReport(_: FeedbackState, fd: FormData): Promise<F
   for (let attempt = 0; attempt < 3; attempt++) {
     const code = newCode();
     try {
-      await prisma.feedback.create({
+      await tenantPrisma.feedback.create({
         data: {
           isAnonymous: !d.contact && !session?.user,
           senderId: session?.user?.id ?? null,

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Scanner } from "@/components/scanner";
 import { BackLink } from "@/components/ui/back-link";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 
 export const metadata = { title: "Scanner — ORG" };
@@ -9,7 +10,7 @@ export const metadata = { title: "Scanner — ORG" };
 export default async function ScanPage({ params }: { params: Promise<{ id: string }> }) {
   await requirePermission("event:manage");
   const { id } = await params;
-  const event = await prisma.event.findUnique({ where: { id }, select: { id: true, title: true } });
+  const event = await tenantPrisma.event.findUnique({ where: { id }, select: { id: true, title: true } });
   if (!event) notFound();
 
   return (

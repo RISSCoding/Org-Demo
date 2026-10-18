@@ -8,6 +8,7 @@ import { Badge } from "@/components/badge";
 import { formatDate } from "@/lib/datetime";
 import { isLetterKind, isLetterType, KIND_LABEL, LETTER_KINDS, LETTER_LABEL, LETTER_TYPES, PARTY_LABEL } from "@/lib/letters";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
@@ -34,9 +35,9 @@ export default async function SecretariatPage({ searchParams }: { searchParams: 
   }
 
   const [rows, counts, oldest] = await Promise.all([
-    prisma.officialLetter.findMany({ where, orderBy: [{ letterDate: "desc" }, { createdAt: "desc" }], take: 200 }),
-    prisma.officialLetter.groupBy({ by: ["type"], _count: { _all: true } }),
-    prisma.officialLetter.findFirst({ orderBy: { letterDate: "asc" }, select: { letterDate: true } }),
+    tenantPrisma.officialLetter.findMany({ where, orderBy: [{ letterDate: "desc" }, { createdAt: "desc" }], take: 200 }),
+    tenantPrisma.officialLetter.groupBy({ by: ["type"], _count: { _all: true } }),
+    tenantPrisma.officialLetter.findFirst({ orderBy: { letterDate: "asc" }, select: { letterDate: true } }),
   ]);
 
   const thisYear = new Date().getFullYear();

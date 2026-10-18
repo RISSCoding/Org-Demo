@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { EventCard, type EventCardData } from "@/components/event-card";
 import { formatDateTime } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { cardLink } from "@/lib/ui";
 
 export const metadata = { title: "Event — ORG" };
@@ -14,19 +15,22 @@ const select = {
 } as const;
 
 export default async function MemberEvents() {
-  const session = await auth();
+  const session = await auth()
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);;
+
   const userId = session!.user.id;
   const now = new Date();
 
   const [recruiting, upcoming, past, mine] = await Promise.all([
-    prisma.event.findMany({
+    tenantPrisma.event.findMany({
       where: { committeeOpen: true, endDate: { gte: now }, OR: [{ committeeDeadline: null }, { committeeDeadline: { gte: now } }] },
       orderBy: { startDate: "asc" },
       select: { id: true, slug: true, title: true, committeeDeadline: true },
     }),
-    prisma.event.findMany({ where: { endDate: { gte: now } }, orderBy: { startDate: "asc" }, select }),
-    prisma.event.findMany({ where: { endDate: { lt: now } }, orderBy: { startDate: "desc" }, take: 12, select }),
-    prisma.eventRegistration.findMany({ where: { userId }, select: { eventId: true, status: true } }),
+    tenantPrisma.event.findMany({ where: { endDate: { gte: now } }, orderBy: { startDate: "asc" }, select }),
+    tenantPrisma.event.findMany({ where: { endDate: { lt: now } }, orderBy: { startDate: "desc" }, take: 12, select }),
+    tenantPrisma.eventRegistration.findMany({ where: { userId }, select: { eventId: true, status: true } }),
   ]);
   const myStatus = new Map(mine.map((m) => [m.eventId, m.status]));
 

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { parseWIB } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { slugify, withSuffix } from "@/lib/slug";
 import { deletePublicImage, saveImage, UploadError } from "@/lib/storage";
@@ -22,7 +23,7 @@ const schema = z.object({
 async function uniqueSlug(title: string) {
   const base = slugify(title);
   let slug = base;
-  while (await prisma.cmsPost.findUnique({ where: { slug }, select: { id: true } })) slug = withSuffix(base);
+  while (await tenantPrisma.cmsPost.findUnique({ where: { slug }, select: { id: true } })) slug = withSuffix(base);
   return slug;
 }
 
@@ -34,6 +35,8 @@ function revalidatePublic(slug?: string) {
 
 export async function savePostAction(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requirePermission("cms:write");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
+
   const id = String(fd.get("id") ?? "");
 
   const parsed = schema.safeParse({
@@ -59,7 +62,7 @@ export async function savePostAction(_: FormState, fd: FormData): Promise<FormSt
   }
 
   const existing = id
-    ? await prisma.cmsPost.findUnique({ where: { id }, select: { slug: true, publishedAt: true, thumbnailUrl: true } })
+    ? await tenantPrisma.cmsPost.findUnique({ where: { id }, select: { slug: true, publishedAt: true, thumbnailUrl: true } })
     : null;
   if (id && !existing) return { error: "Tulisan tidak ditemukan." };
 
@@ -91,18 +94,18 @@ export async function savePostAction(_: FormState, fd: FormData): Promise<FormSt
   let postId: string;
   let slug: string;
   if (id && existing) {
-    await prisma.cmsPost.update({ where: { id }, data });
+    await tenantPrisma.cmsPost.update({ where: { id }, data });
     postId = id;
     slug = existing.slug;
     // Berkas sampul lama dibersihkan setelah database berhasil diperbarui.
     if (thumbnailUrl || removeThumbnail) await deletePublicImage(existing.thumbnailUrl);
   } else {
     slug = await uniqueSlug(d.title);
-    const created = await prisma.cmsPost.create({ data: { ...data, slug, authorId: user.id } });
+    const created = await tenantPrisma.cmsPost.create({ data: { ...data, slug, authorId: user.id } });
     postId = created.id;
   }
 
-  await prisma.auditLog.create({
+  await tenantPrisma.auditLog.create({
     data: {
       userId: user.id,
       action: id ? "UPDATE" : "CREATE",
@@ -119,12 +122,12 @@ export async function savePostAction(_: FormState, fd: FormData): Promise<FormSt
 export async function deletePostAction(fd: FormData): Promise<void> {
   const user = await requirePermission("cms:write");
   const id = String(fd.get("id") ?? "");
-  const post = await prisma.cmsPost.findUnique({ where: { id }, select: { slug: true, title: true, thumbnailUrl: true } });
+  const post = await tenantPrisma.cmsPost.findUnique({ where: { id }, select: { slug: true, title: true, thumbnailUrl: true } });
   if (!post) redirect("/admin/cms");
 
-  await prisma.cmsPost.delete({ where: { id } });
+  await tenantPrisma.cmsPost.delete({ where: { id } });
   await deletePublicImage(post.thumbnailUrl);
-  await prisma.auditLog.create({
+  await tenantPrisma.auditLog.create({
     data: { userId: user.id, action: "DELETE", entity: "cms_posts", entityId: id, meta: { title: post.title } },
   });
   revalidatePath("/admin/cms");

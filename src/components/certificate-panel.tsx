@@ -1,6 +1,7 @@
-import { Download } from "lucide-react";
+import Link from "next/link";
+import { ClipboardCheck, Download } from "lucide-react";
 import { IssueCertificatesForm } from "@/components/issue-certificates-form";
-import { btnGhost, cardCls } from "@/lib/ui";
+import { btnGhost, btnLine, cardCls } from "@/lib/ui";
 
 export function CertificatePanel({
   eventId,
@@ -28,6 +29,9 @@ export function CertificatePanel({
             <Download className="size-4" /> Unduh semua (ZIP)
           </a>
         )}
+        <Link href={`/admin/events/${eventId}/certificates`} className={btnLine}>
+          <ClipboardCheck className="size-4" aria-hidden /> Audit
+        </Link>
       </div>
     </section>
   );

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { allocateKtaNumber } from "@/lib/kta";
 import { notify } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 
 const schema = z.object({
@@ -15,6 +16,8 @@ const schema = z.object({
 /** Used directly as <form action={decideUser}>. */
 export async function decideUser(formData: FormData): Promise<void> {
   const admin = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(admin.organizationId!);
+
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return;
   const { userId, decision } = parsed.data;
@@ -32,14 +35,14 @@ export async function decideUser(formData: FormData): Promise<void> {
       data: { userId: admin.id, action: decision, entity: "users", entityId: u.id },
     });
   });
-  // Kalau approved, kirim notifikasi selamat datang.
+  // Kalau approved, kirim notifikasi selamat datang + arahkan ke KTA.
   if (decision === "APPROVED") {
     await notify({
       userId,
       type: "SYSTEM",
-      title: "Akunmu sudah disetujui",
-      body: "Selamat bergabung. Buka dashboard untuk melihat KTA digitalmu.",
-      link: "/dashboard",
+      title: "Selamat! KTA digital kamu sudah siap",
+      body: "Akunmu sudah aktif. Buka KTA untuk lihat kartu anggota digital dan QR-mu.",
+      link: "/dashboard/kta",
     });
   }
 

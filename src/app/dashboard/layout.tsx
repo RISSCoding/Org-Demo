@@ -2,10 +2,14 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { AppShell } from "@/components/app-shell";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { getShellCounts } from "@/lib/shell-counts";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
+  const session = await auth()
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);;
+
   const u = session?.user;
   if (!u) redirect("/login?callbackUrl=/dashboard");
 
@@ -14,7 +18,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // biasanya bukan anggota biasa.
   const isStaff = u.role === "SUPER_ADMIN" || u.role === "ADMIN_EXECUTIVE";
   if (!isStaff) {
-    const me = await prisma.user.findUnique({
+    const me = await tenantPrisma.user.findUnique({
       where: { id: u.id },
       select: {
         onboardedAt: true,

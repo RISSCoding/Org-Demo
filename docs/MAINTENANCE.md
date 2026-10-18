@@ -1,188 +1,86 @@
-# Panduan Teknis Portal Organisasi
+# Panduan Berkontribusi
 
-Untuk pengurus IT dan successor yang memegang server.
+Terima kasih sudah tertarik membantu! Dokumen ini menjelaskan cara berkontribusi pada Portal Organisasi.
 
-**Setup saat ini:**
+## Cara Berkontribusi
 
-- Folder aplikasi: `/home/farisfebrian/NAS_Internal/fileFaris/CODING/portal-organisasi`
-- Binary Bun: `/home/farisfebrian/.proto/tools/bun/1.4.0/bun`
-- Service systemd (user mode): `himman.service`
-- Database: Docker container `portal-pg`, port 5433
-- Domain: `http://localhost:3001` (dev), `https://[domain-kamu]` (production)
+- 🐛 **Melaporkan bug**: buka *issue* dengan langkah mereproduksi, hasil yang diharapkan vs aktual, versi, dan tangkapan layar/log (tanpa data pribadi).
+- 💡 **Mengusulkan fitur**: jelaskan masalah yang ingin dipecahkan, bukan hanya solusinya. Diskusikan di *issue* sebelum mulai mengerjakan fitur besar.
+- 📝 **Dokumentasi & terjemahan**: perbaikan kecil langsung boleh dikirim lewat PR.
+- 🔧 **Kode**: cari *issue* berlabel `good first issue` atau `help wanted`.
+- 🔒 **Celah keamanan**: jangan lewat issue publik, lihat [SECURITY.md](./SECURITY.md).
 
----
+## Menyiapkan Lingkungan Pengembangan
 
-## Perintah harian — pakai helper `himman`
-
-```bash
-himman status    # cek aplikasi hidup atau tidak
-himman logs      # log realtime (Ctrl+C untuk keluar)
-himman tail      # 100 baris log terakhir
-himman restart   # restart aplikasi
-himman stop      # matikan aplikasi
-himman start     # hidupkan aplikasi
-himman backup    # backup sekarang
-```
-
-### Kalau helper tidak ada atau hilang, pakai perintah panjang
+Lihat bagian *Memulai* di [README.md](../README.md). Ringkasnya:
 
 ```bash
-systemctl --user status himman
-journalctl --user -u himman -f
-systemctl --user restart himman
+bun install
+cp .env.example .env          # isi nilai yang diperlukan
+bunx prisma migrate dev
+bunx tsx prisma/seed.ts
+bun run dev
 ```
 
----
+Gunakan database lokal terpisah; **jangan** memakai data produksi.
 
-## Backup
+## Alur Kerja
 
-**Otomatis:** setiap hari jam 2 pagi, dijalankan oleh cron.
+1. *Fork* repositori dan buat cabang dari `main`:
+   `fitur/nama-singkat`, `perbaikan/nama-singkat`, atau `docs/nama-singkat`.
+2. Buat perubahan **kecil dan terfokus** (satu PR = satu tujuan).
+3. Jalankan pemeriksaan lokal (lint, typecheck, test, build) sebelum membuka PR.
+4. Buka *Pull Request* dengan deskripsi: apa, mengapa, cara menguji, dan *issue* terkait.
+5. Tanggapi masukan reviewer; PR digabung setelah disetujui dan CI lulus.
 
-**Lokasi:** `~/backup/himman/`
+### Pesan commit
+Gunakan format [Conventional Commits](https://www.conventionalcommits.org/):
 
-**Format:**
-
-- `himman_db_YYYY-MM-DD_HHMM.sql.gz` — database
-- `himman_uploads_YYYY-MM-DD_HHMM.tar.gz` — folder uploads (bukti, surat, sertifikat)
-
-**Retensi:** 30 hari (yang lebih tua otomatis dihapus).
-
-### Backup manual sebelum update
-
-```bash
-~/bin/backup-himman.sh
+```
+feat(keuangan): tambah laporan arus kas bulanan
+fix(kta): perbaiki verifikasi QR di subdomain
+docs(maintenance): lengkapi contoh systemd
 ```
 
-### Restore dari backup (hati-hati, ini menimpa data)
+## Aturan Khusus Multi-Tenant (Wajib)
 
-```bash
-# 1. Stop aplikasi
-systemctl --user stop himman
+Karena platform ini melayani banyak organisasi, kebocoran data lintas organisasi adalah **bug kritis**. Setiap PR yang menyentuh data harus memenuhi:
 
-# 2. Backup dulu yang sekarang (untuk jaga-jaga)
-~/bin/backup-himman.sh
+- [ ] Semua kueri database melewati klien **ter-scope tenant**, bukan klien Prisma telanjang.
+- [ ] Tabel baru yang menyimpan data organisasi memiliki kolom `organizationId` + indeks, dan kebijakan RLS.
+- [ ] Constraint unik baru mempertimbangkan cakupan **per tenant**.
+- [ ] Endpoint baru memeriksa **autentikasi, tenant, dan peran**, dengan urutan itu.
+- [ ] Berkas yang diunggah/diunduh melewati Route API yang memvalidasi tenant.
+- [ ] Ada uji yang membuktikan data tenant A tidak terlihat oleh tenant B.
+- [ ] Tidak ada rahasia, data pribadi nyata, atau URL internal di kode, log, atau fixture.
 
-# 3. Drop dan buat ulang database
-psql -h localhost -p 5433 -U postgres -c "DROP DATABASE himman"
-psql -h localhost -p 5433 -U postgres -c "CREATE DATABASE himman"
+Rincian ada di [ARSITEKTUR_MULTI_TENANT.md](./ARSITEKTUR_MULTI_TENANT.md).
 
-# 4. Restore
-LATEST=$(ls -t ~/backup/himman/himman_db_*.sql.gz | head -1)
-gunzip -c "$LATEST" | psql -h localhost -p 5433 -U postgres -d himman
+## Migrasi Database
 
-# 5. Restore uploads (opsional, kalau berkas juga hilang)
-tar -xzf ~/backup/himman/himman_uploads_[tanggal].tar.gz -C ~/NAS_Internal/fileFaris/CODING/portal-organisasi/
+- Buat migrasi baru dengan `bunx prisma migrate dev --name deskripsi_singkat`.
+- **Jangan mengedit migrasi yang sudah dirilis.**
+- Migrasi harus aman pada data yang sudah ada (nilai default / *backfill* untuk kolom `NOT NULL`).
+- Jelaskan di PR bila migrasi bersifat merusak atau memerlukan langkah manual.
 
-# 6. Start aplikasi
-systemctl --user start himman
-```
+## Standar Kode
 
-> Test restore setahun sekali ke database terpisah — backup yang tidak pernah ditest = tidak ada backup.
+- TypeScript dengan mode ketat; hindari `any` tanpa alasan.
+- Ikuti konfigurasi lint/format proyek (jalankan sebelum commit).
+- Validasi semua input di sisi server (jangan hanya di klien).
+- Hindari menaruh logika bisnis di komponen UI.
+- Teks antarmuka dalam bahasa Indonesia; siapkan agar mudah diterjemahkan (i18n) 📋.
+- Aksesibilitas: label form, kontras warna, navigasi keyboard.
+- Performa: hindari kueri N+1; gunakan paginasi untuk daftar panjang.
 
----
+## Dokumentasi
 
-## Update aplikasi (deploy versi baru)
+Ubah perilaku pengguna → perbarui dokumen yang relevan (`PANDUAN_*`, `OPERASIONAL.md`, `MAINTENANCE.md`) dalam PR yang sama. Gunakan penanda status ✅ / 🚧 / 📋 secara konsisten.
 
-```bash
-cd /home/farisfebrian/NAS_Internal/fileFaris/CODING/portal-organisasi
+## Kode Etik
 
-# 1. Backup dulu
-~/bin/backup-himman.sh
+Bersikap sopan, menghargai perbedaan, dan fokus pada gagasan, bukan orangnya. Pelecehan dan diskriminasi tidak ditoleransi. Pelanggaran dapat dilaporkan ke *[email kontak maintainer]*. *(Disarankan mengadopsi [Contributor Covenant](https://www.contributor-covenant.org/) sebagai `CODE_OF_CONDUCT.md`.)*
 
-# 2. Pull perubahan
-git pull
+## Lisensi Kontribusi
 
-# 3. Install dependency
-/home/farisfebrian/.proto/tools/bun/1.4.0/bun install
-
-# 4. Migrasi DB (kalau ada)
-/home/farisfebrian/.proto/tools/bun/1.4.0/bunx prisma migrate deploy
-
-# 5. Build
-/home/farisfebrian/.proto/tools/bun/1.4.0/bun run build
-
-# 6. Restart
-systemctl --user restart himman
-
-# 7. Cek
-curl -I http://localhost:3001
-```
-
-Kalau ada masalah, restore backup dan gunakan `git log` untuk cek commit terakhir yang masih jalan.
-
----
-
-## Kalau aplikasi tidak bisa diakses
-
-Diagnosa berurutan:
-
-```bash
-# 1. Aplikasi jalan?
-systemctl --user status himman
-
-# 2. Database jalan?
-docker ps | grep portal-pg
-
-# 3. Port 3001 dipakai?
-ss -tlnp | grep 3001
-
-# 4. Ada error?
-journalctl --user -u himman -n 50 --no-pager
-```
-
-### Error umum
-
-| Pesan | Penyebab | Solusi |
-|---|---|---|
-| `EADDRINUSE` | Port 3001 dipakai proses lain | `ss -tlnp \| grep 3001` → kill PID |
-| `Can't reach database server` | Docker `portal-pg` mati | `docker start portal-pg` |
-| `password authentication failed` | `.pgpass` beda dengan `.env` | Samakan `.pgpass` dengan `.env` |
-| `UntrustedHost` | NextAuth tidak percaya host | Cek `AUTH_TRUST_HOST=true` di `.env`, lalu rebuild |
-| `Module not found` | Dependency berubah | `bun install` lalu `bun run build` |
-
----
-
-## Docker — jangan disentuh sembarangan
-
-**Container yang JANGAN dimatikan:**
-
-- `portal-pg` — database aplikasi
-
-**Container yang boleh dimatikan (kalau perlu):**
-
-- `finance_app`, `finance_db`, `finance_tunnel` — aplikasi lain
-- `web_portfolio`, `portainer`, `cloudflare_tunnel` — layanan lain
-
-Auto-restart sudah diaktifkan untuk `portal-pg` → hidup sendiri setelah reboot.
-
----
-
-## Password dan secret
-
-Semua ada di password manager (Bitwarden / 1Password / KeePassXC):
-
-- Password DB PostgreSQL
-- `AUTH_SECRET` — untuk session login
-- `QR_HMAC_SECRET` — untuk tanda tangan QR
-- Password server / SSH key
-
-> Kalau password manager hilang, semua kunci hilang. Jangan simpan cuma di satu tempat.
-
----
-
-## Bun — versi spesifik
-
-Service menunjuk ke versi Bun 1.4.0 (`/home/farisfebrian/.proto/tools/bun/1.4.0/bun`).
-
-Kalau mau upgrade Bun:
-
-1. Install versi baru lewat `proto`
-2. Copy binary ke `/usr/local/bin/bun-1.5.0` (atau versi baru)
-3. Update `ExecStart` di `~/.config/systemd/user/himman.service`
-4. Jalankan:
-
-   ```bash
-   systemctl --user daemon-reload && systemctl --user restart himman
-   ```
-
-Jangan hapus folder Bun 1.4.0 sebelum yakin versi baru bekerja.
+Dengan mengirim kontribusi, Anda setuju kontribusi tersebut dilisensikan di bawah lisensi proyek ini. *[Tentukan apakah memakai DCO (`Signed-off-by`) atau CLA setelah lisensi dipilih.]*

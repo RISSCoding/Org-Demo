@@ -3,12 +3,13 @@ import { EventForm } from "@/components/event-form";
 import { BackLink } from "@/components/ui/back-link";
 import { toInputValue } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 
 export default async function EditEvent({ params }: { params: Promise<{ id: string }> }) {
   await requirePermission("event:manage");
   const { id } = await params;
-  const e = await prisma.event.findUnique({ where: { id } });
+  const e = await tenantPrisma.event.findUnique({ where: { id } });
   if (!e) notFound();
 
   return (

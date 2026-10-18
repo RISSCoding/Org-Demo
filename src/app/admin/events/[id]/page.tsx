@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { BackLink } from "@/components/ui/back-link";
 import { formatDateTime } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { btnLine, btnPrimary, cardCls } from "@/lib/ui";
 
@@ -22,7 +23,7 @@ export default async function AdminEventDetail({ params }: { params: Promise<{ i
   await requirePermission("event:manage");
   const { id } = await params;
 
-  const event = await prisma.event.findUnique({
+  const event = await tenantPrisma.event.findUnique({
     where: { id },
     include: {
       registrations: {
@@ -36,8 +37,8 @@ export default async function AdminEventDetail({ params }: { params: Promise<{ i
   });
   if (!event) notFound();
   const [issued, committeeGroups] = await Promise.all([
-    prisma.certificate.count({ where: { eventId: event.id } }),
-    prisma.committeeApplication.groupBy({ by: ["status"], where: { eventId: event.id }, _count: true }),
+    tenantPrisma.certificate.count({ where: { eventId: event.id } }),
+    tenantPrisma.committeeApplication.groupBy({ by: ["status"], where: { eventId: event.id }, _count: true }),
   ]);
   const cn = (k: string) => committeeGroups.find((g: { status: string; _count: number }) => g.status === k)?._count ?? 0;
 

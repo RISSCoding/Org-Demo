@@ -1,16 +1,20 @@
 import { auth } from "@/auth";
 import { CERT_NUMBER_RE, getCertificatePdf } from "@/lib/certificate-service";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 
 export async function GET(req: Request, ctx: { params: Promise<{ number: string }> }) {
-  const session = await auth();
+  const session = await auth()
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);;
+
   const user = session?.user;
   if (!user) return new Response("Unauthorized", { status: 401 });
 
   const { number } = await ctx.params;
   if (!CERT_NUMBER_RE.test(number)) return new Response("Not found", { status: 404 });
 
-  const cert = await prisma.certificate.findUnique({
+  const cert = await tenantPrisma.certificate.findUnique({
     where: { certificateNumber: number },
     select: { userId: true },
   });

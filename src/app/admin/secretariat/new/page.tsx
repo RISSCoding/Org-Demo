@@ -3,6 +3,7 @@ import { dateKey } from "@/lib/finance";
 import { isLetterType } from "@/lib/letters";
 import { getOfficerNames } from "@/lib/officers";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 
 export const metadata = { title: "Arsip Baru — ORG" };
@@ -10,7 +11,7 @@ export const metadata = { title: "Arsip Baru — ORG" };
 export default async function NewLetter({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
   await requirePermission("secretariat:manage");
   const { type } = await searchParams;
-  const events = await prisma.event.findMany({ orderBy: { startDate: "desc" }, take: 200, select: { id: true, title: true } });
+  const events = await tenantPrisma.event.findMany({ orderBy: { startDate: "desc" }, take: 200, select: { id: true, title: true } });
   return (
     <div className="space-y-6">
       <div>

@@ -10,6 +10,7 @@ import { ConfirmSubmit } from "@/components/confirm-submit";
 import { SubmitButton } from "@/components/submit-button";
 import { APPROVAL_OPTIONS, MEMBER_STATUS_OPTIONS, ROLE_OPTIONS, roleLabel } from "@/lib/permissions-meta";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
@@ -26,6 +27,8 @@ const statusLabel = { ACTIVE: "Aktif", INACTIVE: "Nonaktif", ALUMNI: "Alumni" } 
 
 export default async function MembersPage({ searchParams }: { searchParams: Promise<SP> }) {
   const me = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(me.organizationId!);
+
   const canEdit = me.role === "SUPER_ADMIN";
   const sp = await searchParams;
 
@@ -48,13 +51,13 @@ export default async function MembersPage({ searchParams }: { searchParams: Prom
   if (status) where.member = { status: status as "ACTIVE" | "INACTIVE" | "ALUMNI" };
 
   const [pending, total, users] = await Promise.all([
-    prisma.user.findMany({
+    tenantPrisma.user.findMany({
       where: { approvalStatus: "PENDING" },
       orderBy: { createdAt: "asc" },
       select: { id: true, nim: true, fullName: true, email: true, batchYear: true },
     }),
-    prisma.user.count({ where }),
-    prisma.user.findMany({
+    tenantPrisma.user.count({ where }),
+    tenantPrisma.user.findMany({
       where,
       orderBy: { fullName: "asc" },
       skip: (page - 1) * PAGE_SIZE,

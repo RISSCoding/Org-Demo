@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { OfficerPosition, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { DIVISION_ELIGIBLE_ROLES } from "@/lib/division-roles";
 import { OFFICER_LABEL, isOfficerSlot } from "@/lib/officer-meta";
@@ -50,6 +51,8 @@ async function syncCoreRole(tx: Prisma.TransactionClient, userId: string | null)
 /** Mengisi, mengganti, atau mengosongkan satu jabatan pengurus inti (satu pemegang per jabatan). */
 export async function saveOfficerSlotAction(_: FormState, fd: FormData): Promise<FormState> {
   const admin = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(admin.organizationId!);
+
   const position = String(fd.get("position") ?? "");
   if (!isOfficerSlot(position)) return { error: "Jabatan tidak valid." };
 
@@ -60,7 +63,7 @@ export async function saveOfficerSlotAction(_: FormState, fd: FormData): Promise
   let userId: string | null = null;
   let name: string | null = null;
   if (userRaw) {
-    const user = await prisma.user.findFirst({
+    const user = await tenantPrisma.user.findFirst({
       where: { id: userRaw, approvalStatus: "APPROVED", role: { name: { in: [...DIVISION_ELIGIBLE_ROLES] } } },
       select: { id: true, fullName: true },
     });
@@ -75,7 +78,7 @@ export async function saveOfficerSlotAction(_: FormState, fd: FormData): Promise
 
   // Orang yang sama disimpan ulang: baris dan tanda tangannya dipertahankan.
   // Orang berbeda atau jabatan dikosongkan: baris lama dihapus beserta tanda tangannya.
-  const existing = await prisma.orgOfficer.findMany({
+  const existing = await tenantPrisma.orgOfficer.findMany({
     where: { position },
     select: { id: true, userId: true, name: true, signatureUrl: true },
   });
@@ -125,14 +128,14 @@ export async function addAdvisorAction(_: FormState, fd: FormData): Promise<Form
   const parsed = nameSchema.safeParse(fd.get("name"));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  const dup = await prisma.orgOfficer.findFirst({
+  const dup = await tenantPrisma.orgOfficer.findFirst({
     where: { position: "ADVISOR", name: { equals: parsed.data, mode: "insensitive" } },
     select: { id: true },
   });
   if (dup) return { error: "Nama itu sudah ada di Dewan Pembina." };
 
-  const row = await prisma.orgOfficer.create({ data: { position: "ADVISOR", name: parsed.data } });
-  await prisma.auditLog.create({
+  const row = await tenantPrisma.orgOfficer.create({ data: { position: "ADVISOR", name: parsed.data } });
+  await tenantPrisma.auditLog.create({
     data: {
       userId: admin.id,
       action: "CREATE",
@@ -150,14 +153,14 @@ export async function removeAdvisorAction(_: FormState, fd: FormData): Promise<F
   const id = Number(fd.get("id"));
   if (!Number.isInteger(id)) return { error: "Data tidak valid." };
 
-  const row = await prisma.orgOfficer.findFirst({
+  const row = await tenantPrisma.orgOfficer.findFirst({
     where: { id, position: "ADVISOR" },
     select: { signatureUrl: true },
   });
-  const res = await prisma.orgOfficer.deleteMany({ where: { id, position: "ADVISOR" } });
+  const res = await tenantPrisma.orgOfficer.deleteMany({ where: { id, position: "ADVISOR" } });
   if (res.count === 0) return { error: "Anggota Dewan Pembina ini sudah tidak ada." };
   await discardSignature(row?.signatureUrl);
-  await prisma.auditLog.create({
+  await tenantPrisma.auditLog.create({
     data: { userId: admin.id, action: "DELETE", entity: "org_officers", entityId: String(id) },
   });
   revalidatePath("/admin/divisions");

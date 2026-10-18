@@ -11,6 +11,7 @@ import { SubmitButton } from "@/components/submit-button";
 import { formatDate } from "@/lib/datetime";
 import { CATEGORY_LABEL, hasFinanceWrite, MONTH_RE, monthLabel, monthOptions, monthRange, num, rupiah } from "@/lib/finance";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { btnGhost, btnPrimary, cardCls, inputCls } from "@/lib/ui";
 
@@ -20,6 +21,8 @@ type SP = { month?: string; type?: string; category?: string; status?: string };
 
 export default async function TransactionsPage({ searchParams }: { searchParams: Promise<SP> }) {
   const user = await requirePermission("finance:read");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
+
   const canWrite = hasFinanceWrite(user);
   const sp = await searchParams;
 
@@ -34,7 +37,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
   if (sp.status === "verified") where.verifiedBy = { not: null };
 
   const [rows, totals] = await Promise.all([
-    prisma.financialTransaction.findMany({
+    tenantPrisma.financialTransaction.findMany({
       where,
       orderBy: [{ date: "desc" }, { createdAt: "desc" }],
       take: 200,
@@ -44,7 +47,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
         _count: { select: { dues: true } },
       },
     }),
-    prisma.financialTransaction.groupBy({ by: ["type"], where, _sum: { amount: true } }),
+    tenantPrisma.financialTransaction.groupBy({ by: ["type"], where, _sum: { amount: true } }),
   ]);
   const inc = num(totals.find((t) => t.type === "INCOME")?._sum.amount);
   const exp = num(totals.find((t) => t.type === "EXPENSE")?._sum.amount);

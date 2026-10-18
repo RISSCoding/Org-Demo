@@ -5,14 +5,18 @@ import { formatDate } from "@/lib/datetime";
 import { duesState, monthLabel, num, rupiah } from "@/lib/finance";
 import { syncOverdue } from "@/lib/finance-service";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { cardCls } from "@/lib/ui";
 
 export const metadata = { title: "Iuran Kas — ORG" };
 
 export default async function MemberDues() {
-  const session = await auth();
+  const session = await auth()
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);;
+
   await syncOverdue();
-  const dues = await prisma.memberDues.findMany({
+  const dues = await tenantPrisma.memberDues.findMany({
     where: { userId: session!.user.id },
     orderBy: { monthYear: "desc" },
     select: { id: true, monthYear: true, amount: true, status: true, proofUrl: true, submittedAt: true, paidAt: true },

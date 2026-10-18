@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { parseWIB } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { slugify, withSuffix } from "@/lib/slug";
 import { saveImage, UploadError } from "@/lib/storage";
@@ -25,12 +26,14 @@ const eventSchema = z.object({
 async function uniqueSlug(title: string) {
   const base = slugify(title);
   let slug = base;
-  while (await prisma.event.findUnique({ where: { slug }, select: { id: true } })) slug = withSuffix(base);
+  while (await tenantPrisma.event.findUnique({ where: { slug }, select: { id: true } })) slug = withSuffix(base);
   return slug;
 }
 
 export async function saveEventAction(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requirePermission("event:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
+
   const id = String(fd.get("id") ?? "");
   const quotaRaw = String(fd.get("quota") ?? "").trim();
 
@@ -77,7 +80,7 @@ export async function saveEventAction(_: FormState, fd: FormData): Promise<FormS
 
   let eventId: string;
   if (id) {
-    const existing = await prisma.event.findUnique({
+    const existing = await tenantPrisma.event.findUnique({
       where: { id },
       select: { _count: { select: { registrations: { where: { status: { not: "CANCELLED" } } } } } },
     });
@@ -88,16 +91,16 @@ export async function saveEventAction(_: FormState, fd: FormData): Promise<FormS
         fieldErrors: { quota: [`Sudah ada ${existing._count.registrations} peserta terdaftar.`] },
       };
     }
-    await prisma.event.update({ where: { id }, data });
+    await tenantPrisma.event.update({ where: { id }, data });
     eventId = id;
   } else {
-    const created = await prisma.event.create({
+    const created = await tenantPrisma.event.create({
       data: { ...data, slug: await uniqueSlug(d.title), createdBy: user.id },
     });
     eventId = created.id;
   }
 
-  await prisma.auditLog.create({
+  await tenantPrisma.auditLog.create({
     data: { userId: user.id, action: id ? "UPDATE" : "CREATE", entity: "events", entityId: eventId },
   });
   revalidatePath("/admin/events");

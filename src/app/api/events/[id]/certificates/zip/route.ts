@@ -1,6 +1,7 @@
 import JSZip from "jszip";
 import { getCertificatePdf } from "@/lib/certificate-service";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { ForbiddenError, requirePermission, UnauthorizedError } from "@/lib/rbac";
 import { slugify } from "@/lib/slug";
 
@@ -14,7 +15,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   }
 
   const { id } = await ctx.params;
-  const event = await prisma.event.findUnique({
+  const event = await tenantPrisma.event.findUnique({
     where: { id },
     select: {
       slug: true,

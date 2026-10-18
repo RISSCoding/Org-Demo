@@ -3,21 +3,24 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { parseScan } from "@/lib/qr";
 import { requireEventScanner } from "@/lib/committee";
 import { requirePermission, type ActionResult } from "@/lib/rbac";
 import { ticketHash } from "@/lib/security";
 
 const activeCount = (eventId: string) =>
-  prisma.eventRegistration.count({ where: { eventId, status: { not: "CANCELLED" } } });
+  tenantPrisma.eventRegistration.count({ where: { eventId, status: { not: "CANCELLED" } } });
 
 export async function registerForEvent(eventId: string): Promise<ActionResult<{ hash: string }>> {
   const user = await requirePermission();
-  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
+
+  const event = await tenantPrisma.event.findUnique({ where: { id: eventId } });
   if (!event) return { ok: false, error: "Event tidak ditemukan." };
   if (event.endDate < new Date()) return { ok: false, error: "Event ini sudah berakhir." };
 
-  const existing = await prisma.eventRegistration.findUnique({
+  const existing = await tenantPrisma.eventRegistration.findUnique({
     where: { eventId_userId: { eventId, userId: user.id } },
   });
   if (existing && existing.status !== "CANCELLED") return { ok: true, data: { hash: existing.qrCodeHash } };
@@ -26,7 +29,7 @@ export async function registerForEvent(eventId: string): Promise<ActionResult<{ 
     return { ok: false, error: "Kuota event sudah penuh." };
   }
 
-  const asCommittee = await prisma.committeeApplication.findUnique({
+  const asCommittee = await tenantPrisma.committeeApplication.findUnique({
     where: { eventId_userId: { eventId, userId: user.id } },
     select: { status: true },
   });
@@ -35,7 +38,7 @@ export async function registerForEvent(eventId: string): Promise<ActionResult<{ 
   }
 
   const hash = ticketHash(eventId, user.id);
-  await prisma.eventRegistration.upsert({
+  await tenantPrisma.eventRegistration.upsert({
     where: { eventId_userId: { eventId, userId: user.id } },
     create: { eventId, userId: user.id, qrCodeHash: hash },
     update: { status: "REGISTERED" },
@@ -46,12 +49,12 @@ export async function registerForEvent(eventId: string): Promise<ActionResult<{ 
 
 export async function cancelRegistration(eventId: string): Promise<ActionResult> {
   const user = await requirePermission();
-  const reg = await prisma.eventRegistration.findUnique({
+  const reg = await tenantPrisma.eventRegistration.findUnique({
     where: { eventId_userId: { eventId, userId: user.id } },
   });
   if (!reg || reg.status === "CANCELLED") return { ok: true, data: undefined };
   if (reg.status === "ATTENDED") return { ok: false, error: "Kamu sudah check-in, pendaftaran tidak bisa dibatalkan." };
-  await prisma.eventRegistration.update({ where: { id: reg.id }, data: { status: "CANCELLED" } });
+  await tenantPrisma.eventRegistration.update({ where: { id: reg.id }, data: { status: "CANCELLED" } });
   revalidatePath("/dashboard/events", "layout");
   return { ok: true, data: undefined };
 }
@@ -78,24 +81,24 @@ export async function checkInByQr(input: z.infer<typeof checkInSchema>): Promise
   let reg;
   let person: { id: string; fullName: string; nim: string } | null = null;
   if (scan.kind === "ticket") {
-    reg = await prisma.eventRegistration.findUnique({ where: { qrCodeHash: scan.hash }, include });
+    reg = await tenantPrisma.eventRegistration.findUnique({ where: { qrCodeHash: scan.hash }, include });
     if (reg && reg.eventId !== eventId) return { ok: false, error: "Tiket ini untuk event lain." };
   } else if (scan.kind === "ktaNumber") {
     // QR KTA format baru: cari user lewat nomor anggota.
-    person = await prisma.user.findFirst({
+    person = await tenantPrisma.user.findFirst({
       where: { member: { ktaNumber: scan.number } },
       select: { id: true, fullName: true, nim: true },
     });
     if (!person) return { ok: false, error: "Nomor KTA tidak terdaftar." };
-    reg = await prisma.eventRegistration.findUnique({
+    reg = await tenantPrisma.eventRegistration.findUnique({
       where: { eventId_userId: { eventId, userId: person.id } },
       include,
     });
   } else {
     // QR KTA format lama (nim tertanda tangan) atau NPM yang diketik petugas.
-    person = await prisma.user.findUnique({ where: { nim: scan.nim }, select: { id: true, fullName: true, nim: true } });
+    person = await tenantPrisma.user.findUnique({ where: { nim: scan.nim }, select: { id: true, fullName: true, nim: true } });
     if (!person) return { ok: false, error: "NPM tidak ditemukan." };
-    reg = await prisma.eventRegistration.findUnique({
+    reg = await tenantPrisma.eventRegistration.findUnique({
       where: { eventId_userId: { eventId, userId: person.id } },
       include,
     });
@@ -103,7 +106,7 @@ export async function checkInByQr(input: z.infer<typeof checkInSchema>): Promise
 
   // Bukan peserta: mungkin panitia event ini. Satu scanner untuk keduanya, tanpa ganti mode.
   if (!reg && person) {
-    const app = await prisma.committeeApplication.findUnique({
+    const app = await tenantPrisma.committeeApplication.findUnique({
       where: { eventId_userId: { eventId, userId: person.id } },
       select: { id: true, status: true, attendedAt: true, role: true, assignedDivision: { select: { name: true } } },
     });
@@ -111,8 +114,8 @@ export async function checkInByQr(input: z.infer<typeof checkInSchema>): Promise
       const already = !!app.attendedAt;
       if (!already) {
         await prisma.$transaction([
-          prisma.committeeApplication.update({ where: { id: app.id }, data: { attendedAt: new Date() } }),
-          prisma.auditLog.create({ data: { userId: staff.id, action: "COMMITTEE_CHECK_IN", entity: "committee_applications", entityId: app.id } }),
+          tenantPrisma.committeeApplication.update({ where: { id: app.id }, data: { attendedAt: new Date() } }),
+          tenantPrisma.auditLog.create({ data: { userId: staff.id, action: "COMMITTEE_CHECK_IN", entity: "committee_applications", entityId: app.id } }),
         ]);
         revalidatePath(`/admin/events/${eventId}`, "layout");
         revalidatePath("/dashboard/events", "layout");
@@ -128,11 +131,11 @@ export async function checkInByQr(input: z.infer<typeof checkInSchema>): Promise
   const already = reg.status === "ATTENDED";
   if (!already) {
     await prisma.$transaction([
-      prisma.eventRegistration.update({
+      tenantPrisma.eventRegistration.update({
         where: { id: reg.id },
         data: { status: "ATTENDED", attendedAt: new Date() },
       }),
-      prisma.auditLog.create({
+      tenantPrisma.auditLog.create({
         data: { userId: staff.id, action: "CHECK_IN", entity: "event_registrations", entityId: reg.id },
       }),
     ]);

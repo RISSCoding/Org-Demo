@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { formatDateTime } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import { btnPrimary, cardCls } from "@/lib/ui";
 
@@ -14,14 +15,14 @@ export default async function AdminEvents() {
   await requirePermission("event:manage");
 
   const [events, attended] = await Promise.all([
-    prisma.event.findMany({
+    tenantPrisma.event.findMany({
       orderBy: { startDate: "desc" },
       select: {
         id: true, title: true, startDate: true, endDate: true, location: true, quota: true, isPublic: true,
         _count: { select: { registrations: { where: { status: { not: "CANCELLED" } } } } },
       },
     }),
-    prisma.eventRegistration.groupBy({ by: ["eventId"], where: { status: "ATTENDED" }, _count: true }),
+    tenantPrisma.eventRegistration.groupBy({ by: ["eventId"], where: { status: "ATTENDED" }, _count: true }),
   ]);
   const attendedMap = new Map(attended.map((a) => [a.eventId, a._count]));
 

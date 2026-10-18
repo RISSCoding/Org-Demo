@@ -4,6 +4,7 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 
 const back = (kind: "error" | "ok", msg: string): never =>
@@ -28,6 +29,8 @@ const schema = z.object({
 
 export async function createResourceAction(fd: FormData): Promise<void> {
   const user = await requirePermission("cms:write");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
+
   const parsed = schema.safeParse({
     title: fd.get("title"),
     description: fd.get("description") ?? "",
@@ -37,10 +40,10 @@ export async function createResourceAction(fd: FormData): Promise<void> {
   if (!parsed.success) return back("error", parsed.error.issues[0].message);
 
   const d = parsed.data;
-  const r = await prisma.resource.create({
+  const r = await tenantPrisma.resource.create({
     data: { title: d.title, description: d.description || null, category: d.category, url: d.url, createdBy: user.id },
   });
-  await prisma.auditLog.create({ data: { userId: user.id, action: "CREATE", entity: "resources", entityId: r.id } });
+  await tenantPrisma.auditLog.create({ data: { userId: user.id, action: "CREATE", entity: "resources", entityId: r.id } });
   revalidatePath("/admin/resources");
   revalidatePath("/dashboard/resources");
   return back("ok", "Materi ditambahkan.");
@@ -49,11 +52,11 @@ export async function createResourceAction(fd: FormData): Promise<void> {
 export async function deleteResourceAction(fd: FormData): Promise<void> {
   const user = await requirePermission("cms:write");
   const id = String(fd.get("id") ?? "");
-  const found = await prisma.resource.findUnique({ where: { id }, select: { id: true } });
+  const found = await tenantPrisma.resource.findUnique({ where: { id }, select: { id: true } });
   if (!found) return back("error", "Materi tidak ditemukan.");
 
-  await prisma.resource.delete({ where: { id } });
-  await prisma.auditLog.create({ data: { userId: user.id, action: "DELETE", entity: "resources", entityId: id } });
+  await tenantPrisma.resource.delete({ where: { id } });
+  await tenantPrisma.auditLog.create({ data: { userId: user.id, action: "DELETE", entity: "resources", entityId: id } });
   revalidatePath("/admin/resources");
   revalidatePath("/dashboard/resources");
   return back("ok", "Materi dihapus.");

@@ -6,6 +6,7 @@ import { parseWIB } from "@/lib/datetime";
 import { requireEventManager } from "@/lib/committee";
 import { notify } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 import type { FormState } from "@/types/forms";
 
@@ -25,7 +26,7 @@ export async function saveCommitteeSettingsAction(_: FormState, fd: FormData): P
   const eventId = String(fd.get("eventId") ?? "");
   const actor = await requireEventManager(eventId);
 
-  const event = await prisma.event.findUnique({
+  const event = await tenantPrisma.event.findUnique({
     where: { id: eventId },
     select: { slug: true, endDate: true, _count: { select: { committeeDivisions: true } } },
   });
@@ -47,8 +48,8 @@ export async function saveCommitteeSettingsAction(_: FormState, fd: FormData): P
   }
 
   await prisma.$transaction([
-    prisma.event.update({ where: { id: eventId }, data: { committeeOpen: open, committeeDeadline: deadline } }),
-    prisma.auditLog.create({
+    tenantPrisma.event.update({ where: { id: eventId }, data: { committeeOpen: open, committeeDeadline: deadline } }),
+    tenantPrisma.auditLog.create({
       data: { userId: actor.user.id, action: "COMMITTEE_SETTINGS", entity: "events", entityId: eventId, meta: { open, deadline: deadline?.toISOString() ?? null } },
     }),
   ]);
@@ -76,27 +77,27 @@ export async function saveDivisionAction(_: FormState, fd: FormData): Promise<Fo
   if (!parsed.success) return fail("Periksa kembali isian.", parsed.error.flatten().fieldErrors);
   const d = parsed.data;
 
-  const clash = await prisma.committeeDivision.findFirst({
+  const clash = await tenantPrisma.committeeDivision.findFirst({
     where: { eventId, name: { equals: d.name, mode: "insensitive" }, ...(id ? { NOT: { id } } : {}) },
     select: { id: true },
   });
   if (clash) return fail("Periksa kembali isian.", { name: ["Nama divisi ini sudah ada di event ini."] });
 
   if (id) {
-    const own = await prisma.committeeDivision.findFirst({ where: { id, eventId }, select: { id: true } });
+    const own = await tenantPrisma.committeeDivision.findFirst({ where: { id, eventId }, select: { id: true } });
     if (!own) return fail("Divisi tidak ditemukan.");
     if (d.quota !== undefined) {
-      const accepted = await prisma.committeeApplication.count({ where: { eventId, assignedDivisionId: id, status: "ACCEPTED" } });
+      const accepted = await tenantPrisma.committeeApplication.count({ where: { eventId, assignedDivisionId: id, status: "ACCEPTED" } });
       if (d.quota < accepted) return fail("Periksa kembali isian.", { quota: [`Sudah ada ${accepted} panitia diterima di divisi ini.`] });
     }
-    await prisma.committeeDivision.update({ where: { id }, data: { name: d.name, description: d.description ?? null, quota: d.quota ?? null } });
+    await tenantPrisma.committeeDivision.update({ where: { id }, data: { name: d.name, description: d.description ?? null, quota: d.quota ?? null } });
   } else {
-    const count = await prisma.committeeDivision.count({ where: { eventId } });
-    await prisma.committeeDivision.create({
+    const count = await tenantPrisma.committeeDivision.count({ where: { eventId } });
+    await tenantPrisma.committeeDivision.create({
       data: { eventId, name: d.name, description: d.description ?? null, quota: d.quota ?? null, sortOrder: count },
     });
   }
-  await prisma.auditLog.create({ data: { userId: actor.user.id, action: id ? "COMMITTEE_DIVISION_EDIT" : "COMMITTEE_DIVISION_ADD", entity: "events", entityId: eventId, meta: { name: d.name } } });
+  await tenantPrisma.auditLog.create({ data: { userId: actor.user.id, action: id ? "COMMITTEE_DIVISION_EDIT" : "COMMITTEE_DIVISION_ADD", entity: "events", entityId: eventId, meta: { name: d.name } } });
   refresh(eventId);
   return { success: id ? "Divisi diperbarui." : "Divisi ditambahkan." };
 }
@@ -106,14 +107,14 @@ export async function deleteDivisionAction(_: FormState, fd: FormData): Promise<
   const actor = await requireEventManager(eventId);
   const id = Number(fd.get("id") ?? 0);
 
-  const div = await prisma.committeeDivision.findFirst({ where: { id, eventId }, select: { id: true, name: true } });
+  const div = await tenantPrisma.committeeDivision.findFirst({ where: { id, eventId }, select: { id: true, name: true } });
   if (!div) return fail("Divisi tidak ditemukan.");
-  const used = await prisma.committeeApplication.count({ where: { eventId, OR: [{ firstChoiceId: id }, { secondChoiceId: id }, { assignedDivisionId: id }] } });
+  const used = await tenantPrisma.committeeApplication.count({ where: { eventId, OR: [{ firstChoiceId: id }, { secondChoiceId: id }, { assignedDivisionId: id }] } });
   if (used > 0) return fail(`Divisi “${div.name}” sudah dipilih ${used} pendaftar, jadi tidak bisa dihapus.`);
 
   await prisma.$transaction([
-    prisma.committeeDivision.delete({ where: { id } }),
-    prisma.auditLog.create({ data: { userId: actor.user.id, action: "COMMITTEE_DIVISION_DELETE", entity: "events", entityId: eventId, meta: { name: div.name } } }),
+    tenantPrisma.committeeDivision.delete({ where: { id } }),
+    tenantPrisma.auditLog.create({ data: { userId: actor.user.id, action: "COMMITTEE_DIVISION_DELETE", entity: "events", entityId: eventId, meta: { name: div.name } } }),
   ]);
   refresh(eventId);
   return { success: "Divisi dihapus." };
@@ -130,6 +131,8 @@ const applySchema = z.object({
 
 export async function applyCommitteeAction(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requirePermission();
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
+
   const eventId = String(fd.get("eventId") ?? "");
   const secondRaw = String(fd.get("secondChoiceId") ?? "");
 
@@ -142,7 +145,7 @@ export async function applyCommitteeAction(_: FormState, fd: FormData): Promise<
   if (!parsed.success) return fail("Periksa kembali isian formulir.", parsed.error.flatten().fieldErrors);
   const d = parsed.data;
 
-  const event = await prisma.event.findUnique({
+  const event = await tenantPrisma.event.findUnique({
     where: { id: eventId },
     select: { slug: true, endDate: true, committeeOpen: true, committeeDeadline: true, committeeDivisions: { select: { id: true } } },
   });
@@ -159,15 +162,15 @@ export async function applyCommitteeAction(_: FormState, fd: FormData): Promise<
     if (d.secondChoiceId === d.firstChoiceId) return fail("Periksa kembali isian formulir.", { secondChoiceId: ["Pilihan kedua harus berbeda dari pilihan pertama."] });
   }
 
-  const member = await prisma.member.findUnique({ where: { userId: user.id }, select: { status: true } });
+  const member = await tenantPrisma.member.findUnique({ where: { userId: user.id }, select: { status: true } });
   if (!member || member.status !== "ACTIVE") return fail("Hanya anggota aktif yang bisa mendaftar sebagai panitia.");
 
-  const asParticipant = await prisma.eventRegistration.findUnique({ where: { eventId_userId: { eventId, userId: user.id } }, select: { status: true } });
+  const asParticipant = await tenantPrisma.eventRegistration.findUnique({ where: { eventId_userId: { eventId, userId: user.id } }, select: { status: true } });
   if (asParticipant && asParticipant.status !== "CANCELLED") {
     return fail("Kamu sudah terdaftar sebagai peserta event ini. Batalkan pendaftaran peserta dulu kalau ingin menjadi panitia.");
   }
 
-  const existing = await prisma.committeeApplication.findUnique({ where: { eventId_userId: { eventId, userId: user.id } }, select: { id: true, status: true } });
+  const existing = await tenantPrisma.committeeApplication.findUnique({ where: { eventId_userId: { eventId, userId: user.id } }, select: { id: true, status: true } });
   if (existing && existing.status !== "WITHDRAWN") return fail("Kamu sudah mendaftar sebagai panitia di event ini.");
 
   const data = {
@@ -181,10 +184,10 @@ export async function applyCommitteeAction(_: FormState, fd: FormData): Promise<
     decidedBy: null,
     decidedAt: null,
   };
-  if (existing) await prisma.committeeApplication.update({ where: { id: existing.id }, data });
-  else await prisma.committeeApplication.create({ data: { eventId, userId: user.id, ...data } });
+  if (existing) await tenantPrisma.committeeApplication.update({ where: { id: existing.id }, data });
+  else await tenantPrisma.committeeApplication.create({ data: { eventId, userId: user.id, ...data } });
 
-  await prisma.auditLog.create({ data: { userId: user.id, action: "COMMITTEE_APPLY", entity: "events", entityId: eventId } });
+  await tenantPrisma.auditLog.create({ data: { userId: user.id, action: "COMMITTEE_APPLY", entity: "events", entityId: eventId } });
   refresh(eventId, event.slug);
   return { success: "Pendaftaran panitia terkirim. Hasil seleksi akan tampil di halaman ini." };
 }
@@ -192,15 +195,15 @@ export async function applyCommitteeAction(_: FormState, fd: FormData): Promise<
 export async function withdrawCommitteeAction(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requirePermission();
   const eventId = String(fd.get("eventId") ?? "");
-  const app = await prisma.committeeApplication.findUnique({
+  const app = await tenantPrisma.committeeApplication.findUnique({
     where: { eventId_userId: { eventId, userId: user.id } },
     select: { id: true, status: true, event: { select: { slug: true } } },
   });
   if (!app || app.status === "WITHDRAWN" || app.status === "REJECTED") return fail("Tidak ada pendaftaran yang bisa ditarik.");
 
   await prisma.$transaction([
-    prisma.committeeApplication.update({ where: { id: app.id }, data: { status: "WITHDRAWN", assignedDivisionId: null, role: "MEMBER" } }),
-    prisma.auditLog.create({ data: { userId: user.id, action: "COMMITTEE_WITHDRAW", entity: "events", entityId: eventId, meta: { from: app.status } } }),
+    tenantPrisma.committeeApplication.update({ where: { id: app.id }, data: { status: "WITHDRAWN", assignedDivisionId: null, role: "MEMBER" } }),
+    tenantPrisma.auditLog.create({ data: { userId: user.id, action: "COMMITTEE_WITHDRAW", entity: "events", entityId: eventId, meta: { from: app.status } } }),
   ]);
   refresh(eventId, app.event.slug);
   return { success: "Kamu sudah mengundurkan diri dari kepanitiaan." };
@@ -226,7 +229,7 @@ export async function decideApplicationAction(_: FormState, fd: FormData): Promi
   if (!parsed.success) return fail("Pilihan tidak valid.");
   const d = parsed.data;
 
-  const app = await prisma.committeeApplication.findUnique({
+  const app = await tenantPrisma.committeeApplication.findUnique({
     where: { id: d.applicationId },
     select: { id: true, eventId: true, userId: true, role: true, status: true, user: { select: { fullName: true } }, event: { select: { slug: true, title: true } } },
   });
@@ -239,7 +242,7 @@ export async function decideApplicationAction(_: FormState, fd: FormData): Promi
 
   let divisionId: number | null = null;
   if (d.decision === "ACCEPTED" && d.role === "CHAIR") {
-    const other = await prisma.committeeApplication.findFirst({
+    const other = await tenantPrisma.committeeApplication.findFirst({
       where: { eventId: app.eventId, status: "ACCEPTED", role: "CHAIR", NOT: { id: app.id } },
       select: { user: { select: { fullName: true } } },
     });
@@ -247,10 +250,10 @@ export async function decideApplicationAction(_: FormState, fd: FormData): Promi
   }
   if (d.decision === "ACCEPTED") {
     if (!d.divisionId) return fail("Pilih divisi penempatan untuk panitia yang diterima.");
-    const div = await prisma.committeeDivision.findFirst({ where: { id: d.divisionId, eventId: app.eventId }, select: { id: true, name: true, quota: true } });
+    const div = await tenantPrisma.committeeDivision.findFirst({ where: { id: d.divisionId, eventId: app.eventId }, select: { id: true, name: true, quota: true } });
     if (!div) return fail("Divisi tidak valid.");
     if (div.quota !== null) {
-      const taken = await prisma.committeeApplication.count({
+      const taken = await tenantPrisma.committeeApplication.count({
         where: { eventId: app.eventId, assignedDivisionId: div.id, status: "ACCEPTED", NOT: { id: app.id } },
       });
       if (taken >= div.quota) return fail(`Kuota divisi ${div.name} sudah penuh (${div.quota}). Pilih divisi lain, atau jadikan cadangan.`);
@@ -259,7 +262,7 @@ export async function decideApplicationAction(_: FormState, fd: FormData): Promi
   }
 
   await prisma.$transaction([
-    prisma.committeeApplication.update({
+    tenantPrisma.committeeApplication.update({
       where: { id: app.id },
       data: {
         status: d.decision,
@@ -269,7 +272,7 @@ export async function decideApplicationAction(_: FormState, fd: FormData): Promi
         decidedAt: d.decision === "PENDING" ? null : new Date(),
       },
     }),
-    prisma.auditLog.create({
+    tenantPrisma.auditLog.create({
       data: { userId: actor.user.id, action: "COMMITTEE_DECIDE", entity: "committee_applications", entityId: app.id, meta: { decision: d.decision, role: d.role, divisionId } },
     }),
   ]);

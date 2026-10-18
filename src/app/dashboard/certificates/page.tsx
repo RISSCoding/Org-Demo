@@ -2,13 +2,17 @@ import { Award, Download, ShieldCheck } from "lucide-react";
 import { auth } from "@/auth";
 import { formatDate } from "@/lib/datetime";
 import { prisma } from "@/lib/prisma";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { btnGhost, btnPrimary, cardCls } from "@/lib/ui";
 
 export const metadata = { title: "Sertifikat — ORG" };
 
 export default async function CertificateVault() {
-  const session = await auth();
-  const certs = await prisma.certificate.findMany({
+  const session = await auth()
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);;
+
+  const certs = await tenantPrisma.certificate.findMany({
     where: { userId: session!.user.id },
     orderBy: { issuedAt: "desc" },
     select: {

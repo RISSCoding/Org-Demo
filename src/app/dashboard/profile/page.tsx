@@ -1,56 +1,76 @@
-import Link from "next/link";
-import { BookOpen } from "lucide-react";
 import { auth } from "@/auth";
 import { ProfileForm, PasswordForm } from "@/components/profile-forms";
 import { MySignature } from "@/components/signature-controls";
+import { PageHeader } from "@/components/ui/page-header";
 import { prisma } from "@/lib/prisma";
-import { btnLine, cardCls } from "@/lib/ui";
+import { getTenantPrisma } from "@/lib/prisma-tenant";
+import { cardCls } from "@/lib/ui";
 
 export const metadata = { title: "Profil — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function ProfilePage() {
-  const session = await auth();
-  const u = await prisma.user.findUniqueOrThrow({
+  const session = await auth()
+
+  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);;
+
+  const u = await tenantPrisma.user.findUniqueOrThrow({
     where: { id: session!.user.id },
-    select: { fullName: true, nim: true, email: true, batchYear: true, phoneNumber: true, avatarUrl: true, signatureUrl: true },
+    select: {
+      fullName: true,
+      nim: true,
+      email: true,
+      batchYear: true,
+      phoneNumber: true,
+      avatarUrl: true,
+      signatureUrl: true,
+    },
   });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="s-display s-title text-3xl text-[var(--s-head)]">Profil</h1>
-        <p className="text-sm text-muted-foreground">{u.fullName} · NPM {u.nim} · angkatan {u.batchYear} · {u.email}</p>
-        <p className="text-xs text-muted-foreground">Nama, NPM, dan email diubah oleh pengurus bila ada kesalahan.</p>
-      </div>
-      <section className={`${cardCls} space-y-4 p-5`}>
-        <h2 className="text-lg font-semibold">Data kontak</h2>
-        <ProfileForm phoneNumber={u.phoneNumber} avatarUrl={u.avatarUrl} />
+    <div className="mx-auto max-w-3xl space-y-8 pb-12">
+      <PageHeader
+        title="Profil Saya"
+        description={`${u.fullName} · NPM ${u.nim} · Angkatan ${u.batchYear}`}
+      />
+
+      {/* Data Kontak */}
+      <section className={`${cardCls} overflow-hidden`}>
+        <div className="border-b border-[var(--border-subtle)] bg-[var(--surface-2)] px-6 py-4">
+          <h2 className="text-base font-semibold">Data Diri</h2>
+          <p className="text-sm text-muted-foreground">Perbarui foto dan nomor HP aktifmu.</p>
+        </div>
+        <div className="p-6">
+          <ProfileForm
+            email={u.email}
+            phoneNumber={u.phoneNumber}
+            avatarUrl={u.avatarUrl}
+          />
+        </div>
       </section>
-      <section className={`${cardCls} max-w-2xl space-y-4 p-5`}>
-        <div>
-          <h2 className="text-lg font-semibold">Tanda tangan</h2>
+
+      {/* Tanda Tangan */}
+      <section className={`${cardCls} overflow-hidden`}>
+        <div className="border-b border-[var(--border-subtle)] bg-[var(--surface-2)] px-6 py-4">
+          <h2 className="text-base font-semibold">Tanda Tangan Digital</h2>
           <p className="text-sm text-muted-foreground">
-            Dipakai pada lembar pengesahan proposal dan LPJ bila kamu ketua pelaksana, sekretaris kegiatan, atau pengurus yang ikut menandatangani.
-            Unggah gambar tanda tanganmu sendiri (PNG berlatar transparan paling rapi). Hanya kamu dan pengurus sekretariat yang bisa melihatnya.
+            Dipakai otomatis pada dokumen dan sertifikat saat kamu menjadi panitia atau pengurus.
           </p>
         </div>
-        <MySignature url={u.signatureUrl} />
-      </section>
-      <section className={`${cardCls} space-y-4 p-5`}>
-        <h2 className="text-lg font-semibold">Ganti password</h2>
-        <PasswordForm />
-      </section>
-      <section className={`${cardCls} space-y-3 p-5`}>
-        <div>
-          <h2 className="text-lg font-semibold">Panduan penggunaan</h2>
-          <p className="text-sm text-muted-foreground">
-            Lihat lagi langkah awal: melengkapi profil, mengunggah tanda tangan, dan mengenal KTA digital.
-          </p>
+        <div className="p-6">
+          <MySignature url={u.signatureUrl} />
         </div>
-        <Link href="/onboarding?replay=1" className={btnLine}>
-          <BookOpen className="size-4" aria-hidden /> Buka panduan
-        </Link>
+      </section>
+
+      {/* Keamanan */}
+      <section className={`${cardCls} overflow-hidden`}>
+        <div className="border-b border-[var(--border-subtle)] bg-[var(--surface-2)] px-6 py-4">
+          <h2 className="text-base font-semibold">Keamanan</h2>
+          <p className="text-sm text-muted-foreground">Ganti password akunmu secara berkala.</p>
+        </div>
+        <div className="p-6">
+          <PasswordForm />
+        </div>
       </section>
     </div>
   );
