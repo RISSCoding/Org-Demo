@@ -42,3 +42,6 @@ next-env.d.ts
 /uploads
 /uploads
 .env.dev
+.env
+.env.local
+uploads/
