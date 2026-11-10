@@ -10,13 +10,15 @@ import { loadSignature } from "@/lib/signatures";
 
 /** Lembar pengesahan proposal/LPJ, dibuat saat diminta supaya selalu memakai nama dan tanda tangan terbaru. */
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  let user: Awaited<ReturnType<typeof requirePermission>>;
   try {
-    await requirePermission("secretariat:manage");
+    user = await requirePermission("secretariat:manage");
   } catch (e) {
     if (e instanceof UnauthorizedError) return new Response("Unauthorized", { status: 401 });
     if (e instanceof ForbiddenError) return new Response("Forbidden", { status: 403 });
     throw e;
   }
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
 
   const { id } = await ctx.params;
   const letter = await tenantPrisma.officialLetter.findUnique({

@@ -51,6 +51,7 @@ export async function createResourceAction(fd: FormData): Promise<void> {
 
 export async function deleteResourceAction(fd: FormData): Promise<void> {
   const user = await requirePermission("cms:write");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const id = String(fd.get("id") ?? "");
   const found = await tenantPrisma.resource.findUnique({ where: { id }, select: { id: true } });
   if (!found) return back("error", "Materi tidak ditemukan.");

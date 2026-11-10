@@ -13,7 +13,8 @@ import { btnLine } from "@/lib/ui";
 export const metadata = { title: "Edit Tulisan — ORG" };
 
 export default async function EditPost({ params }: { params: Promise<{ id: string }> }) {
-  await requirePermission("cms:write");
+  const user = await requirePermission("cms:write");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const { id } = await params;
   const p = await tenantPrisma.cmsPost.findUnique({ where: { id } });
   if (!p) notFound();

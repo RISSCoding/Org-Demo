@@ -20,7 +20,8 @@ const statusStyle = {
 const statusLabel = { REGISTERED: "Terdaftar", ATTENDED: "Hadir", CANCELLED: "Batal" } as const;
 
 export default async function AdminEventDetail({ params }: { params: Promise<{ id: string }> }) {
-  await requirePermission("event:manage");
+  const user = await requirePermission("event:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const { id } = await params;
 
   const event = await tenantPrisma.event.findUnique({

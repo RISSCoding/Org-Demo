@@ -20,13 +20,6 @@ const schema = z.object({
   publishAt: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/).optional(),
 });
 
-async function uniqueSlug(title: string) {
-  const base = slugify(title);
-  let slug = base;
-  while (await tenantPrisma.cmsPost.findUnique({ where: { slug }, select: { id: true } })) slug = withSuffix(base);
-  return slug;
-}
-
 function revalidatePublic(slug?: string) {
   revalidatePath("/");
   revalidatePath("/berita");
@@ -36,6 +29,13 @@ function revalidatePublic(slug?: string) {
 export async function savePostAction(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requirePermission("cms:write");
   const tenantPrisma = getTenantPrisma(user.organizationId!);
+
+  const uniqueSlug = async (title: string) => {
+    const base = slugify(title);
+    let slug = base;
+    while (await tenantPrisma.cmsPost.findUnique({ where: { slug }, select: { id: true } })) slug = withSuffix(base);
+    return slug;
+  };
 
   const id = String(fd.get("id") ?? "");
 
@@ -121,6 +121,7 @@ export async function savePostAction(_: FormState, fd: FormData): Promise<FormSt
 
 export async function deletePostAction(fd: FormData): Promise<void> {
   const user = await requirePermission("cms:write");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const id = String(fd.get("id") ?? "");
   const post = await tenantPrisma.cmsPost.findUnique({ where: { id }, select: { slug: true, title: true, thumbnailUrl: true } });
   if (!post) redirect("/admin/cms");

@@ -18,7 +18,8 @@ const STATUSES = ["draft", "scheduled", "published"] as const;
 const STATUS_LABEL = { draft: "Draf", scheduled: "Terjadwal", published: "Terbit" } as const;
 
 export default async function AdminCms({ searchParams }: { searchParams: Promise<SP> }) {
-  await requirePermission("cms:write");
+  const user = await requirePermission("cms:write");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const sp = await searchParams;
   const now = new Date();
   const q = sp.q?.trim().slice(0, 100);

@@ -12,11 +12,8 @@ import type { FormState } from "@/types/forms";
 
 async function me() {
   const session = await auth();
-
   if (!session?.user) throw new Error("Unauthorized");
-
-  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);
-  return session.user.id;
+  return { userId: session.user.id, tenantPrisma: getTenantPrisma(session.user.organizationId!) };
 }
 
 const phoneSchema = z
@@ -26,7 +23,7 @@ const phoneSchema = z
   .refine((v) => v === "" || /^(\+62|62|0)8\d{7,12}$/.test(v), "Nomor HP tidak valid (contoh 081234567890)");
 
 export async function updateProfileAction(_: FormState, fd: FormData): Promise<FormState> {
-  const userId = await me();
+  const { userId, tenantPrisma } = await me();
   const phone = phoneSchema.safeParse(fd.get("phoneNumber") ?? "");
   if (!phone.success) return { error: "Periksa kembali isian.", fieldErrors: { phoneNumber: [phone.error.issues[0].message] } };
 
@@ -62,7 +59,7 @@ const passwordSchema = z
   .refine((v) => v.next === v.confirm, { path: ["confirm"], message: "Konfirmasi tidak sama" });
 
 export async function changePasswordAction(_: FormState, fd: FormData): Promise<FormState> {
-  const userId = await me();
+  const { userId, tenantPrisma } = await me();
   const parsed = passwordSchema.safeParse({
     current: fd.get("current"),
     next: fd.get("next"),

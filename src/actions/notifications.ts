@@ -12,15 +12,12 @@ const CONSENT_VERSION = "v1-2026-10";
 
 async function me() {
   const session = await auth();
-
   if (!session?.user) throw new UnauthorizedError();
-
-  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);
-  return session.user.id;
+  return { userId: session.user.id, tenantPrisma: getTenantPrisma(session.user.organizationId!) };
 }
 
 export async function markNotificationRead(id: string): Promise<void> {
-  const userId = await me();
+  const { userId, tenantPrisma } = await me();
   await tenantPrisma.notification.updateMany({
     where: { id, userId, readAt: null },
     data: { readAt: new Date() },
@@ -29,7 +26,7 @@ export async function markNotificationRead(id: string): Promise<void> {
 }
 
 export async function markAllNotificationsRead(): Promise<void> {
-  const userId = await me();
+  const { userId, tenantPrisma } = await me();
   await tenantPrisma.notification.updateMany({
     where: { userId, readAt: null },
     data: { readAt: new Date() },
@@ -38,7 +35,7 @@ export async function markAllNotificationsRead(): Promise<void> {
 }
 
 export async function deleteNotification(id: string): Promise<void> {
-  const userId = await me();
+  const { userId, tenantPrisma } = await me();
   await tenantPrisma.notification.deleteMany({ where: { id, userId } });
   revalidatePath("/dashboard", "layout");
 }
@@ -55,7 +52,7 @@ const prefsSchema = z.object({
 });
 
 export async function saveNotificationPreferences(input: z.input<typeof prefsSchema>): Promise<void> {
-  const userId = await me();
+  const { userId, tenantPrisma } = await me();
   const d = prefsSchema.parse(input);
   await tenantPrisma.notificationPreference.upsert({
     where: { userId },
@@ -73,7 +70,7 @@ const consentSchema = z.object({
 });
 
 export async function saveNotificationConsent(input: z.input<typeof consentSchema>): Promise<void> {
-  const userId = await me();
+  const { userId, tenantPrisma } = await me();
   const d = consentSchema.parse(input);
   const h = await headers();
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
@@ -118,7 +115,7 @@ export async function saveNotificationConsent(input: z.input<typeof consentSchem
 }
 
 export async function revokeEmailConsent(): Promise<void> {
-  const userId = await me();
+  const { userId, tenantPrisma } = await me();
   const now = new Date();
   await tenantPrisma.notificationConsent.upsert({
     where: { userId },
@@ -134,7 +131,7 @@ export async function revokeEmailConsent(): Promise<void> {
 }
 
 export async function revokeWhatsappConsent(): Promise<void> {
-  const userId = await me();
+  const { userId, tenantPrisma } = await me();
   const now = new Date();
   await tenantPrisma.notificationConsent.upsert({
     where: { userId },

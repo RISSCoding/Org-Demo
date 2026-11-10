@@ -34,6 +34,7 @@ export async function createDivisionAction(fd: FormData): Promise<void> {
 
 export async function updateDivisionAction(fd: FormData): Promise<void> {
   const user = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const id = Number(fd.get("id"));
   const name = nameSchema.safeParse(fd.get("name"));
   if (!Number.isInteger(id)) return back("error", "Divisi tidak valid.");
@@ -56,6 +57,7 @@ export async function updateDivisionAction(fd: FormData): Promise<void> {
 
 export async function deleteDivisionAction(fd: FormData): Promise<void> {
   const user = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const id = Number(fd.get("id"));
   if (!Number.isInteger(id)) return back("error", "Divisi tidak valid.");
 
@@ -69,7 +71,11 @@ export async function deleteDivisionAction(fd: FormData): Promise<void> {
 }
 
 /** Cek apakah divisi sudah punya Ketua Departemen lain (selain userId yang dikecualikan). */
-async function findOtherHead(divisionId: number, exceptUserId: string) {
+async function findOtherHead(
+  tenantPrisma: ReturnType<typeof getTenantPrisma>,
+  divisionId: number,
+  exceptUserId: string,
+) {
   return tenantPrisma.member.findFirst({
     where: { divisionId, divisionRole: "DEPT_HEAD", NOT: { userId: exceptUserId } },
     select: { user: { select: { fullName: true } } },
@@ -78,6 +84,7 @@ async function findOtherHead(divisionId: number, exceptUserId: string) {
 
 export async function addDivisionMembersAction(_: FormState, fd: FormData): Promise<FormState> {
   const admin = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(admin.organizationId!);
   const divisionId = Number(fd.get("divisionId"));
   if (!Number.isInteger(divisionId)) return { error: "Divisi tidak valid." };
 
@@ -96,7 +103,7 @@ export async function addDivisionMembersAction(_: FormState, fd: FormData): Prom
   if (!division) return { error: "Divisi tidak ditemukan." };
 
   if (divisionRole === "DEPT_HEAD") {
-    const other = await findOtherHead(divisionId, "");
+    const other = await findOtherHead(tenantPrisma, divisionId, "");
     if (other) return { error: `${division.name} sudah punya Ketua Departemen (${other.user.fullName}). Turunkan dulu yang lama.` };
   }
 
@@ -140,6 +147,7 @@ export async function addDivisionMembersAction(_: FormState, fd: FormData): Prom
 
 export async function removeDivisionMemberAction(_: FormState, fd: FormData): Promise<FormState> {
   const admin = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(admin.organizationId!);
   const divisionId = Number(fd.get("divisionId"));
   const userId = String(fd.get("userId") ?? "");
   if (!Number.isInteger(divisionId) || !userId) return { error: "Data tidak valid." };
@@ -161,6 +169,7 @@ export async function removeDivisionMemberAction(_: FormState, fd: FormData): Pr
 /** Ubah jabatan satu anggota di divisinya sekarang. */
 export async function setMemberDivisionRoleAction(_: FormState, fd: FormData): Promise<FormState> {
   const admin = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(admin.organizationId!);
   const userId = String(fd.get("userId") ?? "");
   const divisionId = Number(fd.get("divisionId"));
   const roleParsed = divisionRoleSchema.safeParse(fd.get("divisionRole"));
@@ -184,7 +193,7 @@ export async function setMemberDivisionRoleAction(_: FormState, fd: FormData): P
   if (member.divisionRole === divisionRole) return { success: "Tidak ada perubahan." };
 
   if (divisionRole === "DEPT_HEAD") {
-    const other = await findOtherHead(divisionId, userId);
+    const other = await findOtherHead(tenantPrisma, divisionId, userId);
     if (other) {
       return { error: `Divisi ${member.division?.name ?? ""} sudah punya Ketua Departemen (${other.user.fullName}). Turunkan dulu yang lama.` };
     }

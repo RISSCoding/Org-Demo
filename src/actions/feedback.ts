@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { getCurrentOrganization } from "@/lib/tenant";
 import { getTenantPrisma } from "@/lib/prisma-tenant";
 import type { FeedbackState } from "@/types/feedback";
 
@@ -48,17 +49,18 @@ export async function submitFeedback(_: FeedbackState, fd: FormData): Promise<Fe
   }
 
   const anonymous = fd.get("anonymous") === "on";
+  const session = await auth();
   let senderId: string | null = null;
   if (!anonymous) {
-    const session = await auth();
-
     if (!session?.user) {
       return { error: "Masuk dulu untuk menyertakan identitas, atau centang \"Kirim tanpa nama\"." };
-
-  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);
     }
     senderId = session.user.id;
   }
+
+  const orgId = session?.user?.organizationId ?? (await getCurrentOrganization())?.id;
+  if (!orgId) return { error: "Organisasi tidak ditemukan." };
+  const tenantPrisma = getTenantPrisma(orgId);
 
   const h = await headers();
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";

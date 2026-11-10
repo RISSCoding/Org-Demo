@@ -15,7 +15,8 @@ export const metadata = { title: "Detail Aspirasi — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function FeedbackDetail({ params }: { params: Promise<{ id: string }> }) {
-  await requirePermission("aspirasi:manage");
+  const user = await requirePermission("aspirasi:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const { id } = await params;
   const item = await tenantPrisma.feedback.findUnique({
     where: { id },

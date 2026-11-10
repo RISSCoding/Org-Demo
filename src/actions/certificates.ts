@@ -65,6 +65,7 @@ export async function issueCertificatesAction(_: FormState, fd: FormData): Promi
  */
 export async function issueForUsersAction(_: FormState, fd: FormData): Promise<FormState> {
   const staff = await requirePermission("event:manage");
+  const tenantPrisma = getTenantPrisma(staff.organizationId!);
   const eventId = String(fd.get("eventId") ?? "");
   const userIds = fd.getAll("userId").map(String).filter(Boolean);
   const force = fd.get("force") === "1";
@@ -130,6 +131,7 @@ export async function issueForUsersAction(_: FormState, fd: FormData): Promise<F
 export async function issueCommitteeCertificatesAction(_: FormState, fd: FormData): Promise<FormState> {
   const eventId = String(fd.get("eventId") ?? "");
   const actor = await requireEventManager(eventId);
+  const tenantPrisma = getTenantPrisma(actor.user.organizationId!);
   const ids = fd.getAll("applicationId").map(String).filter(Boolean);
   if (ids.length === 0) return { error: "Pilih minimal satu panitia." };
 

@@ -27,6 +27,8 @@ export async function updateFeedbackAction(_: FormState, fd: FormData): Promise<
     throw e;
   }
 
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
+
   const parsed = schema.safeParse({
     id: fd.get("id"),
     status: fd.get("status"),
