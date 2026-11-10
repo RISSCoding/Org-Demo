@@ -41,6 +41,8 @@ export async function certificateVerifyUrl(number: string): Promise<string> {
 
 /** Creates the DB record (unique number, retried on collision). The PDF is built separately / lazily. */
 export async function createCertificateRecord(eventId: string, userId: string, opts?: { roleTitle: string }) {
+  const event = await prisma.event.findUnique({ where: { id: eventId }, select: { organizationId: true } });
+  if (!event) throw new Error(`Event ${eventId} tidak ditemukan`);
   const base = await currentBaseUrl();
   for (let attempt = 0; attempt < 5; attempt++) {
     const number = newCertificateNumber();
@@ -54,6 +56,7 @@ export async function createCertificateRecord(eventId: string, userId: string, o
           roleTitle: opts?.roleTitle ?? null,
           pdfUrl: `/api/certificates/${number}/pdf`,
           qrCodeUrl: `${base}/verify-certificate/${number}`,
+          organizationId: event.organizationId,
         },
       });
     } catch (e) {

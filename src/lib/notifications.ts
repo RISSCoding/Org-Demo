@@ -100,6 +100,9 @@ export async function notify(input: NotificationInput): Promise<void> {
   const prefs = await getPreferences(input.userId);
   if (!allowsInapp(prefs, input.type)) return;
 
+  const user = await prisma.user.findUnique({ where: { id: input.userId }, select: { organizationId: true } });
+  if (!user) return;
+
   const notif = await prisma.notification.create({
     data: {
       userId: input.userId,
@@ -107,6 +110,7 @@ export async function notify(input: NotificationInput): Promise<void> {
       title: input.title,
       body: input.body ?? null,
       link: input.link ?? null,
+      organizationId: user.organizationId,
     },
   });
 
@@ -143,6 +147,13 @@ export async function notifyMany(
 
   // Insert notifikasi in-app satu per satu (createMany tidak return id).
   // Untuk 1.000 user, ini masih < 1 detik karena insert kecil.
+  // Setiap penerima bisa berada di organisasi berbeda — ambil org per user
+  // sekali di awal, lalu pakai untuk mengisi organizationId.
+  const users = await prisma.user.findMany({
+    where: { id: { in: target } },
+    select: { id: true, organizationId: true },
+  });
+  const orgOf = new Map(users.map((u) => [u.id, u.organizationId]));
   const created = await Promise.all(
     target.map((userId) =>
       prisma.notification.create({
@@ -152,6 +163,7 @@ export async function notifyMany(
           title: input.title,
           body: input.body ?? null,
           link: input.link ?? null,
+          organizationId: orgOf.get(userId)!,
         },
         select: { id: true, userId: true },
       }),

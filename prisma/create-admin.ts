@@ -38,7 +38,7 @@ async function main() {
   const existing = await prisma.member.findUnique({ where: { userId: user.id }, select: { id: true } });
   if (!existing) {
     await prisma.member.create({
-      data: { userId: user.id, ktaNumber: await allocateKtaNumber(prisma, ADMIN_NIM, user.batchYear) },
+      data: { userId: user.id, ktaNumber: await allocateKtaNumber(prisma, ADMIN_NIM, user.batchYear), organizationId: org.id },
     });
   }
   console.log(`SUPER_ADMIN ready: ${user.email}`);

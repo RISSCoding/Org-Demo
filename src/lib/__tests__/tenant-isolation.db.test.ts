@@ -198,6 +198,7 @@ describe("isolasi tenant (database)", { skip }, () => {
           endDate: new Date(),
           location: "x",
           createdBy: fx.userA,
+          organizationId: fx.orgA,
         },
       });
       const row = await prisma.event.findUniqueOrThrow({ where: { id: fx.eventB } });
@@ -302,15 +303,25 @@ const RAW_ACCESS_BASELINE = new Map<string, number>([
   ["src/components/finance-reports.tsx", 1],
   ["src/lib/admin-overview.ts", 11],
   ["src/lib/approval.ts", 1],
-  ["src/lib/certificate-service.ts", 2],
+  // certificate-service: +1 bootstrap lookup (prisma.event.findUnique) untuk
+  // mendapatkan organizationId saat menerbitkan sertifikat — event adalah sumber
+  // kebenaran tenant, dan kita belum punya context sesi di helper ini.
+  ["src/lib/certificate-service.ts", 3],
   ["src/lib/committee.ts", 3],
   ["src/lib/finance-report.ts", 4],
   ["src/lib/finance-service.ts", 4],
   ["src/lib/finance-statements.ts", 3],
-  ["src/lib/notifications.ts", 8],
+  // notifications: +2 bootstrap lookup (prisma.user.findUnique di notify dan
+  // notifyMany) untuk mendapatkan organizationId penerima. Notifikasi dipanggil
+  // dari cron/worker yang tidak punya sesi; org diambil dari user yang menjadi
+  // tujuan notifikasi.
+  ["src/lib/notifications.ts", 10],
   ["src/lib/officers.ts", 1],
   ["src/lib/organization.ts", 2],
-  ["src/lib/password-reset.ts", 6],
+  // password-reset: +1 bootstrap lookup (prisma.user.findUnique) untuk
+  // mendapatkan organizationId pemilik email saat membuat token reset.
+  // Alur reset password tidak punya sesi; org diambil dari user.
+  ["src/lib/password-reset.ts", 7],
   ["src/lib/rate-limit.ts", 2],
   // shell-counts.ts sudah migrasi ke getTenantPrisma; entri baseline dihapus.
   ["src/lib/site-data.ts", 4],

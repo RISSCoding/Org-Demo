@@ -3,6 +3,7 @@
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { getCurrentOrganization } from "@/lib/tenant";
 import type { ActionResult } from "@/lib/rbac";
 
 const registerSchema = z.object({
@@ -27,6 +28,9 @@ export async function registerMember(input: unknown): Promise<ActionResult> {
   });
   if (exists) return { ok: false, error: "NPM or email already registered" };
 
+  const org = await getCurrentOrganization();
+  if (!org) return { ok: false, error: "Organisasi tidak ditemukan. Hubungi pengurus." };
+
   const role = await prisma.role.findUniqueOrThrow({ where: { name: "MEMBER" } });
   await prisma.user.create({
     data: {
@@ -37,6 +41,7 @@ export async function registerMember(input: unknown): Promise<ActionResult> {
       batchYear: d.batchYear,
       phoneNumber: d.phoneNumber,
       roleId: role.id,
+      organizationId: org.id,
     },
   });
   return { ok: true, data: undefined };
