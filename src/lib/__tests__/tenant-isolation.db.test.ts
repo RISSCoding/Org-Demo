@@ -260,7 +260,7 @@ describe("isolasi tenant (database)", { skip }, () => {
       assert.deepEqual(rows, []);
     });
 
-    knownLeak("A4-rls", "semua tabel ber-organization_id mengaktifkan Row-Level Security", async () => {
+    it("semua tabel ber-organization_id mengaktifkan Row-Level Security", { skip }, async () => {
       const { prisma } = await import("@/lib/prisma");
       const rows = await prisma.$queryRaw<{ table_name: string }[]>`
         SELECT c.table_name::text
@@ -271,6 +271,23 @@ describe("isolasi tenant (database)", { skip }, () => {
            AND c.column_name = 'organization_id' AND NOT pc.relrowsecurity
          ORDER BY 1`;
       assert.deepEqual(rows.map((r) => r.table_name), []);
+    });
+
+    knownLeak("A4-enforcement", "query tanpa context mengembalikan 0 baris (RLS + FORCE + set_config)", async () => {
+      // Penegakan RLS butuh tiga syarat sekaligus:
+      //   1. ENABLE ROW LEVEL SECURITY (aktif dari migrasi 20261110120000).
+      //   2. FORCE ROW LEVEL SECURITY (belum aktif — owner tabel bypass RLS
+      //      tanpa FORCE, dan Prisma konek sebagai owner).
+      //   3. set_config('app.current_org', ...) per transaksi (belum ada di
+      //      extension; kode aplikasi masih mengandalkan filter aplikasi).
+      //
+      // Selama (2) atau (3) belum lengkap, query ke tabel bertenant tanpa
+      // context tetap mengembalikan baris. Test ini merah sampai enforcement
+      // aktif; begitu hijau, ubah menjadi it(...). Rencana lengkap di
+      // docs/adr/0002-rls-rencana.md.
+      const { prisma } = await import("@/lib/prisma");
+      const rows = await prisma.event.findMany({ where: { id: fx.eventA } });
+      assert.deepEqual(rows, []);
     });
   });
 });
