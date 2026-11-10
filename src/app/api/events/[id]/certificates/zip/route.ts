@@ -6,13 +6,15 @@ import { ForbiddenError, requirePermission, UnauthorizedError } from "@/lib/rbac
 import { slugify } from "@/lib/slug";
 
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  let user: Awaited<ReturnType<typeof requirePermission>>;
   try {
-    await requirePermission("event:manage");
+    user = await requirePermission("event:manage");
   } catch (e) {
     if (e instanceof UnauthorizedError) return new Response("Unauthorized", { status: 401 });
     if (e instanceof ForbiddenError) return new Response("Forbidden", { status: 403 });
     throw e;
   }
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
 
   const { id } = await ctx.params;
   const event = await tenantPrisma.event.findUnique({

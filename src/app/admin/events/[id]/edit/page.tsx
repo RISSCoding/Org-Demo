@@ -7,7 +7,8 @@ import { getTenantPrisma } from "@/lib/prisma-tenant";
 import { requirePermission } from "@/lib/rbac";
 
 export default async function EditEvent({ params }: { params: Promise<{ id: string }> }) {
-  await requirePermission("event:manage");
+  const user = await requirePermission("event:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const { id } = await params;
   const e = await tenantPrisma.event.findUnique({ where: { id } });
   if (!e) notFound();

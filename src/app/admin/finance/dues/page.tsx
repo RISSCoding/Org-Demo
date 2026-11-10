@@ -34,7 +34,7 @@ export default async function DuesAdmin({ searchParams }: { searchParams: Promis
         user: { select: { fullName: true, nim: true } },
       },
     }),
-    getDuesAmount(),
+    getDuesAmount(user.organizationId!),
   ]);
 
   const count = (f: (d: (typeof dues)[number]) => boolean) => dues.filter(f).length;

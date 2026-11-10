@@ -23,16 +23,16 @@ const eventSchema = z.object({
   isPublic: z.boolean(),
 });
 
-async function uniqueSlug(title: string) {
-  const base = slugify(title);
-  let slug = base;
-  while (await tenantPrisma.event.findUnique({ where: { slug }, select: { id: true } })) slug = withSuffix(base);
-  return slug;
-}
-
 export async function saveEventAction(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requirePermission("event:manage");
   const tenantPrisma = getTenantPrisma(user.organizationId!);
+
+  const uniqueSlug = async (title: string) => {
+    const base = slugify(title);
+    let slug = base;
+    while (await tenantPrisma.event.findFirst({ where: { slug }, select: { id: true } })) slug = withSuffix(base);
+    return slug;
+  };
 
   const id = String(fd.get("id") ?? "");
   const quotaRaw = String(fd.get("quota") ?? "").trim();

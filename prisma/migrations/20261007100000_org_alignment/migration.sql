@@ -26,10 +26,16 @@ UPDATE "official_letters" SET "letter_date" = "created_at";
 -- CreateIndex
 CREATE INDEX "official_letters_letter_date_idx" ON "official_letters"("letter_date");
 
--- Departemen sesuai PO Pasal 14: Humas, MedFo, PSDMO, Pendidikan, Kewirausahaan (+ BPH)
+-- Catatan: migrasi TIDAK boleh menyisipkan data yang bergantung pada konteks runtime
+-- (organisasi). Sebelumnya blok ini meng-INSERT tiga divisi contoh, tetapi pada saat
+-- migrasi berjalan kolom organization_id belum ada, sehingga baris tersebut berakhir
+-- dengan organization_id = NULL dan memicu kegagalan migrasi 20261110000000_organization_id_not_null.
+-- Divisi contoh sekarang dibuat oleh prisma/seed.ts dalam konteks organisasi yang jelas.
+--
+-- UPDATE di bawah tetap dipertahankan untuk instalasi lama yang sudah memiliki divisi
+-- "Kominfo" dari sebelum migrasi ini (no-op bila tidak ada). DELETE juga no-op pada
+-- instalasi baru.
 UPDATE "divisions" SET "name" = 'MedFo'
   WHERE "name" = 'Kominfo' AND NOT EXISTS (SELECT 1 FROM "divisions" WHERE "name" = 'MedFo');
-INSERT INTO "divisions" ("name") VALUES ('Humas'), ('MedFo'), ('PSDMO') ON CONFLICT ("name") DO NOTHING;
--- "Pengabdian Masyarakat" tidak ada di PO; dihapus hanya bila belum punya anggota
 DELETE FROM "divisions" d WHERE d."name" = 'Pengabdian Masyarakat'
   AND NOT EXISTS (SELECT 1 FROM "members" m WHERE m."division_id" = d."id");

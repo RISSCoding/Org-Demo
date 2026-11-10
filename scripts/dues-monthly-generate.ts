@@ -20,8 +20,19 @@ async function main() {
     process.exit(1);
   }
 
+  // Script cron ini diasumsikan single-tenant. Cari organisasi default dari env
+  // (sama dengan yang dibuat prisma/seed.ts).
+  const subdomain = process.env.SEED_ORG_SUBDOMAIN ?? "demo";
+  const org = await prisma.organization.findUnique({ where: { subdomain } });
+  if (!org) {
+    console.error(`Organisasi "${subdomain}" tidak ditemukan. Jalankan prisma/seed.ts atau set SEED_ORG_SUBDOMAIN.`);
+    process.exit(1);
+  }
+
   // 1. Baca nominal dari setting
-  const setting = await prisma.appSetting.findUnique({ where: { key: "dues_amount" } });
+  const setting = await prisma.appSetting.findUnique({
+    where: { organizationId_key: { organizationId: org.id, key: "dues_amount" } },
+  });
   const amount = Number(setting?.value ?? 0);
   if (!amount || amount <= 0) {
     console.error("Nominal iuran belum diatur. Isi di /admin/settings.");
@@ -37,7 +48,7 @@ async function main() {
 
   // 3. Bulk insert tagihan (skip yang sudah ada)
   const created = await prisma.memberDues.createMany({
-    data: members.map((m) => ({ userId: m.userId, monthYear: targetMonth, amount })),
+    data: members.map((m) => ({ userId: m.userId, monthYear: targetMonth, amount, organizationId: org.id })),
     skipDuplicates: true,
   });
   console.log(`Tagihan dibuat: ${created.count}, sudah ada: ${members.length - created.count}`);

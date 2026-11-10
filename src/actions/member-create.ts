@@ -89,7 +89,7 @@ export async function createMemberAction(_: FormState, fd: FormData): Promise<Fo
       await tx.member.create({
         data: {
           userId: u.id,
-          ktaNumber: await allocateKtaNumber(tx, d.nim, d.batchYear),
+          ktaNumber: await allocateKtaNumber(tx, admin.organizationId!, d.nim, d.batchYear),
           status: d.memberStatus,
           divisionId: d.divisionId ?? null,
           department: d.department ?? null,

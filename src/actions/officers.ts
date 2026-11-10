@@ -125,6 +125,7 @@ export async function saveOfficerSlotAction(_: FormState, fd: FormData): Promise
 
 export async function addAdvisorAction(_: FormState, fd: FormData): Promise<FormState> {
   const admin = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(admin.organizationId!);
   const parsed = nameSchema.safeParse(fd.get("name"));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
@@ -150,6 +151,7 @@ export async function addAdvisorAction(_: FormState, fd: FormData): Promise<Form
 
 export async function removeAdvisorAction(_: FormState, fd: FormData): Promise<FormState> {
   const admin = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(admin.organizationId!);
   const id = Number(fd.get("id"));
   if (!Number.isInteger(id)) return { error: "Data tidak valid." };
 

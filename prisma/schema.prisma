@@ -255,19 +255,19 @@ model User {
   passwordResetTokens    PasswordResetToken[]
   @@index([organizationId])
   @@map("users")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model Division {
   id       Int      @id @default(autoincrement())
-  name     String   @unique
+  name     String
   leaderId String?  @map("leader_id")
   members  Member[]
   @@index([organizationId])
   @@map("divisions")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 // Pengurus inti (Ketua, Wakil Ketua, Sekretaris Umum, Bendahara Umum), penandatangan eksternal (Ketua Prodi,
@@ -288,8 +288,8 @@ model OrgOfficer {
   @@index([position])
   @@index([organizationId])
   @@map("org_officers")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model Member {
@@ -299,19 +299,20 @@ model Member {
   divisionId Int?         @map("division_id")
   divisionRole DivisionRole? @map("division_role")
   status     MemberStatus @default(ACTIVE)
-  ktaNumber  String       @unique @map("kta_number")
+  ktaNumber  String       @map("kta_number")
   user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   division   Division?    @relation(fields: [divisionId], references: [id])
+  @@unique([organizationId, ktaNumber])
   @@index([organizationId])
   @@map("members")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model Event {
   id          String   @id @default(cuid())
   title       String
-  slug        String   @unique
+  slug        String
   description String
   bannerUrl   String?  @map("banner_url")
   startDate   DateTime @map("start_date")
@@ -329,10 +330,11 @@ model Event {
   committeeApplications CommitteeApplication[]
   committeeMeetings     CommitteeMeeting[]
   letters       OfficialLetter[]
+  @@unique([organizationId, slug])
   @@index([organizationId])
   @@map("events")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model EventRegistration {
@@ -347,8 +349,8 @@ model EventRegistration {
   @@unique([eventId, userId])
   @@index([organizationId])
   @@map("event_registrations")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model CommitteeDivision {
@@ -365,8 +367,8 @@ model CommitteeDivision {
   @@unique([eventId, name])
   @@index([organizationId])
   @@map("committee_divisions")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model CommitteeApplication {
@@ -395,8 +397,8 @@ model CommitteeApplication {
   @@index([userId])
   @@index([organizationId])
   @@map("committee_applications")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 /// Rapat panitia yang diselenggarakan sekretaris. Semua panitia diterima wajib absen.
@@ -416,8 +418,8 @@ model CommitteeMeeting {
   @@index([eventId, startsAt])
   @@index([organizationId])
   @@map("committee_meetings")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model CommitteeMeetingAttendance {
@@ -452,8 +454,8 @@ model Certificate {
   @@unique([eventId, userId])
   @@index([organizationId])
   @@map("certificates")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model FinancialTransaction {
@@ -476,8 +478,8 @@ model FinancialTransaction {
   @@index([date])
   @@index([organizationId])
   @@map("financial_transactions")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model MemberDues {
@@ -495,13 +497,13 @@ model MemberDues {
   @@unique([userId, monthYear])
   @@index([organizationId])
   @@map("member_dues")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model OfficialLetter {
   id             String     @id @default(cuid())
-  letterNumber   String?    @unique @map("letter_number")
+  letterNumber   String?    @map("letter_number")
   type           LetterType
   subject        String
   senderReceiver String     @map("sender_receiver")
@@ -521,12 +523,13 @@ model OfficialLetter {
   /// Kegiatan terkait (proposal/LPJ). Ketua pelaksana dan sekretaris kegiatan diambil dari panitia event ini.
   eventId        String?       @map("event_id")
   event          Event?        @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  @@unique([organizationId, letterNumber])
   @@index([letterDate])
   @@index([eventId])
   @@index([organizationId])
   @@map("official_letters")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 // Atomic sequence per (year, type) for auto-numbering
@@ -534,27 +537,28 @@ model LetterCounter {
   year Int
   type LetterType
   last Int        @default(0)
-  @@id([year, type])
+  @@id([organizationId, year, type])
   @@index([organizationId])
   @@map("letter_counters")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model CmsPost {
   id           String       @id @default(cuid())
   title        String
-  slug         String       @unique
+  slug         String
   content      Json
   category     PostCategory
   thumbnailUrl String?      @map("thumbnail_url")
   publishedAt  DateTime?    @map("published_at")
   authorId     String       @map("author_id")
   author       User         @relation(fields: [authorId], references: [id])
+  @@unique([organizationId, slug])
   @@index([organizationId])
   @@map("cms_posts")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model Feedback {
@@ -574,8 +578,8 @@ model Feedback {
   @@index([status, createdAt])
   @@index([organizationId])
   @@map("feedbacks")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {
@@ -589,18 +593,19 @@ model AuditLog {
   user      User?    @relation(fields: [userId], references: [id])
   @@index([organizationId])
   @@map("audit_logs")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model AppSetting {
-  key       String   @id
+  key       String
   value     String
   updatedAt DateTime @updatedAt @map("updated_at")
+  @@id([organizationId, key])
   @@index([organizationId])
   @@map("app_settings")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model Account {
@@ -640,8 +645,8 @@ model Resource {
   @@index([category, createdAt])
   @@index([organizationId])
   @@map("resources")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model RateLimit {
@@ -680,8 +685,8 @@ model Notification {
   @@index([userId, createdAt])
   @@index([organizationId])
   @@map("notifications")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 enum NotificationChannel {
@@ -731,8 +736,8 @@ model NotificationPreference {
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([organizationId])
   @@map("notification_preferences")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model NotificationConsent {
@@ -749,8 +754,8 @@ model NotificationConsent {
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([organizationId])
   @@map("notification_consents")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 
@@ -769,6 +774,6 @@ model PasswordResetToken {
   @@index([expiresAt])
   @@index([organizationId])
   @@map("password_reset_tokens")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String @default(dbgenerated("current_setting('app.current_org', true)"))       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }

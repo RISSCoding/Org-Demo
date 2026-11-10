@@ -25,6 +25,7 @@ const dt = z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Format tanggal t
 export async function saveCommitteeSettingsAction(_: FormState, fd: FormData): Promise<FormState> {
   const eventId = String(fd.get("eventId") ?? "");
   const actor = await requireEventManager(eventId);
+  const tenantPrisma = getTenantPrisma(actor.user.organizationId!);
 
   const event = await tenantPrisma.event.findUnique({
     where: { id: eventId },
@@ -66,6 +67,7 @@ const divisionSchema = z.object({
 export async function saveDivisionAction(_: FormState, fd: FormData): Promise<FormState> {
   const eventId = String(fd.get("eventId") ?? "");
   const actor = await requireEventManager(eventId);
+  const tenantPrisma = getTenantPrisma(actor.user.organizationId!);
   const id = Number(fd.get("id") ?? 0) || null;
   const quotaRaw = String(fd.get("quota") ?? "").trim();
 
@@ -105,6 +107,7 @@ export async function saveDivisionAction(_: FormState, fd: FormData): Promise<Fo
 export async function deleteDivisionAction(_: FormState, fd: FormData): Promise<FormState> {
   const eventId = String(fd.get("eventId") ?? "");
   const actor = await requireEventManager(eventId);
+  const tenantPrisma = getTenantPrisma(actor.user.organizationId!);
   const id = Number(fd.get("id") ?? 0);
 
   const div = await tenantPrisma.committeeDivision.findFirst({ where: { id, eventId }, select: { id: true, name: true } });
@@ -194,6 +197,7 @@ export async function applyCommitteeAction(_: FormState, fd: FormData): Promise<
 
 export async function withdrawCommitteeAction(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requirePermission();
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const eventId = String(fd.get("eventId") ?? "");
   const app = await tenantPrisma.committeeApplication.findUnique({
     where: { eventId_userId: { eventId, userId: user.id } },
@@ -219,6 +223,8 @@ const decisionSchema = z.object({
 });
 
 export async function decideApplicationAction(_: FormState, fd: FormData): Promise<FormState> {
+  const caller = await requirePermission();
+  const tenantPrisma = getTenantPrisma(caller.organizationId!);
   const divRaw = String(fd.get("divisionId") ?? "");
   const parsed = decisionSchema.safeParse({
     applicationId: fd.get("applicationId"),

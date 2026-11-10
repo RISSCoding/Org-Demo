@@ -19,11 +19,14 @@ export async function createResetToken(userId: string, ip: string | null): Promi
   const tokenHash = hashToken(token);
   const expiresAt = new Date(Date.now() + TOKEN_TTL_MINUTES * 60_000);
 
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { organizationId: true } });
+  if (!user) throw new Error(`User ${userId} tidak ditemukan`);
+
   await prisma.$transaction([
     // Invalidasi semua token lama user ini (termasuk yang belum kadaluarsa).
     prisma.passwordResetToken.deleteMany({ where: { userId } }),
     prisma.passwordResetToken.create({
-      data: { userId, tokenHash, expiresAt, requestedIp: ip },
+      data: { userId, tokenHash, expiresAt, requestedIp: ip, organizationId: user.organizationId },
     }),
   ]);
 

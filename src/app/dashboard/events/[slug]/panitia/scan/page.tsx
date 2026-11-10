@@ -9,7 +9,7 @@ export const metadata = { title: "Scanner panitia — ORG" };
 
 export default async function CommitteeScan({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const event = await prisma.event.findUnique({ where: { slug }, select: { id: true, title: true, slug: true } });
+  const event = await prisma.event.findFirst({ where: { slug }, select: { id: true, title: true, slug: true } });
   if (!event) notFound();
 
   const access = await getEventAccess(event.id);

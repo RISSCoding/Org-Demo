@@ -42,3 +42,10 @@ next-env.d.ts
 /uploads
 /uploads
 .env.dev
+.env
+.env.local
+uploads/
+
+# Template env: berisi placeholder, bukan nilai asli. Negation harus
+# tetap SETELAH pola yang meng-ignore .env* agar berlaku.
+!.env.example

@@ -14,7 +14,8 @@ export default async function CertificatesPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requirePermission("event:manage");
+  const user = await requirePermission("event:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const { id } = await params;
 
   const event = await tenantPrisma.event.findUnique({

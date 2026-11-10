@@ -41,7 +41,11 @@ export async function rateLimit(rawKey: string, max: number, windowSec: number):
     if (Math.random() < 0.02) {
       void prisma.$executeRaw`DELETE FROM rate_limits WHERE "window_start" < now() - interval '1 day'`.catch(() => {});
     }
-    return { limited: Number(count) > max, retryAfterSec: Math.max(1, Math.ceil(windowSec - Number(elapsed))) };
+    const retry = Math.ceil(windowSec - Number(elapsed));
+    // Postgres now() = transaction start. Di bawah beban paralel, transaksi yang kalah balapan
+    // bisa saja mulai lebih awal dari yang menulis window_start, sehingga elapsed negatif dan
+    // retry melebihi windowSec. Clamp menjamin retryAfterSec di [1, windowSec].
+    return { limited: Number(count) > max, retryAfterSec: Math.min(windowSec, Math.max(1, retry)) };
   } catch (e) {
     console.error("rateLimit gagal, permintaan dibolehkan", e);
     return { limited: false, retryAfterSec: 0 };

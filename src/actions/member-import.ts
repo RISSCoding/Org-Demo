@@ -87,7 +87,7 @@ export async function importMembersChunkAction(input: z.input<typeof chunkSchema
           },
         });
         await tx.member.create({
-          data: { userId: u.id, ktaNumber: await allocateKtaNumber(tx, r.nim, batchYear), status: memberStatus },
+          data: { userId: u.id, ktaNumber: await allocateKtaNumber(tx, admin.organizationId!, r.nim, batchYear), status: memberStatus },
         });
       });
       res.created++;

@@ -17,7 +17,8 @@ export const metadata = { title: "Sekretariat — ORG" };
 type SP = { type?: string; kind?: string; q?: string; year?: string };
 
 export default async function SecretariatPage({ searchParams }: { searchParams: Promise<SP> }) {
-  await requirePermission("secretariat:manage");
+  const user = await requirePermission("secretariat:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const sp = await searchParams;
   const q = sp.q?.trim().slice(0, 100);
   const year = /^\d{4}$/.test(sp.year ?? "") ? Number(sp.year) : undefined;

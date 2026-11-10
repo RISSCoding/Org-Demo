@@ -12,7 +12,8 @@ import { btnPrimary, cardCls } from "@/lib/ui";
 export const metadata = { title: "Event — ORG" };
 
 export default async function AdminEvents() {
-  await requirePermission("event:manage");
+  const user = await requirePermission("event:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
 
   const [events, attended] = await Promise.all([
     tenantPrisma.event.findMany({

@@ -9,9 +9,6 @@ import { requireEventScanner } from "@/lib/committee";
 import { requirePermission, type ActionResult } from "@/lib/rbac";
 import { ticketHash } from "@/lib/security";
 
-const activeCount = (eventId: string) =>
-  tenantPrisma.eventRegistration.count({ where: { eventId, status: { not: "CANCELLED" } } });
-
 export async function registerForEvent(eventId: string): Promise<ActionResult<{ hash: string }>> {
   const user = await requirePermission();
   const tenantPrisma = getTenantPrisma(user.organizationId!);
@@ -25,7 +22,7 @@ export async function registerForEvent(eventId: string): Promise<ActionResult<{ 
   });
   if (existing && existing.status !== "CANCELLED") return { ok: true, data: { hash: existing.qrCodeHash } };
 
-  if (event.quota !== null && (await activeCount(eventId)) >= event.quota) {
+  if (event.quota !== null && (await tenantPrisma.eventRegistration.count({ where: { eventId, status: { not: "CANCELLED" } } })) >= event.quota) {
     return { ok: false, error: "Kuota event sudah penuh." };
   }
 
@@ -49,6 +46,7 @@ export async function registerForEvent(eventId: string): Promise<ActionResult<{ 
 
 export async function cancelRegistration(eventId: string): Promise<ActionResult> {
   const user = await requirePermission();
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const reg = await tenantPrisma.eventRegistration.findUnique({
     where: { eventId_userId: { eventId, userId: user.id } },
   });
@@ -73,6 +71,7 @@ export async function checkInByQr(input: z.infer<typeof checkInSchema>): Promise
   const { eventId, payload } = parsed.data;
   // Pengurus, atau panitia yang sudah diterima di event ini.
   const { user: staff } = await requireEventScanner(eventId);
+  const tenantPrisma = getTenantPrisma(staff.organizationId!);
 
   const scan = parseScan(payload);
   if (!scan) return { ok: false, error: "QR tidak dikenali atau tanda tangannya tidak valid." };

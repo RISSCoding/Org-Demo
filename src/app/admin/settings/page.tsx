@@ -8,8 +8,8 @@ export const metadata = { title: "Pengaturan — ORG" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettings() {
-  await requirePermission("finance:write");
-  const amount = await getDuesAmount();
+  const me = await requirePermission("finance:write");
+  const amount = await getDuesAmount(me.organizationId!);
   return (
     <div className="space-y-6">
       <PageHeader title="Pengaturan" description="Pengaturan umum aplikasi." />

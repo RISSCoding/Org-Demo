@@ -14,13 +14,17 @@ export function ktaBase(npm: string, batchYear: number) {
 /** Kolom `kta_number` unik: bila nomor dasar sudah terpakai, ditambah akhiran -2, -3, … */
 export async function allocateKtaNumber(
   db: Pick<Prisma.TransactionClient, "member">,
+  organizationId: string,
   npm: string,
   batchYear: number,
 ) {
   const base = ktaBase(npm, batchYear);
   for (let i = 1; i <= 20; i++) {
     const candidate = i === 1 ? base : `${base}-${i}`;
-    const taken = await db.member.findUnique({ where: { ktaNumber: candidate }, select: { id: true } });
+    const taken = await db.member.findFirst({
+      where: { organizationId, ktaNumber: candidate },
+      select: { id: true },
+    });
     if (!taken) return candidate;
   }
   throw new Error("Tidak bisa mengalokasikan nomor KTA unik");

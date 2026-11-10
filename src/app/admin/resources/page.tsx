@@ -18,7 +18,8 @@ export default async function AdminResources({
 }: {
   searchParams: Promise<{ error?: string; ok?: string }>;
 }) {
-  await requirePermission("cms:write");
+  const user = await requirePermission("cms:write");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const { error, ok } = await searchParams;
   const items = await tenantPrisma.resource.findMany({ orderBy: { createdAt: "desc" } });
 

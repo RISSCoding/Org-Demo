@@ -33,6 +33,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Tes dijalankan lewat `tsx --test` (skrip `test` di package.json), jadi butuh Node; glob di
+      # `--test` baru didukung mulai Node 21; 22 adalah LTS.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -64,7 +70,7 @@ jobs:
 
       - run: bun run lint
       - run: bunx next typegen
-      - run: bunx next typegen
       - run: bun run typecheck
-      - run: bun test
+      # Sama dengan yang dijalankan lokal (`bun test` memakai runner Bun, bukan node:test + tsx).
+      - run: bun run test
       - run: bun run build

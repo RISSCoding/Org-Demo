@@ -12,12 +12,10 @@ import type { FormState } from "@/types/forms";
 
 const FIELD = "signature";
 
-async function meId() {
+async function me() {
   const session = await auth();
   if (!session?.user) throw new UnauthorizedError();
-
-  const tenantPrisma = getTenantPrisma(session!.user.organizationId!);
-  return session.user.id;
+  return { userId: session.user.id, tenantPrisma: getTenantPrisma(session.user.organizationId!) };
 }
 
 /** Berkas dari formulir -> URL tersimpan, atau pesan galat yang aman ditampilkan. */
@@ -42,7 +40,7 @@ const refresh = () => {
 
 /** Siapa pun yang sudah login mengunggah tanda tangannya sendiri: ketua pelaksana, sekretaris kegiatan, ketua divisi, pengurus. */
 export async function saveMySignatureAction(_: FormState, fd: FormData): Promise<FormState> {
-  const userId = await meId();
+  const { userId, tenantPrisma } = await me();
   const read = await readSignature(fd);
   if ("error" in read) return { error: read.error };
 
@@ -58,7 +56,7 @@ export async function saveMySignatureAction(_: FormState, fd: FormData): Promise
 }
 
 export async function removeMySignatureAction(): Promise<FormState> {
-  const userId = await meId();
+  const { userId, tenantPrisma } = await me();
   const before = await tenantPrisma.user.findUnique({ where: { id: userId }, select: { signatureUrl: true } });
   if (!before?.signatureUrl) return { error: "Belum ada tanda tangan yang tersimpan." };
 
@@ -79,7 +77,7 @@ export async function removeMySignatureAction(): Promise<FormState> {
  * jadi pengurus yang mengunggahnya atas nama mereka. Pemegang yang punya akun TIDAK bisa diunggahkan orang lain:
  * tanda tangan mereka hanya berasal dari akun mereka sendiri.
  */
-async function manualHolder(fd: FormData) {
+async function manualHolder(tenantPrisma: ReturnType<typeof getTenantPrisma>, fd: FormData) {
   const id = Number(fd.get("id"));
   if (!Number.isInteger(id)) return { error: "Data tidak valid." } as const;
   const officer = await tenantPrisma.orgOfficer.findUnique({ where: { id }, select: { id: true, userId: true, signatureUrl: true } });
@@ -92,8 +90,9 @@ async function manualHolder(fd: FormData) {
 
 export async function saveOfficerSignatureAction(_: FormState, fd: FormData): Promise<FormState> {
   const admin = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(admin.organizationId!);
 
-  const target = await manualHolder(fd);
+  const target = await manualHolder(tenantPrisma, fd);
   if ("error" in target) return { error: target.error };
 
   const read = await readSignature(fd);
@@ -112,7 +111,8 @@ export async function saveOfficerSignatureAction(_: FormState, fd: FormData): Pr
 
 export async function removeOfficerSignatureAction(_: FormState, fd: FormData): Promise<FormState> {
   const admin = await requirePermission("member:manage");
-  const target = await manualHolder(fd);
+  const tenantPrisma = getTenantPrisma(admin.organizationId!);
+  const target = await manualHolder(tenantPrisma, fd);
   if ("error" in target) return { error: target.error };
 
   const { officer } = target;

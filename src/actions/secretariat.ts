@@ -37,7 +37,10 @@ const base = {
 };
 
 /** Kegiatan yang ditautkan harus ada; mengembalikan galat bidang bila tidak. */
-async function checkEvent(eventId: string | undefined): Promise<FormState | null> {
+async function checkEvent(
+  tenantPrisma: ReturnType<typeof getTenantPrisma>,
+  eventId: string | undefined,
+): Promise<FormState | null> {
   if (!eventId) return null;
   const ev = await tenantPrisma.event.findUnique({ where: { id: eventId }, select: { id: true } });
   return ev ? null : fail({ eventId: ["Kegiatan tidak ditemukan."] });
@@ -112,7 +115,7 @@ export async function createLetterAction(_: FormState, fd: FormData): Promise<Fo
   const isIn = d.type === "SURAT_MASUK";
   const needsApproval = isApprovalDoc(d.type);
 
-  const badEvent = needsApproval ? await checkEvent(d.eventId) : null;
+  const badEvent = needsApproval ? await checkEvent(tenantPrisma, d.eventId) : null;
   if (badEvent) return badEvent;
 
   const doc = await readPdf(fd);
@@ -130,8 +133,8 @@ export async function createLetterAction(_: FormState, fd: FormData): Promise<Fo
       if (isAutoNumbered(d.type)) {
         // Atomic per (year, type): concurrent submissions can't receive the same sequence.
         const counter = await tx.letterCounter.upsert({
-          where: { year_type: { year, type: d.type } },
-          create: { year, type: d.type, last: 1 },
+          where: { organizationId_year_type: { organizationId: user.organizationId!, year, type: d.type } },
+          create: { organizationId: user.organizationId!, year, type: d.type, last: 1 },
           update: { last: { increment: 1 } },
         });
         letterNumber = formatLetterNumber(numberCode(d.type, kind)!, counter.last, activity, year, month);
@@ -175,6 +178,7 @@ export async function createLetterAction(_: FormState, fd: FormData): Promise<Fo
 /** Nomor, jenis, dan tanggal surat bernomor otomatis tidak diubah (nomor memuat bulan, tahun, dan kode jenis). */
 export async function updateLetterAction(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requirePermission("secretariat:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const id = String(fd.get("id") ?? "");
   const letter = await tenantPrisma.officialLetter.findUnique({ where: { id } });
   if (!letter) return { error: "Surat tidak ditemukan." };
@@ -199,7 +203,7 @@ export async function updateLetterAction(_: FormState, fd: FormData): Promise<Fo
   const isIn = letter.type === "SURAT_MASUK";
   const needsApproval = isApprovalDoc(letter.type);
 
-  const badEvent = needsApproval ? await checkEvent(d.eventId) : null;
+  const badEvent = needsApproval ? await checkEvent(tenantPrisma, d.eventId) : null;
   if (badEvent) return badEvent;
 
   const doc = await readPdf(fd);
@@ -236,6 +240,7 @@ const dayOf = (d: Date) =>
 /** PO Pasal 3 ayat 6: surat masuk dicatat lalu diteruskan kepada Ketua. */
 export async function forwardLetterAction(fd: FormData): Promise<void> {
   const user = await requirePermission("secretariat:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const id = String(fd.get("id") ?? "");
   const letter = await tenantPrisma.officialLetter.findUnique({ where: { id }, select: { type: true, forwardedAt: true } });
   if (!letter || letter.type !== "SURAT_MASUK" || letter.forwardedAt) return;
@@ -250,6 +255,7 @@ export async function forwardLetterAction(fd: FormData): Promise<void> {
 /** Archive integrity: only SUPER_ADMIN may delete, and the sequence number is never reused. */
 export async function deleteLetterAction(fd: FormData): Promise<void> {
   const user = await requirePermission("secretariat:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   if (user.role !== "SUPER_ADMIN") throw new ForbiddenError("Hanya Super Admin yang boleh menghapus surat.");
   const id = String(fd.get("id") ?? "");
   const letter = await tenantPrisma.officialLetter.findUnique({ where: { id } });

@@ -16,7 +16,8 @@ export default async function AdminCommittee({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ s?: string }>;
 }) {
-  await requirePermission("event:manage");
+  const user = await requirePermission("event:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const { id } = await params;
   const { s } = await searchParams;
   const event = await tenantPrisma.event.findUnique({ where: { id }, select: { id: true, slug: true, title: true, startDate: true, location: true } });

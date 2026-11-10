@@ -20,7 +20,11 @@ export async function saveDuesAmountAction(_: FormState, fd: FormData): Promise<
   if (!parsed.success) return { error: "Periksa kembali isian.", fieldErrors: parsed.error.flatten().fieldErrors };
 
   const value = String(parsed.data.amount);
-  await tenantPrisma.appSetting.upsert({ where: { key: "dues_amount" }, create: { key: "dues_amount", value }, update: { value } });
+  await tenantPrisma.appSetting.upsert({
+    where: { organizationId_key: { organizationId: user.organizationId!, key: "dues_amount" } },
+    create: { organizationId: user.organizationId!, key: "dues_amount", value },
+    update: { value },
+  });
   await tenantPrisma.auditLog.create({
     data: { userId: user.id, action: "UPDATE_SETTING", entity: "app_settings", entityId: "dues_amount", meta: { value } },
   });

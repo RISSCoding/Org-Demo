@@ -8,7 +8,8 @@ import { requirePermission } from "@/lib/rbac";
 export const metadata = { title: "Scanner — ORG" };
 
 export default async function ScanPage({ params }: { params: Promise<{ id: string }> }) {
-  await requirePermission("event:manage");
+  const user = await requirePermission("event:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const { id } = await params;
   const event = await tenantPrisma.event.findUnique({ where: { id }, select: { id: true, title: true } });
   if (!event) notFound();

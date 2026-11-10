@@ -85,6 +85,7 @@ export async function addTransactionAction(_: FormState, fd: FormData): Promise<
 /** Four-eyes rule: you can't verify what you entered yourself (SUPER_ADMIN excepted). */
 export async function verifyTransaction(fd: FormData): Promise<void> {
   const user = await requirePermission("finance:write");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const id = String(fd.get("id") ?? "");
   const tx = await tenantPrisma.financialTransaction.findUnique({ where: { id } });
   if (!tx || tx.verifiedBy) return;
@@ -103,6 +104,7 @@ export async function verifyTransaction(fd: FormData): Promise<void> {
 /** Only unverified, hand-entered transactions can be deleted (by the creator or SUPER_ADMIN). */
 export async function deleteTransaction(fd: FormData): Promise<void> {
   const user = await requirePermission("finance:write");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const id = String(fd.get("id") ?? "");
   const tx = await tenantPrisma.financialTransaction.findUnique({
     where: { id },
@@ -127,6 +129,7 @@ const generateSchema = z.object({
 
 export async function generateDuesAction(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requirePermission("finance:write");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const parsed = generateSchema.safeParse({
     month: fd.get("month"),
     amount: fd.get("amount") === "" ? undefined : Number(fd.get("amount")),
@@ -145,8 +148,8 @@ export async function generateDuesAction(_: FormState, fd: FormData): Promise<Fo
     skipDuplicates: true,
   });
   await tenantPrisma.appSetting.upsert({
-    where: { key: "dues_amount" },
-    create: { key: "dues_amount", value: String(amount) },
+    where: { organizationId_key: { organizationId: user.organizationId!, key: "dues_amount" } },
+    create: { organizationId: user.organizationId!, key: "dues_amount", value: String(amount) },
     update: { value: String(amount) },
   });
   await tenantPrisma.auditLog.create({
@@ -160,6 +163,7 @@ export async function generateDuesAction(_: FormState, fd: FormData): Promise<Fo
 /** Approves a member's proof, or records a cash payment when there is no proof. */
 export async function approveDues(fd: FormData): Promise<void> {
   const user = await requirePermission("finance:write");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const id = String(fd.get("id") ?? "");
   const dues = await tenantPrisma.memberDues.findUnique({
     where: { id },
@@ -206,6 +210,7 @@ export async function approveDues(fd: FormData): Promise<void> {
 
 export async function rejectDues(fd: FormData): Promise<void> {
   const user = await requirePermission("finance:write");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const id = String(fd.get("id") ?? "");
   const dues = await tenantPrisma.memberDues.findUnique({ where: { id } });
   if (!dues || dues.status === "PAID" || !dues.proofUrl) return;

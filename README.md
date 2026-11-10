@@ -11,7 +11,7 @@
   [![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma&logoColor=fff)](https://www.prisma.io)
   [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=fff)](https://www.postgresql.org)
   [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=fff)](https://tailwindcss.com)
-  [![License](https://img.shields.io/badge/license-MIT-green)](#lisensi)
+  [![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](#lisensi)
 
   <p>
     <a href="#-fitur">Fitur</a> ·

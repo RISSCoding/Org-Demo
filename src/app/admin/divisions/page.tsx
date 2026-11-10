@@ -18,7 +18,8 @@ export default async function AdminDivisions({
 }: {
   searchParams: Promise<{ error?: string; ok?: string }>;
 }) {
-  await requirePermission("member:manage");
+  const user = await requirePermission("member:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const { error, ok } = await searchParams;
 
   const [divisions, users, officers] = await Promise.all([

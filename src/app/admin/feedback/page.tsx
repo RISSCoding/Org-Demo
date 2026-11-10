@@ -20,7 +20,8 @@ export const dynamic = "force-dynamic";
 type SP = { q?: string; status?: string; category?: string };
 
 export default async function FeedbackInbox({ searchParams }: { searchParams: Promise<SP> }) {
-  await requirePermission("aspirasi:manage");
+  const user = await requirePermission("aspirasi:manage");
+  const tenantPrisma = getTenantPrisma(user.organizationId!);
   const sp = await searchParams;
   const q = sp.q?.trim().slice(0, 100);
 

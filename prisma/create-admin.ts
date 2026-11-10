@@ -9,6 +9,17 @@ async function main() {
   if (!ADMIN_NIM || !ADMIN_EMAIL || !ADMIN_PASSWORD) {
     throw new Error("Set ADMIN_NIM, ADMIN_EMAIL and ADMIN_PASSWORD");
   }
+
+  // Organisasi default. Sama dengan yang dibuat prisma/seed.ts; jalankan seed dulu
+  // bila organisasi ini belum ada.
+  const subdomain = process.env.SEED_ORG_SUBDOMAIN ?? "demo";
+  const org = await prisma.organization.findUnique({ where: { subdomain } });
+  if (!org) {
+    throw new Error(
+      `Organisasi "${subdomain}" belum ada. Jalankan prisma/seed.ts dulu, atau set SEED_ORG_SUBDOMAIN ke subdomain lain.`,
+    );
+  }
+
   const role = await prisma.role.findUniqueOrThrow({ where: { name: "SUPER_ADMIN" } });
   const user = await prisma.user.upsert({
     where: { nim: ADMIN_NIM },
@@ -21,12 +32,13 @@ async function main() {
       batchYear: new Date().getFullYear(),
       roleId: role.id,
       approvalStatus: "APPROVED",
+      organizationId: org.id,
     },
   });
   const existing = await prisma.member.findUnique({ where: { userId: user.id }, select: { id: true } });
   if (!existing) {
     await prisma.member.create({
-      data: { userId: user.id, ktaNumber: await allocateKtaNumber(prisma, ADMIN_NIM, user.batchYear) },
+      data: { userId: user.id, ktaNumber: await allocateKtaNumber(prisma, org.id, ADMIN_NIM, user.batchYear), organizationId: org.id },
     });
   }
   console.log(`SUPER_ADMIN ready: ${user.email}`);
