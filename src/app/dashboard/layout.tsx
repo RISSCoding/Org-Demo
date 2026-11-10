@@ -31,7 +31,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     }
   }
 
-  const counts = await getShellCounts({ id: u.id, role: u.role, permissions: u.permissions });
+  const counts = await getShellCounts({ id: u.id, role: u.role, permissions: u.permissions, organizationId: u.organizationId });
 
   return (
     <AppShell

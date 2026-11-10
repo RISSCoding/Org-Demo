@@ -173,50 +173,42 @@ describe("isolasi tenant (database)", { skip }, () => {
 
   // ── 2. Kebocoran yang diketahui (perilaku BENAR ditulis; lulus selama masih bocor) ──
   describe("kebocoran yang diketahui", () => {
-    knownLeak("A2-findUnique", "findUnique atas ID milik org lain harus mengembalikan null", async () => {
-      // prisma-tenant.ts: `findFirst({ where: {...where, organizationId}, ...args })` — `...args`
-      // menimpa `where`, sehingga filter organisasi hilang.
+    it("findUnique atas ID milik org lain mengembalikan null", { skip }, async () => {
       const { getTenantPrisma } = await import("@/lib/prisma-tenant");
       const row = await getTenantPrisma(fx.orgA).event.findUnique({ where: { id: fx.eventB } });
       assert.equal(row, null);
     });
 
-    knownLeak("A2-findUniqueOrThrow", "findUniqueOrThrow atas ID milik org lain harus melempar", async () => {
+    it("findUniqueOrThrow atas ID milik org lain melempar", { skip }, async () => {
       const { getTenantPrisma } = await import("@/lib/prisma-tenant");
       await assert.rejects(getTenantPrisma(fx.orgA).event.findUniqueOrThrow({ where: { id: fx.eventB } }));
     });
 
-    knownLeak("A2-upsert", "upsert atas baris milik org lain tidak boleh mengubahnya", async () => {
-      // `upsert` tidak ditangani oleh ekstensi sama sekali.
+    it("upsert atas baris milik org lain tidak mengubahnya", { skip }, async () => {
       const { getTenantPrisma } = await import("@/lib/prisma-tenant");
       const { prisma } = await import("@/lib/prisma");
-      try {
-        await getTenantPrisma(fx.orgA).event.upsert({
-          where: { id: fx.eventB },
-          update: { title: "DIRETAS-UPSERT" },
-          create: {
-            title: "x",
-            slug: `iso-upsert-${run}`,
-            description: "x",
-            startDate: new Date(),
-            endDate: new Date(),
-            location: "x",
-            createdBy: fx.userA,
-          },
-        });
-      } catch {
-        // ditolak = benar; lanjut ke pemeriksaan data di bawah
-      }
+      await getTenantPrisma(fx.orgA).event.upsert({
+        where: { id: fx.eventB },
+        update: { title: "DIRETAS-UPSERT" },
+        create: {
+          title: "x",
+          slug: `iso-upsert-${run}`,
+          description: "x",
+          startDate: new Date(),
+          endDate: new Date(),
+          location: "x",
+          createdBy: fx.userA,
+        },
+      });
       const row = await prisma.event.findUniqueOrThrow({ where: { id: fx.eventB } });
       assert.equal(row.title, "Event b");
     });
 
-    knownLeak("A2-shell-counts", "getShellCounts org A tidak boleh menghitung antrean persetujuan org B", async () => {
-      // src/lib/shell-counts.ts memakai `prisma` mentah: `user.count({ where: { approvalStatus: "PENDING" } })`.
+    it("getShellCounts org A tidak menghitung antrean persetujuan org B", { skip }, async () => {
       const { getShellCounts } = await import("@/lib/shell-counts");
       const admin = { id: fx.userA, role: "SUPER_ADMIN", permissions: [] as string[], organizationId: fx.orgA };
       const counts = await getShellCounts(admin);
-      assert.equal(counts.members, undefined); // org A tidak punya antrean; yang PENDING milik org B
+      assert.equal(counts.members, undefined);
     });
 
     knownLeak("A3-organization-id-not-null", "semua kolom organization_id bertipe NOT NULL", async () => {
@@ -320,7 +312,7 @@ const RAW_ACCESS_BASELINE = new Map<string, number>([
   ["src/lib/organization.ts", 2],
   ["src/lib/password-reset.ts", 6],
   ["src/lib/rate-limit.ts", 2],
-  ["src/lib/shell-counts.ts", 5],
+  // shell-counts.ts sudah migrasi ke getTenantPrisma; entri baseline dihapus.
   ["src/lib/site-data.ts", 4],
 ]);
 

@@ -45,18 +45,39 @@ export function getTenantPrisma(organizationId: string) {
             }
           }
 
-          // 4. findUnique / findUniqueOrThrow: 
+          // 4. findUnique / findUniqueOrThrow:
           // Prisma tidak mengizinkan filter non-unique (organizationId) di findUnique.
-          // Solusinya: gunakan findFirst dengan filter ID + organizationId.
-          if (["findUnique", "findUniqueOrThrow"].includes(operation)) {
-            const uniqueWhere = { ...(args as any).where };
-            return (prisma as any)[model].findFirst({
-              where: { ...uniqueWhere, organizationId },
-              ...args,
-            });
+          // Solusinya: konversi ke findFirst/findFirstOrThrow dengan filter ID + organizationId.
+          // Spread `args` LEBIH DULU, lalu timpa `where` — bila urutannya dibalik, `args.where`
+          // menimpa `organizationId` dan filter isolasi hilang.
+          if (operation === "findUnique" || operation === "findUniqueOrThrow") {
+            const where = { ...(args as any).where, organizationId };
+            const finder = operation === "findUnique" ? "findFirst" : "findFirstOrThrow";
+            return (prisma as any)[model][finder]({ ...args, where });
           }
 
-          // 5. Update / Delete (single): 
+          // 5. Upsert: Prisma meng-upsert pada unique field yang bisa saja milik org lain,
+          // sehingga tanpa guard ia bisa menimpa baris tenant lain. Cek dulu apakah baris
+          // dengan where + organizationId sudah ada; jika ya → jalankan update (aman);
+          // jika tidak → jalankan create. Kolisi dengan org lain akan memicu P2002 dari
+          // unique constraint, yang justru benar (menolak menimpa baris orang lain).
+          if (operation === "upsert") {
+            const upsertArgs = args as any;
+            const existing = await (prisma as any)[model].findFirst({
+              where: { ...upsertArgs.where, organizationId },
+              select: { id: true },
+            });
+            if (existing) {
+              return query(args);
+            }
+            const createArgs: any = { data: { ...upsertArgs.create, organizationId } };
+            if (upsertArgs.select) createArgs.select = upsertArgs.select;
+            if (upsertArgs.include) createArgs.include = upsertArgs.include;
+            if (upsertArgs.omit) createArgs.omit = upsertArgs.omit;
+            return (prisma as any)[model].create(createArgs);
+          }
+
+          // 6. Update / Delete (single): 
           // Pastikan data milik org ini sebelum update/delete.
           if (["update", "delete"].includes(operation)) {
             const uniqueWhere = { ...(args as any).where };
