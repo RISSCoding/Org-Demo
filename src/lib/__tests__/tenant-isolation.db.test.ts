@@ -211,7 +211,7 @@ describe("isolasi tenant (database)", { skip }, () => {
       assert.equal(counts.members, undefined);
     });
 
-    knownLeak("A3-organization-id-not-null", "semua kolom organization_id bertipe NOT NULL", async () => {
+    it("semua kolom organization_id bertipe NOT NULL", { skip }, async () => {
       const { prisma } = await import("@/lib/prisma");
       const rows = await prisma.$queryRaw<{ table_name: string }[]>`
         SELECT c.table_name::text

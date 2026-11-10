@@ -255,8 +255,8 @@ model User {
   passwordResetTokens    PasswordResetToken[]
   @@index([organizationId])
   @@map("users")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model Division {
@@ -266,8 +266,8 @@ model Division {
   members  Member[]
   @@index([organizationId])
   @@map("divisions")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 // Pengurus inti (Ketua, Wakil Ketua, Sekretaris Umum, Bendahara Umum), penandatangan eksternal (Ketua Prodi,
@@ -288,8 +288,8 @@ model OrgOfficer {
   @@index([position])
   @@index([organizationId])
   @@map("org_officers")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model Member {
@@ -304,8 +304,8 @@ model Member {
   division   Division?    @relation(fields: [divisionId], references: [id])
   @@index([organizationId])
   @@map("members")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model Event {
@@ -331,8 +331,8 @@ model Event {
   letters       OfficialLetter[]
   @@index([organizationId])
   @@map("events")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model EventRegistration {
@@ -347,8 +347,8 @@ model EventRegistration {
   @@unique([eventId, userId])
   @@index([organizationId])
   @@map("event_registrations")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model CommitteeDivision {
@@ -365,8 +365,8 @@ model CommitteeDivision {
   @@unique([eventId, name])
   @@index([organizationId])
   @@map("committee_divisions")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model CommitteeApplication {
@@ -395,8 +395,8 @@ model CommitteeApplication {
   @@index([userId])
   @@index([organizationId])
   @@map("committee_applications")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 /// Rapat panitia yang diselenggarakan sekretaris. Semua panitia diterima wajib absen.
@@ -416,8 +416,8 @@ model CommitteeMeeting {
   @@index([eventId, startsAt])
   @@index([organizationId])
   @@map("committee_meetings")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model CommitteeMeetingAttendance {
@@ -452,8 +452,8 @@ model Certificate {
   @@unique([eventId, userId])
   @@index([organizationId])
   @@map("certificates")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model FinancialTransaction {
@@ -476,8 +476,8 @@ model FinancialTransaction {
   @@index([date])
   @@index([organizationId])
   @@map("financial_transactions")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model MemberDues {
@@ -495,8 +495,8 @@ model MemberDues {
   @@unique([userId, monthYear])
   @@index([organizationId])
   @@map("member_dues")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model OfficialLetter {
@@ -525,8 +525,8 @@ model OfficialLetter {
   @@index([eventId])
   @@index([organizationId])
   @@map("official_letters")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 // Atomic sequence per (year, type) for auto-numbering
@@ -537,8 +537,8 @@ model LetterCounter {
   @@id([year, type])
   @@index([organizationId])
   @@map("letter_counters")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model CmsPost {
@@ -553,8 +553,8 @@ model CmsPost {
   author       User         @relation(fields: [authorId], references: [id])
   @@index([organizationId])
   @@map("cms_posts")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model Feedback {
@@ -574,8 +574,8 @@ model Feedback {
   @@index([status, createdAt])
   @@index([organizationId])
   @@map("feedbacks")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {
@@ -589,8 +589,8 @@ model AuditLog {
   user      User?    @relation(fields: [userId], references: [id])
   @@index([organizationId])
   @@map("audit_logs")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model AppSetting {
@@ -599,8 +599,8 @@ model AppSetting {
   updatedAt DateTime @updatedAt @map("updated_at")
   @@index([organizationId])
   @@map("app_settings")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model Account {
@@ -640,8 +640,8 @@ model Resource {
   @@index([category, createdAt])
   @@index([organizationId])
   @@map("resources")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model RateLimit {
@@ -680,8 +680,8 @@ model Notification {
   @@index([userId, createdAt])
   @@index([organizationId])
   @@map("notifications")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 enum NotificationChannel {
@@ -731,8 +731,8 @@ model NotificationPreference {
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([organizationId])
   @@map("notification_preferences")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model NotificationConsent {
@@ -749,8 +749,8 @@ model NotificationConsent {
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([organizationId])
   @@map("notification_consents")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 
@@ -769,6 +769,6 @@ model PasswordResetToken {
   @@index([expiresAt])
   @@index([organizationId])
   @@map("password_reset_tokens")
-  organizationId String?       @map("organization_id")
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
