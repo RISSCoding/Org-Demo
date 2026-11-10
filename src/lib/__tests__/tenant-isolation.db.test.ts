@@ -224,10 +224,11 @@ describe("isolasi tenant (database)", { skip }, () => {
       assert.deepEqual(rows.map((r) => r.table_name), []);
     });
 
-    knownLeak("A3-unique-per-tenant", "kunci alami (slug, nomor surat, dst.) unik per organisasi, bukan global", async () => {
-      // Dikecualikan: `users` (menunggu keputusan model identitas, A3) dan kunci acak/HMAC yang memang
-      // sengaja global (tracking_code, qr_code_hash, token_hash). Indeks yang memuat kolom *_id
-      // (mis. event_id+user_id) mewarisi isolasi dari induknya dan tidak diperiksa di sini.
+    it("kunci alami (slug, nomor surat, dst.) unik per organisasi, bukan global", { skip }, async () => {
+      // Dikecualikan: `users` (menunggu keputusan model identitas), kunci acak/HMAC yang
+      // memang sengaja global (tracking_code, qr_code_hash, token_hash), dan
+      // certificate_number (diverifikasi publik tanpa tau tenant). Indeks yang memuat
+      // kolom *_id (mis. event_id+user_id) mewarisi isolasi dari induknya.
       const { prisma } = await import("@/lib/prisma");
       const rows = await prisma.$queryRaw<{ table_name: string; cols: string[] }[]>`
         WITH tt AS (
@@ -250,6 +251,11 @@ describe("isolasi tenant (database)", { skip }, () => {
           AND NOT (x.table_name = 'feedbacks' AND x.cols = ARRAY['tracking_code'])
           AND NOT (x.table_name = 'event_registrations' AND x.cols = ARRAY['qr_code_hash'])
           AND NOT (x.table_name = 'password_reset_tokens' AND x.cols = ARRAY['token_hash'])
+          AND NOT (x.table_name = 'certificates' AND x.cols = ARRAY['certificate_number'])
+          -- Primary key tunggal pada kolom id: global by design (seperti UUID),
+          -- tidak dimaksudkan unik per tenant. Yang diperiksa tes ini adalah kunci
+          -- alami (slug, nama, nomor) yang seharusnya unik per organisasi.
+          AND NOT (x.cols = ARRAY['id'])
         ORDER BY 1`;
       assert.deepEqual(rows, []);
     });

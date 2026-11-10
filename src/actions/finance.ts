@@ -148,8 +148,8 @@ export async function generateDuesAction(_: FormState, fd: FormData): Promise<Fo
     skipDuplicates: true,
   });
   await tenantPrisma.appSetting.upsert({
-    where: { key: "dues_amount" },
-    create: { key: "dues_amount", value: String(amount) },
+    where: { organizationId_key: { organizationId: user.organizationId!, key: "dues_amount" } },
+    create: { organizationId: user.organizationId!, key: "dues_amount", value: String(amount) },
     update: { value: String(amount) },
   });
   await tenantPrisma.auditLog.create({

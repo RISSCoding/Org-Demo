@@ -33,7 +33,7 @@ export async function savePostAction(_: FormState, fd: FormData): Promise<FormSt
   const uniqueSlug = async (title: string) => {
     const base = slugify(title);
     let slug = base;
-    while (await tenantPrisma.cmsPost.findUnique({ where: { slug }, select: { id: true } })) slug = withSuffix(base);
+    while (await tenantPrisma.cmsPost.findFirst({ where: { slug }, select: { id: true } })) slug = withSuffix(base);
     return slug;
   };
 

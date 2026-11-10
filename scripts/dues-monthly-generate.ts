@@ -30,7 +30,9 @@ async function main() {
   }
 
   // 1. Baca nominal dari setting
-  const setting = await prisma.appSetting.findUnique({ where: { key: "dues_amount" } });
+  const setting = await prisma.appSetting.findUnique({
+    where: { organizationId_key: { organizationId: org.id, key: "dues_amount" } },
+  });
   const amount = Number(setting?.value ?? 0);
   if (!amount || amount <= 0) {
     console.error("Nominal iuran belum diatur. Isi di /admin/settings.");

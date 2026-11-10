@@ -23,7 +23,7 @@ export async function createDivisionAction(fd: FormData): Promise<void> {
   const name = nameSchema.safeParse(fd.get("name"));
   if (!name.success) return back("error", name.error.issues[0].message);
 
-  if (await tenantPrisma.division.findUnique({ where: { name: name.data }, select: { id: true } })) {
+  if (await tenantPrisma.division.findFirst({ where: { name: name.data }, select: { id: true } })) {
     return back("error", "Nama divisi sudah dipakai.");
   }
   const d = await tenantPrisma.division.create({ data: { name: name.data } });

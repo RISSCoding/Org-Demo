@@ -28,7 +28,7 @@ export async function decideUser(formData: FormData): Promise<void> {
       await tx.member.upsert({
         where: { userId: u.id },
         update: {},
-        create: { userId: u.id, ktaNumber: await allocateKtaNumber(tx, u.nim, u.batchYear) },
+        create: { userId: u.id, ktaNumber: await allocateKtaNumber(tx, admin.organizationId!, u.nim, u.batchYear) },
       });
     }
     await tx.auditLog.create({

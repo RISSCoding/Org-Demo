@@ -19,7 +19,7 @@ export default async function MemberCommittee({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const event = await prisma.event.findUnique({
+  const event = await prisma.event.findFirst({
     where: { slug },
     select: { id: true, title: true, slug: true, startDate: true, endDate: true, location: true, committeeOpen: true, committeeDeadline: true },
   });

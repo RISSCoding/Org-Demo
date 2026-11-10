@@ -22,7 +22,7 @@ export default async function MemberEventDetail({ params }: { params: Promise<{ 
 
   const userId = session!.user.id;
 
-  const event = await tenantPrisma.event.findUnique({
+  const event = await tenantPrisma.event.findFirst({
     where: { slug },
     include: { _count: { select: { registrations: { where: { status: { not: "CANCELLED" } } } } } },
   });

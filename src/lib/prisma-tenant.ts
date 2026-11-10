@@ -51,9 +51,16 @@ export function getTenantPrisma(organizationId: string) {
           // Spread `args` LEBIH DULU, lalu timpa `where` — bila urutannya dibalik, `args.where`
           // menimpa `organizationId` dan filter isolasi hilang.
           if (operation === "findUnique" || operation === "findUniqueOrThrow") {
-            const where = { ...(args as any).where, organizationId };
+            const where = (args as any).where;
+            // Composite key yang memuat organizationId (mis. app_settings PK
+            // [organizationId, key], letter_counters PK [organizationId, year, type]):
+            // pemanggil sudah eksplisit menentukan tenant, biarkan lewat.
+            if (Object.keys(where).some((k) => k.startsWith("organizationId_"))) {
+              return query(args);
+            }
+            const newWhere = { ...where, organizationId };
             const finder = operation === "findUnique" ? "findFirst" : "findFirstOrThrow";
-            return (prisma as any)[model][finder]({ ...args, where });
+            return (prisma as any)[model][finder]({ ...args, where: newWhere });
           }
 
           // 5. Upsert: Prisma meng-upsert pada unique field yang bisa saja milik org lain,
@@ -63,6 +70,10 @@ export function getTenantPrisma(organizationId: string) {
           // unique constraint, yang justru benar (menolak menimpa baris orang lain).
           if (operation === "upsert") {
             const upsertArgs = args as any;
+            // Composite key yang memuat organizationId: pemanggil sudah eksplisit.
+            if (Object.keys(upsertArgs.where).some((k) => k.startsWith("organizationId_"))) {
+              return query(args);
+            }
             const existing = await (prisma as any)[model].findFirst({
               where: { ...upsertArgs.where, organizationId },
               select: { id: true },

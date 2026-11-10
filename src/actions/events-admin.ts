@@ -30,7 +30,7 @@ export async function saveEventAction(_: FormState, fd: FormData): Promise<FormS
   const uniqueSlug = async (title: string) => {
     const base = slugify(title);
     let slug = base;
-    while (await tenantPrisma.event.findUnique({ where: { slug }, select: { id: true } })) slug = withSuffix(base);
+    while (await tenantPrisma.event.findFirst({ where: { slug }, select: { id: true } })) slug = withSuffix(base);
     return slug;
   };
 

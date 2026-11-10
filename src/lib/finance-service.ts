@@ -9,8 +9,10 @@ export async function syncOverdue() {
   });
 }
 
-export async function getDuesAmount() {
-  const s = await prisma.appSetting.findUnique({ where: { key: "dues_amount" } });
+export async function getDuesAmount(organizationId: string) {
+  const s = await prisma.appSetting.findUnique({
+    where: { organizationId_key: { organizationId, key: "dues_amount" } },
+  });
   const n = Number(s?.value);
   return Number.isFinite(n) && n > 0 ? n : 10000;
 }

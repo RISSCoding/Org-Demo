@@ -133,8 +133,8 @@ export async function createLetterAction(_: FormState, fd: FormData): Promise<Fo
       if (isAutoNumbered(d.type)) {
         // Atomic per (year, type): concurrent submissions can't receive the same sequence.
         const counter = await tx.letterCounter.upsert({
-          where: { year_type: { year, type: d.type } },
-          create: { year, type: d.type, last: 1 },
+          where: { organizationId_year_type: { organizationId: user.organizationId!, year, type: d.type } },
+          create: { organizationId: user.organizationId!, year, type: d.type, last: 1 },
           update: { last: { increment: 1 } },
         });
         letterNumber = formatLetterNumber(numberCode(d.type, kind)!, counter.last, activity, year, month);
